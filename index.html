@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fantasy Codex Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<!-- NAVBAR -->
+
+<nav class="navbar">
+
+<div class="nav-left">
+
+<button class="menu-btn" onclick="toggleSidebar()">
+<i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="logo">
+<i class="fa-solid fa-dragon"></i>
+<span>Bách khoa</span>
+</div>
+
+</div>
+
+
+<div class="nav-center">
+
+<div class="search-box">
+
+<i class="fa fa-search"></i>
+
+<input id="searchInput" type="text"
+placeholder="Tìm nhân vật...">
+
+<select id="raceFilter">
+<option value="">Tất cả chủng tộc</option>
+</select>
+
+</div>
+
+</div>
+
+
+<div class="nav-right">
+
+<button class="icon-btn" onclick="exportData()">
+<i class="fa fa-download"></i>
+</button>
+
+<label class="icon-btn">
+
+<i class="fa fa-upload"></i>
+
+<input type="file"
+id="importInput"
+hidden
+accept=".json"
+onchange="importData(event)">
+
+</label>
+
+</div>
+
+</nav>
+
+
+
+<!-- LAYOUT -->
+
+<div class="app-container">
+
+
+<!-- SIDEBAR -->
+
+<aside id="sidebar" class="sidebar">
+
+<div class="nav-item active"
+onclick="showPage('home')" id="nav-home">
+<i class="fa fa-home"></i>
+<span>Trang chủ</span>
+</div>
+
+<div class="nav-item"
+onclick="showPage('characters')" id="nav-characters">
+<i class="fa fa-users"></i>
+<span>Nhân vật</span>
+</div>
+<div class="nav-item"
+onclick="showPage('races')" id="nav-races">
+<i class="fa fa-dna"></i>
+<span>Chủng tộc</span>
+</div>
+<div class="nav-item"
+onclick="showPage('compare')" id="nav-compare">
+<i class="fa fa-scale-balanced"></i>
+<span>So sánh</span>
+</div>
+
+<div class="nav-item"
+onclick="showPage('codex')" id="nav-codex">
+<i class="fa fa-database"></i>
+<span>Dữ liệu</span>
+</div>
+
+
+</aside>
+
+
+
+<!-- CONTENT -->
+
+<main class="content">
+
+
+<!-- HOME -->
+<section id="home" class="page">
+<div class="hero">
+<h1>Biên Niên Sử Fantasy</h1>
+<p>Hệ thống quản lý nhân vật trong thế giới fantasy.</p><div class="home-search">
+<input 
+type="text"
+id="homeSearch"
+placeholder="Tìm nhân vật..." 
+oninput="showSuggestions()">
+<div id="searchSuggestions" class="suggestions"></div>
+</div>
+<button class="btn-primary"
+onclick="showPage('characters')">
+Khám phá thư viện
+</button>
+
+<button class="btn-secondary"
+onclick="openModal()">
+Tạo nhân vật
+</button>
+
+</div>
+
+</section>
+
+
+
+<!-- CHARACTER LIBRARY -->
+
+<section id="characters"
+class="page hidden">
+
+<div class="page-header">
+
+<h2>Danh sách nhân vật</h2>
+
+<span id="charCount">0</span>
+
+<button class="btn-add"
+onclick="openModal()">
+Tạo nhân vật
+</button>
+
+</div>
+<div id="characterList"
+class="grid-container"></div>
+</section>
+<!-- RACES PAGE -->
+<section id="races" class="page hidden">
+<div class="page-header">
+<h2>Danh sách chủng tộc</h2>
+<span id="raceCount">0</span>
+<button class="btn-add" onclick="openRaceModal()">
+Thêm chủng tộc
+</button>
+</div>
+<div id="raceList" class="grid-container"></div>
+</section>
+
+<!-- PROFILE PAGE -->
+
+<section id="characterPage"
+class="page hidden">
+
+<button onclick="showPage('characters')">
+Quay lại
+</button>
+
+<h2 id="charPageName"></h2>
+
+<img id="charPageImg"
+style="width:200px">
+
+<p><b>Chủng tộc:</b>
+<span id="charPageRace"></span>
+</p>
+
+<p><b>Phe phái:</b>
+<span id="charPageFaction"></span>
+</p>
+<p><b>Power Level:</b>
+<span id="charPagePL"></span>
+</p>
+<p><b>Tiểu sử:</b>
+<span id="charPageDesc"></span>
+</p>
+
+<p><b>Ngoại hình:</b>
+<span id="charPageAppearance"></span>
+</p>
+
+<p><b>Tính cách:</b>
+<span id="charPagePersonality"></span>
+</p>
+
+</section>
+
+<!-- RACE PROFILE -->
+<section id="racePage" class="page hidden">
+<button onclick="showPage('races')">Quay lại</button>
+<h2 id="racePageName"></h2>
+<p><b>Ngoại hình:</b>
+<span id="racePageAppearance"></span>
+</p>
+<p><b>Tuổi thọ:</b>
+<span id="racePageLifespan"></span>
+</p>
+<p><b>Kỹ năng:</b>
+<span id="racePageSkills"></span>
+</p>
+<p><b>Nơi sinh sống / Vương quốc:</b>
+<span id="racePageKingdom"></span>
+</p>
+<p><b>Quan hệ:</b>
+<span id="racePageRelations"></span>
+</p>
+</section>
+<!-- COMPARE PAGE -->
+
+<section id="compare" class="page hidden">
+
+<div class="page-header">
+<h2>So sánh nhân vật</h2>
+</div>
+
+<div class="compare-select">
+
+<select id="compareA"></select>
+
+<span style="font-size:20px;font-weight:bold;">VS</span>
+
+<select id="compareB"></select>
+
+<button class="btn-primary" onclick="compareCharacters()">
+So sánh
+</button>
+
+</div>
+
+<div id="compareResult"></div>
+
+</section>
+
+
+
+<!-- CODEX JSON -->
+
+<section id="codex" class="page hidden">
+
+<h2>Dữ liệu JSON</h2>
+
+<button onclick="copyJSON()">
+Copy JSON
+</button>
+
+<pre id="codexContent"></pre>
+
+</section>
+
+</main>
+
+</div>
+
+
+
+<!-- MODAL -->
+
+<div id="characterModal" class="modal">
+
+<div class="modal-content">
+
+<h3 id="modalTitle">Thiết lập nhân vật</h3>
+<form id="charForm" onsubmit="event.preventDefault(); saveCharacter();">
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Tên nhân vật *</label>
+<input type="text" id="charName" required>
+</div>
+
+<div class="form-group">
+<label>Ảnh đại diện</label>
+<input type="file" id="charImg" accept="image/*">
+</div>
+<div class="form-group">
+<label>Chủng tộc</label>
+<select id="charRace"></select>
+</div>
+<div class="form-group">
+<label>Phe phái</label>
+<input type="text" id="charFaction">
+</div>
+
+<div class="form-group">
+<label>Power Level (PL)</label>
+<input type="number" id="charPL" placeholder="VD: 9000">
+</div>
+
+<div class="form-group">
+<label>Ngoại hình</label>
+<input type="text" id="charAppearance">
+</div>
+
+<div class="form-group">
+<label>Tính cách</label>
+<input type="text" id="charPersonality">
+</div>
+
+<div class="form-group full">
+<label>Tiểu sử</label>
+<textarea id="charDesc"></textarea>
+</div>
+
+</div>
+
+<img id="previewImg" class="hidden">
+
+<div class="modal-buttons">
+<button type="button" onclick="closeCharacterModal()">Hủy</button>
+<button type="submit">Lưu</button>
+</div>
+
+</form>
+
+
+</div>
+
+</div>
+
+<!-- RACE MODAL -->
+<div id="raceModal" class="modal">
+<div class="modal-content">
+<h3>Thiết lập chủng tộc</h3>
+<form onsubmit="event.preventDefault(); saveRace();">
+<div class="form-grid">
+<div class="form-group">
+<label>Tên chủng tộc</label>
+<input type="text" id="raceName">
+</div>
+<div class="form-group">
+<label>Ngoại hình</label>
+<input type="text" id="raceAppearance">
+</div>
+<div class="form-group">
+<label>Tuổi thọ</label>
+<input type="text" id="raceLifespan">
+</div>
+<div class="form-group">
+<label>Kỹ năng</label>
+<input type="text" id="raceSkills">
+</div>
+<div class="form-group">
+<label>Nơi sinh sống / Vương quốc</label>
+<input type="text" id="raceKingdom">
+</div>
+<div class="form-group">
+<label>Quan hệ</label>
+<input type="text" id="raceRelations">
+</div>
+</div>
+<div class="modal-buttons">
+<button type="button" onclick="closeRaceModal()">Hủy</button>
+<button type="submit">Lưu</button>
+</div>
+</form>
+</div>
+</div>
+<script src="app.js"></script>
+
+</body>
+</html>
