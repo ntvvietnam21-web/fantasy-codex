@@ -123,22 +123,20 @@ display:grid;
 grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
 gap:16px;
 padding:20px;
-}
-.card{
+}.card{
 background:#14223a;
 border-radius:14px;
-
 overflow:hidden;
-
 padding:10px;
-
 text-align:center;
-
 transition:0.2s;
-
+position:relative;
 }
 
-
+.card:hover{
+transform:translateY(-6px) scale(1.03);
+box-shadow:0 15px 40px rgba(0,0,0,0.4);
+}
 /* FIX LỖI VIỀN VÀNG: Sử dụng class 'is-favorite' để khớp với JS */
 .card.is-favorite {
     border: 2px solid var(--gold) !important;
@@ -336,11 +334,7 @@ grid-column:auto;
 background:#3b82f6; color:white;
 } .race-buttons button:last-child{
 background:#ef4444; color:white;
-} .home-search{
-margin-top:20px;
-display:flex;
-justify-content:center;
-} .home-search input{
+}.home-search input{
 width:320px; padding:12px 16px; border-radius:12px; border:none; background:#1d2a3f; color:white; font-size:15px;
 }
 .home-search input:focus{outline:2px solid #6366f1;
@@ -350,20 +344,24 @@ display:flex;
 flex-direction:column;
 align-items:center;
 position:relative;
-}.home-search input{
-width:320px;
-padding:12px 16px;
-border-radius:12px;
-border:none;
-background:#1d2a3f;
-color:white;
-font-size:15px;}.suggestions{
+}.hero{
+text-align:center;
+padding:60px 20px;background:linear-gradient(135deg,#1e1b4b,#020617);}.hero h1{
+font-size:40px;
+margin-bottom:10px;}.hero p{
+color:#94a3b8;}
+}
+.suggestions{
 width:320px;
 background:#1d2a3f;
 border-radius:10px;
 margin-top:6px;
 overflow:hidden;
-box-shadow:0 10px 20px rgba(0,0,0,0.3);}.suggestion-item{
+box-shadow:0 10px 20px rgba(0,0,0,0.3);
+position:absolute;
+top:100%;
+z-index:100;
+}.suggestion-item{
 padding:10px 14px;
 cursor:pointer;
 border-bottom:1px solid rgba(255,255,255,0.05);
@@ -371,8 +369,11 @@ border-bottom:1px solid rgba(255,255,255,0.05);
 .suggestion-item:hover{
 background:#2a3b59;
 }
-
-
-
-
+.race-badge{
+display:inline-block;
+background:#334155;
+padding:3px 8px;
+border-radius:6px;
+font-size:12px;
+margin-top:4px;
 }

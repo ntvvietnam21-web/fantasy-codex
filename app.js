@@ -416,9 +416,11 @@ loadCompareSelect();
 renderRaces();
 updateRaceOptions();
 document.getElementById("searchInput").addEventListener("input",applyFilters);
-
     document.getElementById("raceFilter").addEventListener("change",applyFilters);
-
+// click ngoài sidebar để đóng
+document.addEventListener("click", function(e){const sidebar = document.getElementById("sidebar");const menuBtn = document.querySelector(".menu-btn");if(sidebar.classList.contains("active") &&
+!sidebar.contains(e.target) &&
+!menuBtn.contains(e.target)){sidebar.classList.remove("active");}});
     document.getElementById("charImg").addEventListener("change",async function(){
 
         if(!this.files[0]) return;
@@ -599,7 +601,7 @@ document.getElementById("racePageLifespan").textContent = r.lifespan;
 document.getElementById("racePageSkills").textContent = r.skills;
 document.getElementById("racePageKingdom").textContent = r.kingdom;
 document.getElementById("racePageRelations").textContent = r.relations;
-showPage("racePage");function updateRaceOptions(){
+showPage("racePage");}function updateRaceOptions(){
 
 let select=document.getElementById("charRace");
 let filter=document.getElementById("raceFilter");
@@ -621,9 +623,8 @@ option2.textContent=r.name;
 select.appendChild(option1);
 filter.appendChild(option2);
 });
+}
 
-}
-}
 function resetRaceForm(){
 
 document.getElementById("raceName").value="";
@@ -642,17 +643,21 @@ box.innerHTML="";
 
 if(!text){
 box.style.display="none";
-return;
-}
-
-const results=characters.filter(c=>
-c.name.toLowerCase().includes(text)
+return;const results = characters.filter(c =>
+(c.name || "").toLowerCase().includes(text) ||
+(c.race || "").toLowerCase().includes(text) ||
+(c.faction || "").toLowerCase().includes(text)
 );
+}
 
 results.slice(0,5).forEach(char=>{
 const div=document.createElement("div");
 div.className="suggestion-item";
-div.innerText=char.name;
+div.innerHTML = `
+<b>${char.name}</b>
+<br>
+<small>${char.race || "Unknown"} • PL ${char.pl || "?"}</small>
+`;
 div.onclick=()=>{
 openProfile(char.id);
 showPage("characterPage");

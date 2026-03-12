@@ -130,12 +130,12 @@ onclick="showPage('codex')" id="nav-codex">
 <section id="home" class="page">
 <div class="hero">
 <h1>Biên Niên Sử Fantasy</h1>
-<p>Hệ thống quản lý nhân vật trong thế giới fantasy.</p><div class="home-search">
-<input 
+<p>Hệ thống quản lý nhân vật trong thế giới fantasy.</p><div class="home-search"><input
 type="text"
 id="homeSearch"
 placeholder="Tìm nhân vật..." 
-oninput="showSuggestions()">
+oninput="showSuggestions()"
+onkeydown="if(event.key==='Enter'){quickSearch()}">
 <div id="searchSuggestions" class="suggestions"></div>
 </div>
 <button class="btn-primary"
