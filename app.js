@@ -282,7 +282,7 @@ async function saveCharacter() {
             core: { str: 0, agi: 0, int: 0, vit: 0, spi: 0, luk: 0 },
             vital: { hp: 0, mp: 0, stamina: 0, shield: 0 },
             offense: { atk: 0, matk: 0, critRate: 0, critDmg: 0, pen: 0, atkSpeed: 0, castSpeed: 0 },
-            defense: { def: 0, mdef: 0, eva: 0, block: 0, dmgReduce: 0, resist: 0 }
+            defense: { def: 0, mdef: 0, evasion: 0, block: 0, dmgReduce: 0, resist: 0 }
         };
 
         const stats = {
@@ -688,7 +688,7 @@ async function openProfile(id) {
                         </div>
                         <div class="stats-mini-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:10px;">
                              <div class="stat-mini-item"><span class="stat-mini-label">Bạo kích</span><span class="stat-mini-val">${getVal(offense.critRate)}%</span></div>
-                            <div class="stat-mini-item"><span class="stat-mini-label">Né tránh</span><span class="stat-mini-val">${getVal(defense.eva)}</span></div>
+                            <div class="stat-mini-item"><span class="stat-mini-label">Né tránh</span><span class="stat-mini-val">${getVal(defense.evasion)}</span></div>
                             <div class="stat-mini-item"><span class="stat-mini-label">Tốc độ</span><span class="stat-mini-val">${getVal(offense.atkSpeed)}</span></div>
                         </div>
                     </div>
@@ -1008,6 +1008,7 @@ const calculatePL = (nv) => {
     });
     return nv.pl || total; 
 };
+
 const DANH_SACH_CHI_SO = [
     {
         nhom: "⚡ Chỉ số cơ bản",
