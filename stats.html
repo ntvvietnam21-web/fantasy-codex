@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Codex - Thiết lập chỉ số</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="stats.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="stats-header">
+        <button class="back-btn" onclick="goBack()">
+            <i class="fa-solid fa-chevron-left"></i> Quay lại
+        </button>
+        <button class="reset-btn" onclick="resetStats()">
+            <i class="fa-solid fa-rotate-right"></i> Reset
+        </button>
+    </div>
+
+    <h1 id="charName">Đang tải nhân vật...</h1>
+
+    <div id="statsContainer">
+
+        <div class="stat-group animate-slide-up">
+            <h3><i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Chỉ số cơ bản</h3>
+            <p class="desc">Nền tảng sức mạnh cốt lõi</p>
+
+            <div class="grid-inputs">
+                <label>
+                    <span>Sức mạnh (STR)<small>ST vật lý, mang vác</small></span>
+                    <input id="str" type="number" value="0">
+                </label>
+                <label>
+                    <span>Nhanh nhẹn (AGI)<small>Tốc độ, né tránh</small></span>
+                    <input id="agi" type="number" value="0">
+                </label>
+                <label>
+                    <span>Trí tuệ (INT)<small>Sức mạnh phép, MP</small></span>
+                    <input id="int" type="number" value="0">
+                </label>
+                <label>
+                    <span>Thể lực (VIT)<small>Máu, chống chịu</small></span>
+                    <input id="vit" type="number" value="0">
+                </label>
+                <label>
+                    <span>Tinh thần (SPI)<small>Hồi MP, kháng phép</small></span>
+                    <input id="spi" type="number" value="0">
+                </label>
+                <label>
+                    <span>May mắn (LUK)<small>Chí mạng, may rủi</small></span>
+                    <input id="luk" type="number" value="0">
+                </label>
+            </div>
+        </div>
+
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.1s;">
+            <h3><i class="fa-solid fa-heart" style="color: #ef4444;"></i> Chỉ số sinh tồn</h3>
+            <div class="grid-inputs">
+                <label>
+                    <span>HP (Máu)</span>
+                    <input id="hp" type="number" value="0">
+                </label>
+                <label>
+                    <span>MP (Năng lượng)</span>
+                    <input id="mp" type="number" value="0">
+                </label>
+                <label>
+                    <span>Thể lực (Stamina)</span>
+                    <input id="stamina" type="number" value="0">
+                </label>
+                <label>
+                    <span>Khiên (Shield)</span>
+                    <input id="shield" type="number" value="0">
+                </label>
+            </div>
+        </div>
+
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.2s;">
+            <h3><i class="fa-solid fa-swords" style="color: #f87171;"></i> Chỉ số tấn công</h3>
+            <div class="grid-inputs">
+                <label><span>Vật lý (ATK)</span><input id="atk" type="number" value="0"></label>
+                <label><span>Phép (MATK)</span><input id="matk" type="number" value="0"></label>
+                <label><span>Tỷ lệ chí mạng (%)</span><input id="critRate" type="number" value="0"></label>
+                <label><span>ST Chí mạng (%)</span><input id="critDmg" type="number" value="0"></label>
+                <label><span>Xuyên giáp</span><input id="pen" type="number" value="0"></label>
+                <label><span>Tốc độ đánh</span><input id="atkSpeed" type="number" value="0"></label>
+                <label><span>Tốc độ cast</span><input id="castSpeed" type="number" value="0"></label>
+            </div>
+        </div>
+
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.3s;">
+            <h3><i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> Chỉ số phòng thủ</h3>
+            <div class="grid-inputs">
+                <label><span>Giáp (DEF)</span><input id="def" type="number" value="0"></label>
+                <label><span>Kháng phép (MDEF)</span><input id="mdef" type="number" value="0"></label>
+                <label><span>Né tránh</span><input id="eva" type="number" value="0"></label>
+                <label><span>Đỡ đòn (Block)</span><input id="block" type="number" value="0"></label>
+                <label><span>Giảm ST (%)</span><input id="dmgReduce" type="number" value="0"></label>
+                <label><span>Kháng hiệu ứng</span><input id="resist" type="number" value="0"></label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-actions">
+        <button class="save-btn" onclick="saveStats()">
+            <i class="fa-solid fa-floppy-disk"></i> LƯU CHỈ SỐ HỆ THỐNG
+        </button>
+    </div>
+
+</div>
+
+<script src="idSystem.js"></script>
+<script src="imageDB.js"></script>
+<script src="effects.js"></script> <script src="stats.js"></script>
+
+</body>
+</html>

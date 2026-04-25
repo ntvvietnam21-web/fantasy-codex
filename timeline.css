@@ -1,0 +1,299 @@
+/* ============================================================
+   GM: FANTASY TIMELINE PRO STYLESHEET
+   ============================================================ */
+
+:root {
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+    --gold: #ffd700;
+    --green: #22c55e;
+    --war: #ef4444;
+    --magic: #a855f7;
+    --discovery: #3b82f6;
+    --text-main: #f8fafc;
+}
+
+/* ===== GLOBAL ===== */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    padding: 20px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Cinzel', serif; /* Nếu bạn có font này từ index.html */
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+}
+
+/* ===== CONTAINER & CONTROLS ===== */
+.timeline-container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+.timeline-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.timeline-controls button {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-controls button:hover {
+    background: #334155;
+    border-color: var(--gold);
+    transform: scale(1.1);
+}
+
+/* ===== FORM NHẬP LIỆU ===== */
+.timeline-form {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.timeline-form input, 
+.timeline-form select, 
+.timeline-form textarea {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+.timeline-form input:focus, .timeline-form textarea:focus {
+    border-color: var(--green);
+}
+
+.timeline-form button {
+    padding: 12px;
+    background: var(--green);
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.timeline-form button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+/* ===== TIMELINE WRAPPER (TRỤC THỜI GIAN) ===== */
+.timeline-wrapper {
+    position: relative;
+    padding: 80px 0; /* Tạo không gian cho card trồi lên/xuống */
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    /* Đường kẻ trục chính */
+    background-image: linear-gradient(to right, transparent 0%, var(--green) 50%, transparent 100%);
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+    background-position: center 85px; /* Khớp với vị trí dot-marker */
+}
+
+.timeline-wrapper:active { cursor: grabbing; }
+
+/* Scrollbar Custom */
+.timeline-wrapper::-webkit-scrollbar { height: 6px; }
+.timeline-wrapper::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+.timeline-wrapper::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+/* ===== TIMELINE LIST ===== */
+.timeline-horizontal {
+    display: flex;
+    align-items: flex-start;
+    padding: 0 50px;
+    min-height: 250px;
+}
+
+/* ===== TIMELINE ITEM (CARD) ===== */
+.timeline-item {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.timeline-item:hover {
+    transform: translateY(-10px);
+}
+
+/* Marker Dot trên trục */
+.dot-marker {
+    width: 16px;
+    height: 16px;
+    background: var(--bg-dark);
+    border: 3px solid var(--green);
+    border-radius: 50%;
+    z-index: 5;
+    margin-bottom: 20px; /* Khoảng cách từ trục đến card */
+    box-shadow: 0 0 10px var(--green);
+}
+
+/* Card Content */
+.item-card {
+    background: var(--card-bg);
+    width: 220px;
+    padding: 15px;
+    border-radius: 10px;
+    border-top: 4px solid var(--green);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    position: relative;
+}
+
+/* Màu sắc theo Type */
+.type-war .item-card { border-top-color: var(--war); }
+.type-war .dot-marker { border-color: var(--war); box-shadow: 0 0 10px var(--war); }
+
+.type-magic .item-card { border-top-color: var(--magic); }
+.type-magic .dot-marker { border-color: var(--magic); box-shadow: 0 0 10px var(--magic); }
+
+.type-discovery .item-card { border-top-color: var(--discovery); }
+.type-discovery .dot-marker { border-color: var(--discovery); box-shadow: 0 0 10px var(--discovery); }
+
+/* Text trong Card */
+.year-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 5px;
+}
+
+.type-war .year-label { color: var(--war); }
+.type-magic .year-label { color: var(--magic); }
+
+.item-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.item-desc {
+    font-size: 12px;
+    opacity: 0.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Nút xóa trong card */
+.del-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--war);
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none; /* Hiện khi hover card */
+    font-size: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-item:hover .del-btn { display: flex; }
+
+/* ===== MODAL ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: 0.3s;
+}
+
+.modal.hidden { display: none; }
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    width: 450px;
+    max-width: 90%;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+.close-btn:hover { opacity: 1; }
+
+.event-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background: #334155;
+}
+
+.badge-war { background: var(--war); }
+.badge-magic { background: var(--magic); }
+
+.year-text { color: var(--gold); font-weight: bold; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .timeline-form { padding: 15px; }
+    .item-card { width: 180px; }
+    .timeline-horizontal { padding: 0 20px; }
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Địa điểm - Fantasy Codex</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="GiaoDien.css"> <link rel="stylesheet" href="locations.css">
+</head>
+<body class="dark-mode">
+
+<nav class="navbar">
+  <div class="nav-left">
+    <button onclick="location.href='index.html'" class="icon-btn"><i class="fa fa-home"></i></button>
+    <div class="logo"><i class="fa-solid fa-dragon"></i> <span>Bách khoa</span></div>
+  </div>
+  <div class="nav-right">
+    <button onclick="window.history.back()"><i class="fa fa-arrow-left"></i> Quay lại</button>
+  </div>
+</nav>
+
+<main class="content">
+  <section id="locationListPage">
+    <div class="page-header">
+      <h2>Địa điểm <span id="locationCount" class="badge">0</span></h2>
+      <div class="header-actions">
+        <input type="text" id="locationSearch" placeholder="🔍 Tìm kiếm..." oninput="searchLocations()">
+        <button class="btn-add" onclick="openForm()">+ Thêm mới</button>
+      </div>
+    </div>
+    <div id="locationList" class="grid-container"></div>
+  </section>
+
+  <section id="locationDetail" class="detail-page" style="display:none">
+    <div class="detail-header">
+      <button onclick="backToList()" class="btn-back"><i class="fa fa-arrow-left"></i> Danh sách</button>
+      <div class="detail-actions">
+        <button class="btn-edit" onclick="editCurrentLocation()">✏️ Sửa</button>
+        <button class="btn-delete" onclick="deleteCurrentLocation()">🗑️ Xoá</button>
+      </div>
+    </div>
+
+    <div class="detail-content">
+      <div class="detail-main-info">
+        <h2 id="detailName"></h2>
+        <div class="detail-image-wrapper">
+            <img id="detailImage" src="https://i.imgur.com/6X8FQyA.png">
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="info-item"><b>Loại:</b> <span id="detailType"></span></div>
+        <div class="info-item"><b>Địa chỉ:</b> <span id="detailAddress"></span></div>
+        <div class="info-item"><b>Đế chế:</b> <span id="detailEmpire"></span></div>
+        <div class="info-item"><b>Phe phái:</b> <span id="detailFaction"></span></div>
+        <div class="info-item"><b>Niên đại:</b> <span id="detailEra"></span></div>
+        <div class="info-item"><b>Tình trạng:</b> <span id="detailCondition"></span></div>
+      </div>
+
+      <div class="detail-full-width">
+        <div class="info-block">
+          <h4>Mô tả</h4>
+          <p id="detailDescriptionText"></p>
+        </div>
+        <div class="info-block">
+          <h4>Nét đặc trưng</h4>
+          <p id="detailFeatures"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="locationFormModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+        <h3 id="formTitle">Thêm địa điểm</h3>
+        <span class="close" onclick="closeForm()">&times;</span>
+    </div>
+    <form id="locationForm" onsubmit="event.preventDefault(); saveLocation();">
+      <div class="form-scroll-area">
+          <div class="form-group">
+            <label>Tên địa điểm *</label>
+            <input type="text" id="locationName" required>
+          </div>
+          <div class="form-group">
+            <label>Hình ảnh</label>
+            <input type="file" id="locationImage" accept="image/*">
+          </div>
+          <div class="two-cols">
+              <div class="form-group">
+                <label>Loại địa điểm</label>
+                <input type="text" id="locationType" placeholder="VD: Thành phố, Hang động...">
+              </div>
+              <div class="form-group">
+                <label>Niên đại</label>
+                <input type="text" id="locationEra">
+              </div>
+          </div>
+          <div class="form-group">
+            <label>Vị trí / Địa chỉ</label>
+            <input type="text" id="locationAddress">
+          </div>
+          <div class="two-cols">
+              <div class="form-group">
+                <label>Đế chế quản lý</label>
+                <select id="locationEmpire"></select>
+              </div>
+              <div class="form-group">
+                <label>Phe phái ảnh hưởng</label>
+                <select id="locationFaction"></select>
+              </div>
+          </div>
+          <div class="form-group">
+            <label>Mô tả chi tiết</label>
+            <textarea id="locationDescription" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tình trạng / Hiện trạng</label>
+            <input type="text" id="locationCondition">
+          </div>
+          <div class="form-group">
+            <label>Điểm đặc trưng</label>
+            <input type="text" id="locationFeatures">
+          </div>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn-cancel" onclick="closeForm()">Hủy</button>
+        <button type="submit" class="btn-save">Lưu dữ liệu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="imageDB.js"></script>
+<script src="effects.js"></script>
+<script src="app.js"></script> <script src="locations.js"></script>
+</body>
+</html>

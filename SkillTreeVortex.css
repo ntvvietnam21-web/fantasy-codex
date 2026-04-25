@@ -1,0 +1,406 @@
+/* SkillTreeVortex.css - ANDROID ULTIMATE FANTASY */
+:root {
+    --vortex-bg: #020205;
+    --glass-bg: rgba(10, 10, 25, 0.95);
+    --gold: #f59e0b;
+    --gold-glow: rgba(245, 158, 11, 0.5);
+    --android-surface: #121212;
+    --border-glass: rgba(255, 255, 255, 0.1);
+}
+
+.vortex-overlay {
+    position: fixed; inset: 0; background: var(--vortex-bg);
+    z-index: 99999; display: none; overflow: hidden; touch-action: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight mặc định Android */
+}
+
+/* NỀN HỐ ĐEN CHIỀU SÂU */
+.vortex-overlay::before {
+    content: ""; position: absolute; top: 50%; left: 50%; width: 300vmax; height: 300vmax;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at center, transparent 0%, #000 45%),
+                repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(245, 158, 11, 0.03) 15deg 20deg, transparent 30deg);
+    animation: blackHoleRotate 120s linear infinite;
+}
+
+/* TÂM ĐIỂM (EVENT HORIZON) */
+.vortex-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(35vw, 160px); height: min(35vw, 160px);
+    border-radius: 50%; border: 2px solid var(--gold);
+    box-shadow: 0 0 30px var(--gold-glow), inset 0 0 20px #000;
+    background-size: cover; background-position: center; z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+/* NODE KỸ NĂNG - TỐI ƯU VÙNG CHẠM */
+.skill-bubble.fantasy-node {
+    position: absolute; width: min(38vw, 140px); min-height: 50px;
+    padding: 10px; background: var(--glass-bg); backdrop-filter: blur(15px);
+    border: 1px solid var(--border-glass); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 30; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.skill-bubble.fantasy-node:active { /* Hiệu ứng nhấn trên Android */
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.skill-name {
+    font-size: 0.85rem; font-weight: 600; color: #fff;
+    text-align: center; line-height: 1.2;
+}
+
+/* BOTTOM SHEET (GIAO DIỆN ANDROID THÂN THIỆN) */
+.vortex-skill-card {
+    position: fixed; bottom: -100%; left: 0; right: 0;
+    background: var(--android-surface);
+    border-top: 1px solid var(--border-glass);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 24px 40px 24px;
+    transition: bottom 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 100001;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+}
+
+.vortex-skill-card.active { bottom: 0; }
+
+/* THANH KÉO (HANDLE BAR) CHO BOTTOM SHEET */
+.vortex-skill-card::after {
+    content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
+}
+
+/* NÚT THOÁT GÓC TRÊN (DỄ BẤM) */
+.vortex-close {
+    position: absolute; top: 20px; left: 20px; width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.5); border-radius: 50%;
+    color: #fff; font-size: 1.5rem; z-index: 1000;
+}
+
+/* NÚT THÊM - TRÔI NỔI (FAB STYLE) */
+.vortex-add-btn {
+    position: absolute; bottom: 30px; right: 20px;
+    width: 60px; height: 60px; border-radius: 30px;
+    background: var(--gold); color: #000; border: none;
+    box-shadow: 0 4px 20px var(--gold-glow);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; z-index: 500;
+}
+
+.vortex-add-btn span { display: none; } /* Ẩn chữ trên Mobile để thành nút tròn FAB */
+
+/* PC ADAPTATION */
+@media (min-width: 1024px) {
+    .vortex-skill-card {
+        top: 0; bottom: 0; left: auto; right: -400px;
+        width: 400px; border-radius: 0; border-left: 1px solid var(--gold);
+        padding-top: 80px;
+    }
+    .vortex-skill-card.active { right: 0; bottom: 0; }
+    .vortex-add-btn {
+        right: auto; left: 50%; transform: translateX(-50%);
+        width: auto; height: auto; border-radius: 50px;
+        padding: 15px 35px; font-size: 0.9rem;
+    }
+    .vortex-add-btn span { display: inline; margin-left: 8px; }
+}
+
+/* MODAL NHẬP LIỆU (FULL SCREEN TRÊN MOBILE) */
+@media (max-width: 768px) {
+    .vortex-modal-content {
+        width: 100%; height: 100%; border-radius: 0;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+}
+
+/* Đảm bảo khung chứa luôn ở giữa */
+.vortex-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    width: 1px; height: 1px; /* Tạo điểm neo chính xác tại tâm */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ép ảnh tâm luôn ở tọa độ (0,0) so với container */
+.vortex-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+}
+
+/* Sửa lỗi Modal bị lệch trên Android */
+.vortex-custom-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.8);
+}
+
+.vortex-modal-content {
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+}
+/* ĐƯỜNG NỐI NĂNG LƯỢNG BIẾN ĐỔI */
+.vortex-line-fantasy {
+    stroke-width: 2;
+    stroke-dasharray: 15 20;
+    stroke-linecap: round;
+    opacity: 0.7;
+    animation: energyFlow 3s linear infinite;
+    /* Hiệu ứng phát sáng neon */
+    filter: drop-shadow(0 0 6px var(--skill-color, var(--gold)));
+}
+
+@keyframes energyFlow {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* HIỆU ỨNG QUẦNG SÁNG TÂM HỐ ĐEN (SINGULARITY GLOW) */
+.vortex-center::before {
+    content: "";
+    position: absolute; inset: -15px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+    z-index: -1;
+    animation: singularityPulse 4s ease-in-out infinite;
+}
+
+@keyframes singularityPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* HIỆU ỨNG QUÉT SÁNG (SHINE) TRÊN NODE */
+.skill-bubble.fantasy-node::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transform: skewX(-25deg);
+    animation: nodeShine 8s infinite;
+}
+
+@keyframes nodeShine {
+    0% { left: -100%; }
+    15%, 100% { left: 200%; }
+}
+
+/* ĐIỂM NHẤN XUNG QUANH NODE */
+.node-pulse {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    left: -4px; top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 10px var(--skill-color);
+    animation: nodePulsePoint 2s ease-in-out infinite;
+}
+
+@keyframes nodePulsePoint {
+    0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; }
+    50% { transform: translateY(-50%) scale(1.5); opacity: 0.5; }
+}
+
+/* NÚT THÊM - HIỆU ỨNG PULSE */
+.vortex-add-btn {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, var(--gold) 0%, #b45309 100%);
+    animation: fabFloat 3s ease-in-out infinite;
+}
+
+@keyframes fabFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-10px) scale(1.05); box-shadow: 0 15px 30px var(--gold-glow); }
+}
+
+/* THANH MÀU NHẤN MẠNH TRÊN CARD */
+.card-color-bar {
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, var(--skill-color, var(--gold)), transparent);
+    filter: drop-shadow(0 0 8px var(--skill-color, var(--gold)));
+    margin-bottom: 20px;
+}
+
+/* HIỆU ỨNG BLUR KHI MODAL MỞ */
+#vortexOverlay:has(.vortex-custom-modal[style*="display: flex"]) .vortex-viewport {
+    filter: blur(8px) brightness(0.5);
+    transition: 0.4s;
+}
+
+/* Sửa lỗi z-index và pointer-events để các nút luôn bấm được */
+.vortex-overlay {
+    position: fixed; inset: 0; background: var(--vortex-bg);
+    z-index: 99999; display: none; overflow: hidden; touch-action: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Sửa Nebula để không chặn click của các nút chức năng */
+.vortex-nebula, .vortex-cosmic-dust {
+    position: absolute; inset: 0; z-index: 1;
+}
+
+/* Ép Viewport nằm trên Nebula nhưng dưới Card */
+.vortex-viewport {
+    position: absolute; inset: 0; z-index: 5;
+}
+
+/* Đảm bảo Bottom Sheet và Modal luôn ở trên cùng */
+.vortex-skill-card {
+    z-index: 100002 !important; 
+}
+
+.vortex-custom-modal {
+    z-index: 100003 !important;
+}
+
+/* Sửa lỗi blur khiến Android bị lag hoặc mờ vĩnh viễn */
+#vortexOverlay.modal-open .vortex-viewport {
+    filter: blur(8px) brightness(0.5);
+}
+
+/* GIAO DIỆN CARD CHI TIẾT KIỂU FANTASY RPG */
+.vortex-skill-card {
+    position: fixed;
+    bottom: -110%; /* Giấu sâu hơn để hiệu ứng trượt lên đẹp hơn */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 450px;
+    background: linear-gradient(165deg, rgba(15, 15, 25, 0.98) 0%, rgba(5, 5, 10, 0.95) 100%);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(245, 158, 11, 0.3); /* Viền vàng mờ */
+    border-radius: 20px 20px 0 0;
+    padding: 30px 20px;
+    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 100002;
+    box-shadow: 0 -15px 50px rgba(0,0,0,0.9), inset 0 0 20px rgba(245, 158, 11, 0.05);
+}
+
+.vortex-skill-card.active {
+    bottom: 0;
+}
+
+/* Thanh trang trí phía trên Card (Handle bar kiểu mới) */
+.bottom-sheet-handle {
+    width: 50px;
+    height: 3px;
+    background: var(--gold);
+    border-radius: 10px;
+    margin: -15px auto 20px;
+    opacity: 0.5;
+    box-shadow: 0 0 10px var(--gold-glow);
+}
+
+/* Header của Card */
+.card-header-fantasy {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 15px;
+}
+
+.card-header-fantasy i {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 0 8px var(--skill-color));
+}
+
+#cardSkillName {
+    font-family: 'Cinzel', serif; /* Font chữ kiểu cổ điển */
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+/* Nội dung mô tả */
+.card-body {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 12px;
+    border-left: 2px solid var(--skill-color);
+    margin-bottom: 25px;
+}
+
+#cardSkillDesc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    font-style: italic;
+}
+
+/* FOOTER - NƠI CHỨA NÚT XOÁ & SỬA (THIẾT KẾ LẠI) */
+.card-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Style chung cho nút */
+.card-footer button {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* Nút Sửa */
+.btn-card-edit {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+.btn-card-edit:active {
+    background: #6366f1;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+}
+
+/* Nút Xoá */
+.btn-card-del {
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #fca5a5 !important;
+}
+.btn-card-del:active {
+    background: #ef4444;
+    color: white !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* Hiệu ứng mờ nền khi Card mở (Optional) */
+.vortex-overlay:has(.vortex-skill-card.active) .vortex-viewport {
+    filter: blur(4px) grayscale(0.3);
+    transition: 0.5s;
+}

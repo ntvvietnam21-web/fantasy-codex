@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư viện Sinh vật - Fantasy Codex</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="GiaoDien.css">
+    <link rel="stylesheet" href="creatures.css">
+</head>
+<body class="dark-mode">
+
+<nav class="navbar">
+    <div class="nav-left">
+        <button class="menu-btn" onclick="window.history.back()">
+            <i class="fa fa-arrow-left"></i>
+        </button>
+        <div class="logo"><i class="fa-solid fa-dragon"></i> <span>Creature Codex</span></div>
+    </div>
+    <div class="nav-right">
+        <button class="icon-btn" onclick="exportCreatures()" title="Xuất JSON"><i class="fa fa-download"></i></button>
+        <label class="icon-btn" title="Nhập JSON">
+            <i class="fa fa-upload"></i>
+            <input type="file" id="creatureImportFile" accept=".json" hidden onchange="importCreatures(event)">
+        </label>
+    </div>
+</nav>
+
+<main class="content" style="padding-top: 80px;">
+    <header class="section-header" style="text-align: center; margin-bottom: 30px;">
+        <h2 class="cinzel-font" style="color: var(--gold); font-size: 2.5rem; text-shadow: var(--shadow-glow);">Thư viện Sinh vật</h2>
+        <p style="color: var(--text-dim);">Khám phá và quản lý các loài quái thú trong thế giới của bạn</p>
+    </header>
+
+    <div class="toolbar" style="display: flex; gap: 15px; margin-bottom: 30px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="search-box" style="flex: 1; min-width: 300px; position: relative;">
+            <i class="fa fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+            <input type="text" id="creatureSearch" placeholder="Tìm kiếm tên hoặc chủng loại..." 
+                   style="width: 100%; padding: 12px 12px 12px 45px; background: var(--glass); border: 1px solid var(--border); border-radius: 30px; color: #white;">
+        </div>
+        <button class="btn-back-modern" onclick="openCreatureModal()" style="background: var(--gold); color: #000;">
+            <i class="fa fa-plus"></i> Thêm Sinh Vật
+        </button>
+    </div>
+
+    <div id="creatureList" class="grid-container">
+        </div>
+
+    <div id="creaturePagination" class="pagination-container" style="margin-top: 40px;"></div>
+</main>
+
+<div id="creatureModal" class="modal">
+    <div class="modal-content glass-effect" style="max-width: 600px; border: 1px solid var(--gold);">
+        <div class="modal-header">
+            <h3 class="cinzel-font"><i class="fa-solid fa-scroll"></i> Hồ sơ Sinh vật</h3>
+            <span class="close" onclick="closeCreatureModal()">&times;</span>
+        </div>
+        <form id="creatureForm" onsubmit="event.preventDefault(); saveCreature();">
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Tên sinh vật <span style="color:red">*</span></label>
+                    <input type="text" id="creatureName" required placeholder="Ví dụ: Rồng Lửa Thượng Cổ">
+                </div>
+                <div class="form-group">
+                    <label>Phân loại</label>
+                    <input type="text" id="creatureType" placeholder="Ví dụ: Thần thú, Quỷ...">
+                </div>
+                <div class="form-group">
+                    <label>Độ nguy hiểm (Rank)</label>
+                    <select id="creatureRank">
+                        <option value="S">Rank S</option>
+                        <option value="A">Rank A</option>
+                        <option value="B">Rank B</option>
+                        <option value="C">Rank C</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Hình ảnh</label>
+                <div class="upload-zone" onclick="document.getElementById('creatureImg').click()" 
+                     style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 12px; cursor: pointer;">
+                    <i class="fa fa-cloud-upload" style="font-size: 2rem; color: var(--gold);"></i>
+                    <p>Nhấn để tải ảnh hoặc kéo thả</p>
+                    <input type="file" id="creatureImg" accept="image/*" hidden onchange="previewCreatureImage(event)">
+                </div>
+                <img id="creaturePreview" class="hidden" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; border: 1px solid var(--gold);">
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Mô tả đặc điểm</label>
+                <textarea id="creatureDesc" rows="4" placeholder="Viết về tập tính, kỹ năng..."></textarea>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-secondary" onclick="closeCreatureModal()">Hủy</button>
+                <button type="submit" class="btn-primary" style="background: var(--gold); color: #000; border:none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;">Lưu thông tin</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="creatureDetailModal" class="modal">
+    <div class="modal-content glass-effect" style="max-width: 700px; padding: 0; overflow: hidden; border-radius: 20px;">
+        <div id="detailHeader" style="height: 250px; position: relative; background-size: cover; background-position: center;">
+            <div style="position: absolute; inset: 0; background: linear-gradient(transparent, rgba(2,6,23,1));"></div>
+            <span class="close" onclick="closeCreatureDetailModal()" style="position: absolute; top: 15px; right: 20px; color: white; font-size: 30px; z-index: 10;">&times;</span>
+        </div>
+        <div style="padding: 30px; position: relative; margin-top: -60px;">
+            <div id="detailRank" style="display: inline-block; padding: 5px 15px; background: var(--gold); color: black; border-radius: 20px; font-weight: 800; margin-bottom: 10px;">RANK S</div>
+            <h2 id="detailCreatureName" class="cinzel-font" style="font-size: 2.5rem; color: var(--text-main);"></h2>
+            <div id="detailType" style="color: var(--gold); margin-bottom: 20px; font-weight: 600;"></div>
+            <div id="detailCreatureDesc" style="line-height: 1.8; color: var(--text-dim); text-align: justify; border-top: 1px solid var(--border); padding-top: 20px;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="creatures.js"></script>
+</body>
+</html>

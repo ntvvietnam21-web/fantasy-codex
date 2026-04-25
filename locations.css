@@ -1,0 +1,308 @@
+/* ===================================================
+   FANTASY CODEX - LOCATIONS MODULE STYLES (PRO)
+   Style: Ancient Mystical & Glassmorphism
+   =================================================== */
+
+:root {
+    --fantasy-gold: #ffd700;
+    --fantasy-silver: #e2e8f0;
+    --fantasy-bg: #0f172a;
+    --fantasy-card-bg: rgba(30, 41, 59, 0.7);
+    --fantasy-border: rgba(255, 215, 0, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-epic: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* GRID TỔNG THỂ */
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ==========================================
+   PARENT CARD (NHÓM/ĐẾ CHẾ) 
+   ========================================== */
+.parent-card {
+    background: var(--fantasy-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: var(--shadow-epic);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+/* Hiệu ứng dải màu Fantasy chạy ngầm */
+.parent-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--fantasy-gold), transparent);
+    opacity: 0.5;
+}
+
+.parent-card.open {
+    border-color: var(--fantasy-border);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+/* HEADER CỦA TAB */
+.parent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 5px;
+}
+
+.parent-header h3 {
+    flex: 1;
+    margin: 0;
+    font-family: 'Cinzel', serif; /* Font chữ Fantasy */
+    font-size: 1.1rem;
+    color: var(--fantasy-silver);
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    transition: var(--transition);
+}
+
+.parent-header h3:hover {
+    color: var(--fantasy-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Mũi tên phong cách cổ điển */
+.parent-header h3::after {
+    content: "\f107";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.9rem;
+    color: var(--fantasy-gold);
+    transition: transform 0.4s ease;
+}
+
+.parent-card.open .parent-header h3::after {
+    transform: rotate(180deg);
+}
+
+/* CỤM NÚT THAO TÁC TAB */
+.parent-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-mini {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--fantasy-silver);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-mini:hover {
+    background: var(--fantasy-gold);
+    color: black;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+/* ==========================================
+   CONTAINER CARD CON
+   ========================================== */
+.child-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    padding-top: 15px;
+    transition: var(--transition);
+    opacity: 1;
+    max-height: 5000px;
+}
+
+/* Hiệu ứng đóng mở mượt mà */
+.child-container.hidden {
+    display: grid !important;
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    margin: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* ==========================================
+   SMALL CARD (ĐỊA ĐIỂM CHI TIẾT)
+   ========================================== */
+.small-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 6px;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.small-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--fantasy-gold), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.small-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: var(--fantasy-gold);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.2);
+}
+
+.small-card:hover::before {
+    opacity: 1;
+}
+
+/* ẢNH ĐỊA ĐIỂM */
+.small-card img {
+    width: 100%;
+    aspect-ratio: 1/1; /* Ảnh vuông chuyên nghiệp */
+    object-fit: cover;
+    border-radius: 8px;
+    background: #1e293b;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* TIÊU ĐỀ ĐỊA ĐIỂM */
+.small-card h4 {
+    margin: 8px 0 4px;
+    font-size: 0.75rem;
+    color: var(--fantasy-silver);
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* NÚT THAO TÁC TRÊN CARD */
+.card-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0; /* Hiện khi hover */
+    transform: translateX(10px);
+    transition: var(--transition);
+    z-index: 5;
+}
+
+.small-card:hover .card-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.card-actions button {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 1px solid var(--fantasy-gold);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.card-actions button:hover {
+    background: var(--fantasy-gold);
+    color: black;
+    transform: scale(1.2);
+}
+
+/* ==========================================
+   THIẾT BỊ DI ĐỘNG (MOBILE)
+   ========================================== */
+@media (max-width: 600px) {
+    .child-container {
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 8px;
+    }
+
+    .parent-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .btn-mini {
+        width: 28px;
+        height: 28px;
+    }
+
+    .small-card h4 {
+        font-size: 0.65rem;
+    }
+
+    /* Trên mobile, hiện actions luôn hoặc dễ bấm hơn */
+    .card-actions {
+        opacity: 0.8;
+        transform: translateX(0);
+        top: 5px;
+        right: 5px;
+    }
+}
+
+/* BADGE SỐ LƯỢNG */
+.badge {
+    background: linear-gradient(135deg, var(--fantasy-gold), #b8860b);
+    color: black;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* HIỆU ỨNG LOADING/GLOW */
+@keyframes fantasyGlow {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+    50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+}
+
+.parent-card.open {
+    animation: fantasyGlow 3s infinite;
+}

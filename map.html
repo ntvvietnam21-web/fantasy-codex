@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Map Creator | GM System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="map.css">
+    <style>
+        #mapRoutes { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: visible; }
+        #mapMarkers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        
+        /* Giao diện Header mới */
+        .map-info-header { text-align: center; margin: 15px auto; max-width: 800px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .map-info-header h2 { font-family: 'Cinzel', serif; color: #f43f5e; margin: 0; text-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+        .map-info-header p { font-size: 0.9em; color: #ccc; margin-top: 5px; font-style: italic; }
+        
+        /* Toolbar Selector */
+        .map-selector-group { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 30px; }
+        #currentMapSelect { background: #1a1a2e; color: white; border: 1px solid #f43f5e; padding: 5px 10px; border-radius: 5px; outline: none; }
+    </style>
+</head>
+<body>
+
+<h1>🗺️ World Map Creator</h1>
+
+<div class="map-toolbar">
+    <div class="map-selector-group">
+        <select id="currentMapSelect" onchange="switchMap(this.value)"></select>
+        <button onclick="createNewMap()" title="Tạo bản đồ mới"><i class="fa fa-plus"></i></button>
+    </div>
+
+    <div class="file-input-wrapper">
+        <input type="file" id="mapUpload" accept="image/*">
+    </div>
+    
+    <button onclick="toggleAddMode()" id="addBtn">📍 Địa điểm</button>
+    <button onclick="toggleRouteMode()" id="routeBtn">🛣️ Nối đường</button>
+    <button onclick="editMapMetadata()">📝 Sửa thông tin</button>
+    <button onclick="manualSave()" id="saveBtn" style="background: #10b981;">
+    <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+</button>
+    <button onclick="deleteCurrentMap()" style="color: #f43f5e;"><i class="fa fa-trash"></i> Xóa Map</button>
+    <button onclick="location.href='index.html'"><i class="fa fa-home"></i></button>
+</div>
+
+<div id="mapInfo" class="map-info-header">
+    <h2 id="displayMapTitle">Chưa có bản đồ</h2>
+    <p id="displayMapDesc">Vui lòng tạo hoặc chọn bản đồ để bắt đầu.</p>
+</div>
+
+<div class="map-container">
+  <div id="mapWrapper" class="map-wrapper">
+    <div id="mapContainer">
+      <img id="mapImage" src="" alt="Trống" />
+      <svg id="mapRoutes" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div id="mapMarkers"></div>
+    </div>
+  </div>
+</div>
+
+<div id="createPopup" class="map-popup hidden">
+    <div class="popup-overlay" onclick="closeCreatePopup()"></div>
+    <div class="popup-content">
+        <h2 id="createPopupTitle">➕ Địa điểm</h2>
+        <input type="text" id="newName" placeholder="Tên địa điểm...">
+        <input type="text" id="newType" list="commonTypes" placeholder="Loại...">
+        <datalist id="commonTypes">
+            <option value="Vương quốc"><option value="Thành phố"><option value="Hầm ngục"><option value="Rừng rậm">
+        </datalist>
+        <textarea id="newDesc" placeholder="Mô tả chi tiết..." rows="4"></textarea>
+        <div class="popup-actions">
+            <button onclick="saveNewLocation()">💾 Lưu địa điểm</button>
+            <button onclick="closeCreatePopup()">Hủy</button>
+        </div>
+    </div>
+</div>
+
+<div id="mapPopup" class="map-popup hidden">
+    <div class="popup-overlay" onclick="closePopup()"></div>
+    <div class="popup-content">
+        <h2 id="popupTitle"></h2>
+        <div id="popupTag" style="display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; margin-bottom:10px; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1);"></div>
+        <p id="popupDesc"></p>
+        <div class="popup-actions">
+            <button onclick="showToast('🔍 Chức năng chi tiết đang phát triển')">🔍 Chi tiết</button>
+            <button onclick="deleteLocation()" style="background: #f43f5e;">🗑️ Xóa</button>
+            <button onclick="closePopup()">❌ Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div class="zoom-controls">
+    <button onclick="zoomIn()">➕</button>
+    <button onclick="zoomOut()">➖</button>
+    <button onclick="resetZoom()">⟳</button>
+</div>
+
+<script src="idSystem.js"></script>
+<script src="imageDB.js"></script>
+<script src="toast.js"></script>
+<script src="map.js"></script>
+</body>
+</html>

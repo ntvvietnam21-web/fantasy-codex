@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy Codex Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="factions.css">
+<link rel="stylesheet" href="GiaoDien.css">
+<link rel="stylesheet" href="WorldLaws.css">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+</head>
+<body class="dark-mode">
+  <link rel="stylesheet" href="SkillTreeVortex.css">
+<script src="SkillTreeVortex.js"></script>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-left">
+    <button class="menu-btn" onclick="toggleSidebar(event)">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="logo">
+      <i class="fa-solid fa-dragon"></i> 
+      <span>Bách khoa</span>
+    </div>
+  </div>
+  
+  <div class="nav-right">
+    <button class="icon-btn" onclick="AudioManager.toggleBackground()">
+      <i class="fa-solid fa-music"></i>
+    </button>
+    <button class="icon-btn" onclick="sortAll('asc')">
+      <i class="fa-solid fa-arrow-down-a-z"></i>
+    </button>
+    <button class="icon-btn" onclick="sortAll('desc')">
+      <i class="fa-solid fa-arrow-down-z-a"></i>
+    </button>
+  </div>
+</nav>
+<!-- LAYOUT -->
+<div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div class="app-container">
+
+<div id="debugBox" style="
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+max-height:200px;
+overflow:auto;
+background:black;
+color:lime;
+font-size:12px;
+z-index:9999;
+padding:5px;">
+</div>
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <i class="fa-solid fa-dragon"></i>
+    <span data-ui="sb_logo_text">CODEX MASTER</span>
+  </div>
+
+  <div class="sidebar-menu">
+    <div class="nav-item active" onclick="showPage('home')" id="nav-home">
+      <i class="fa fa-home"></i><span data-ui="nav_home">Trang chủ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('characters')" id="nav-characters">
+      <i class="fa fa-users"></i><span data-ui="nav_chars">Nhân vật</span>
+    </div>
+    <div class="nav-item" id="nav-relationshipPage" onclick="showPage('relationshipPage')">
+      <i class="fa-solid fa-circle-nodes"></i><span data-ui="nav_rel">Phả hệ & Quan hệ</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='creatures.html'">
+      <i class="fa fa-paw"></i><span data-ui="nav_creatures">Sinh vật</span>
+    </div>
+    <div class="nav-item" onclick="showPage('races')" id="nav-races">
+      <i class="fa fa-dna"></i><span data-ui="nav_races">Chủng tộc</span>
+    </div>
+    <div class="nav-item" onclick="showPage('kingdoms')" id="nav-kingdoms">
+      <i class="fa fa-chess-king"></i><span data-ui="nav_kingdoms">Đế chế</span>
+    </div>
+    <div class="nav-item" onclick="showPage('factions')" id="nav-factions">
+      <i class="fa fa-flag"></i><span data-ui="nav_factions">Phe phái</span>
+    </div>
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-relations')">
+    <i class="fa-solid fa-circle-nodes"></i>
+    <span>Mạng lưới Bang giao</span>
+    <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+</div>
+<div id="submenu-relations" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+    <div class="nav-item" onclick="showPage('diplomacy-kingdoms'); renderDiplomacyNetwork('kingdom', 'kingdomNetworkCanvas');">
+        <i class="fa-solid fa-crown"></i> <span>Vương quốc</span>
+    </div>
+    <div class="nav-item" onclick="showPage('diplomacy-factions'); renderDiplomacyNetwork('faction', 'factionNetworkCanvas');">
+        <i class="fa-solid fa-shield-halved"></i> <span>Phe phái</span>
+    </div>
+</div>
+
+
+
+    <div class="nav-item" onclick="window.location.href='locations.html'">
+      <i class="fa fa-location-dot"></i><span data-ui="nav_locations">Địa điểm</span>
+    </div>
+    <div class="nav-item" onclick="showPage('mapPage')" id="nav-map">
+      <i class="fa fa-map"></i><span data-ui="nav_map">Bản đồ</span>
+    </div>
+    <div class="nav-item" onclick="showPage('compare')" id="nav-compare">
+      <i class="fa fa-scale-balanced"></i><span data-ui="nav_compare">So sánh</span>
+    </div>
+    <div class="nav-item" onclick="showPage('battle')" id="nav-battle">
+      <i class="fa fa-crosshairs"></i><span data-ui="nav_battle">Chiến đấu</span>
+    </div>
+    <div class="nav-item" onclick="showPage('codex')" id="nav-codex">
+      <i class="fa fa-database"></i><span data-ui="nav_codex">Dữ liệu</span>
+    </div>
+    <div class="nav-item" onclick="showPage('timeline')" id="nav-timeline">
+      <i class="fa fa-scroll"></i><span data-ui="nav_timeline">Timeline</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='collection.html'">
+      <i class="fa fa-box"></i><span data-ui="nav_total">Tổng hợp</span>
+    </div>
+    
+          <div class="menu-item" onclick="showPage('worldLawsPage')">
+    <i class="fa-solid fa-scroll-old"></i> <span>Luật Thế Giới</span>
+</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="nav-item" onclick="exportData()" style="opacity: 0.7;">
+      <i class="fa-solid fa-file-export"></i><span data-ui="nav_export">Xuất dữ liệu</span>
+    </div>
+  </div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="content">
+  
+<section id="home" class="page">
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+      <div class="hero-badge animate-float">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-ui="hero_badge">Thế giới huyền bí</span>
+      </div>
+      
+      <h1 class="hero-title">
+        <span class="dragon-icon"><i class="fa-solid fa-dragon"></i></span>
+        <span data-ui="hero_title">Biên Niên Sử Fantasy</span>
+      </h1>
+      
+      <p class="hero-subtitle" data-ui="hero_subtitle">Nơi lưu giữ linh hồn và sức mạnh của những anh hùng huyền thoại.</p>
+
+      <div class="search-container">
+        <div class="search-box">
+          <div class="search-input-wrapper">
+            <i class="fa fa-search main-search-icon"></i>
+            <input id="codexSearch" type="text" data-ui="search_placeholder" placeholder="Tìm tên, chủng tộc, kỹ năng..." oninput="searchCodex()">
+          </div>
+          <div class="filter-wrapper">
+            <select id="raceFilter">
+              <option value="" data-ui="filter_race_all">Tất cả chủng tộc</option>
+            </select>
+          </div>
+          <div id="codexSearchResults"></div>
+        </div>
+      </div>
+
+      <div class="hero-buttons">
+        <button class="btn-primary ripple" onclick="showPage('characters')">
+          <i class="fa-solid fa-book-open"></i> <span data-ui="btn_explore">Khám phá thư viện</span>
+        </button>
+        <button class="btn-secondary ripple" onclick="openModal()">
+          <i class="fa-solid fa-feather-pointed"></i> <span data-ui="btn_create">Tạo nhân vật</span>
+        </button>
+      </div>
+
+      <div class="system-tools">
+        <button class="tool-btn" onclick="cleanUnusedImages()" title="Dọn dẹp ảnh không sử dụng">
+          <i class="fa-solid fa-broom"></i> <span data-ui="btn_optimize">Tối ưu kho ảnh</span>
+        </button>
+      </div>
+
+      <div class="hero-icons">
+        <div class="icon-item"><i class="fa-solid fa-bolt"></i><span data-ui="icon_str">Sức mạnh</span></div>
+        <div class="icon-item"><i class="fa-solid fa-shield-halved"></i><span data-ui="icon_def">Phòng thủ</span></div>
+        <div class="icon-item"><i class="fa-solid fa-vial"></i><span data-ui="icon_mag">Ma thuật</span></div>
+        <div class="icon-item"><i class="fa-solid fa-crown"></i><span data-ui="icon_king">Vương quốc</span></div>
+      </div>
+    </div>
+  </header>
+</section>
+<!-- CHARACTER LIBRARY -->
+<section id="characters" class="page hidden">
+  <div class="page-header-v2">
+    <div class="header-main">
+      <div class="title-group">
+        <h2><i class="fa-solid fa-users-viewfinder"></i> Thư viện Anh Hùng</h2>
+        <span class="count-badge"><span id="charCount">0</span> Nhân vật</span>
+      </div>
+      <button class="btn-add-hero pulse" onclick="openModal()">
+        <i class="fa-solid fa-plus"></i> <span>Tạo nhân vật</span>
+      </button>
+    </div>
+
+    <div class="filter-toolbar">
+      <div class="search-bar-mini">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="charSearchInput" placeholder="Tìm tên nhân vật..." oninput="applyFilters()">
+      </div>
+      
+      <div class="filter-group">
+        <select id="filterStatus" onchange="applyFilters()" class="styled-select">
+          <option value="">Trạng thái (Tất cả)</option>
+          <option>Còn sống</option>
+          <option>Đã chết</option>
+          <option>Mất tích</option>
+          <option>Ẩn cư</option>
+        </select>
+        
+        <select id="filterGender" onchange="applyFilters()" class="styled-select">
+          <option value="">Giới tính</option>
+          <option>Nam</option>
+          <option>Nữ</option>
+          <option>Khác</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="characterList" class="grid-container-v2"></div>
+</section>
+<section id="relationshipPage" class="page hidden">
+    <div class="page-header">
+        <h2>Mạng Lưới Quan Hệ</h2>
+        <button class="btn-primary" onclick="drawNetwork()">Làm mới sơ đồ</button>
+    </div>
+    <div id="relationNetwork" style="height: 80vh; background: #0f172a; border-radius: 12px;"></div>
+</section>
+
+<!-- RACES PAGE -->
+<section id="races" class="page hidden">
+  <div class="page-header-v2">
+    <div class="header-main">
+      <div class="title-group">
+        <h2><i class="fa-solid fa-dna"></i> Hệ Thống Chủng Tộc</h2>
+        <span class="count-badge"><span id="raceCount">0</span> Chủng tộc</span>
+      </div>
+      <button class="btn-add-race" onclick="openRaceModal()">
+        <i class="fa-solid fa-scroll"></i> <span>Khai phá chủng tộc</span>
+      </button>
+    </div>
+
+    <div class="filter-toolbar">
+      <div class="search-bar-mini">
+        <i class="fa-solid fa-spaghetti-monster-flying"></i>
+        <input type="text" id="raceSearchInput" placeholder="Tìm tên chủng tộc, đặc điểm..." oninput="searchRaces()">
+      </div>
+    </div>
+  </div>
+
+  <div id="raceList" class="race-grid"></div>
+</section>
+<!-- KINGDOMS PAGE -->
+<section id="kingdoms" class="page hidden">
+  <div class="page-header">
+    <h2>Danh sách đế chế <span id="kingdomCount">0</span></h2>
+    <button onclick="newKingdom()">+ Thêm đế chế</button>
+  </div>
+  <div id="kingdomList" class="grid-container"></div>
+</section>
+
+<section id="diplomacy-kingdoms" class="page hidden">
+  <div class="page-header">
+    <h2><i class="fa-solid fa-crown"></i> Bản đồ Ngoại giao Vương quốc</h2>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="renderDiplomacyNetwork('kingdom', 'kingdomNetworkCanvas')">
+        <i class="fa-solid fa-sync"></i> Làm mới sơ đồ
+      </button>
+    </div>
+  </div>
+  <div id="kingdomNetworkCanvas" class="network-container"></div>
+</section>
+
+<section id="diplomacy-factions" class="page hidden">
+  <div class="page-header">
+    <h2><i class="fa-solid fa-shield-halved"></i> Mạng lưới Phe phái ngầm</h2>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="renderDiplomacyNetwork('faction', 'factionNetworkCanvas')">
+        <i class="fa-solid fa-sync"></i> Làm mới sơ đồ
+      </button>
+    </div>
+  </div>
+  <div id="factionNetworkCanvas" class="network-container"></div>
+</section>
+
+<!-- FACTIONS PAGE -->
+<section id="factions" class="page hidden">
+  <div class="page-header">
+    <h2>Danh sách phe phái <span id="factionCount">0</span></h2>
+    <button class="btn-add" onclick="openFactionModal()">+ Thêm phe phái</button>
+  </div>
+  <div id="factionList" class="grid-container"></div>
+</section>
+<section id="factionPage" class="page hidden">
+  <div class="page-header">
+    <button class="btn-sm" onclick="showPage('factions')"><i class="fa fa-arrow-left"></i> Quay lại</button>
+    <h2 id="factionPageName">Tên phe phái</h2>
+  </div>
+
+  <div class="profile-container">
+    <div class="profile-sidebar">
+      <div class="info-card">
+        <img id="factionPageBanner" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:15px; border: 1px solid var(--border);">
+        <div class="item">
+          <div class="label">Thủ lĩnh</div>
+          <b id="factionPageLeader">-</b>
+        </div>
+        <div class="item">
+          <div class="label">Trụ sở</div>
+          <b id="factionPageHQ">-</b>
+        </div>
+        <div class="item">
+          <div class="label">Mục tiêu</div>
+          <b id="factionPageGoal">-</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-main">
+      <div class="info-card">
+        <div class="title"><i class="fa fa-book"></i> Giới thiệu</div>
+        <p id="factionPageDesc" style="line-height:1.6; color:var(--text-dim);"></p>
+      </div>
+
+      <div class="info-card">
+        <div class="title"><i class="fa fa-users"></i> Thành viên thuộc phe</div>
+        <div id="factionCharacters" class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top:10px;">
+           </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- JSON DATA PAGE -->
+<section id="codex" class="page hidden">
+  <h2><i class="fa-solid fa-database"></i> Quản lý Dữ liệu Hệ thống</h2>
+  <div class="action-group" style="margin-top: 15px; display: flex; gap: 10px;">
+    <button class="btn-info" onclick="UIManager.openAdminPanel()">
+        <i class="fa-solid fa-sliders"></i> Chỉnh sửa Giao diện Tổng thể
+    </button>
+  </div>
+
+  <div class="backup-buttons">
+    <div class="input-group">
+        <label for="codexKeySelect">Danh mục cần thao tác:</label>
+        <select id="codexKeySelect">
+          <optgroup label="Cốt lõi">
+            <option value="characters">Nhân vật (Characters)</option>
+            <option value="races">Chủng tộc (Races)</option>
+            <option value="kingdoms">Đế chế (Kingdoms)</option>
+            <option value="factions">Phe phái (Factions)</option>
+          </optgroup>
+          
+          <optgroup label="Bộ sưu tập (Collection)">
+            <option value="creatures">Sinh vật (Creatures)</option> 
+            <option value="weapons_data">Vũ khí (Weapons)</option>
+            <option value="skills_data">Kỹ năng (Skills)</option>
+            <option value="items_data">Vật phẩm (Items)</option>
+          </optgroup>
+
+          <optgroup label="Pháp tắc & Thế giới">
+            <option value="laws">Điều Luật (World Laws)</option>
+            <option value="law_categories">Chương Luật (Law Tabs)</option>
+            <option value="world_maps_v2">Bản đồ thế giới (v2)</option>
+            <option value="timeline">Dòng thời gian (Timeline)</option>
+            <option value="locations">Địa điểm (Locations)</option>
+          </optgroup>
+
+          <optgroup label="Hệ thống">
+            <option value="images">Toàn bộ Kho Ảnh</option>
+          </optgroup>
+        </select>
+    </div>
+
+    <div class="action-group" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="file" id="importFileInput" hidden accept=".json">
+        
+        <button class="btn-secondary" onclick="document.getElementById('importFileInput').click();">
+            <i class="fa fa-upload"></i> Import JSON
+        </button>
+        
+        <button class="btn-primary" onclick="exportSelectedKey()">
+            <i class="fa fa-download"></i> Export JSON
+        </button>
+        
+        <button class="btn-info" onclick="copyJSON()">
+            <i class="fa fa-copy"></i> Copy JSON
+        </button>
+
+        <button class="btn-danger" onclick="if(confirm('Dọn dẹp ảnh cũ?')) cleanUpImages();" title="Xóa các phiên bản ảnh thừa">
+            <i class="fa fa-broom"></i> Dọn kho ảnh
+        </button>
+    </div>
+  </div>
+
+  <div id="imageContainer" class="grid-container" style="margin-top:20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;"></div>
+  
+  <pre id="codexContent" style="background: #111; color: #0f0; padding: 15px; border-radius: 8px; max-height: 400px; overflow: auto; font-size: 12px; border: 1px solid #333; margin-top: 20px;"></pre>
+</section>
+<!-- CHARACTER PROFILE -->
+
+<section id="characterPage" class="page hidden">
+  <button class="btn-back" onclick="showPage('characters')">Quay lại</button>
+
+  <div class="profile-header">
+    <img id="charPageImg" class="profile-img">
+    <h2 id="charPageName">
+      
+    </h2>
+  </div>
+  <div class="profile-details">
+    <p><b>Chủng tộc:</b> <span id="charPageRace"></span></p>
+    <br>
+    <p><b>Đế chế:</b> <span id="charPageKingdom"></span></p>
+    <br>
+    <p><b>Phe phái:</b> <span id="charPageFaction"></span></p>
+    <br>
+    <p><b>Power Level:</b> <span id="charPagePL"></span></p>
+    <br>
+    <p><b>Giới tính:</b> <span id="charPageGender"></span></p>
+    <br>
+    <p><b>Tuổi:</b> <span id="charPageAge"></span></p>
+    <br>
+    <p><b>Ngày sinh:</b> <span id="charPageBirth"></span></p>
+    <br>
+    <p><b>Quê quán:</b> <span id="charPageLocation"></span></p>
+    <br>
+    <p><b>Nghề nghiệp:</b> <span id="charPageJob"></span></p>
+    <br>
+    <p><b>Trạng thái:</b> <span id="charPageStatus"></span></p>
+    <br>
+    <p><b>Mối quan hệ:</b> <span id="charPageRelations"></span></p>
+    <br>
+    <p><b>Thông tin thêm:</b> <span id="charPageDesc"></span></p>
+    <br>
+    <p><b>Ngoại hình:</b> <span id="charPageAppearance"></span></p>
+    <br>
+    <p><b>Tính cách:</b> <span id="charPagePersonality"></span></p>
+    <br>
+    <p><b>Tài năng:</b> <span id="charPageTalent"></span></p>
+    <br>
+    <p><b>Tiềm năng:</b> <span id="charPagePotential"></span></p>
+    <br>
+    <p><b>Số mệnh:</b> <span id="charPageFate"></span></p>
+    <br>
+    <p><b>Vũ khí:</b> <span id="charPageWeapon"></span></p>
+    <br>
+    <p><b>Giáp:</b> <span id="charPageArmor"></span></p>
+    <br>
+    <p><b>Phụ kiện:</b> <span id="charPageAccessory"></span></p>
+    <br>
+    <p><b>Dạng biến hình:</b></p>
+    <div id="charPageForms">Chưa có dạng biến hình</div>
+    <select id="activeForm" onchange="updateActiveForm(currentCharId)">
+      <option value="">-- Bình thường --</option>
+    </select>
+  </div>
+</section>
+
+<!-- RACE DETAIL PAGE -->
+<section id="racePage" class="page hidden">
+  <div class="page-header-actions">
+    <button class="btn-back" onclick="showPage('races')">
+      <i class="fa-solid fa-chevron-left"></i> Quay lại
+    </button>
+  </div>
+
+  <div class="profile-header">
+    <h2 id="racePageName"></h2>
+  </div>
+
+  <div class="race-detail-grid">
+    <div class="info-box">
+      <label>Ngoại hình</label>
+      <span id="racePageAppearance"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Nguồn gốc</label>
+      <span id="racePageOrigin"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Môi trường sống</label>
+      <span id="racePageEnvironment"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Tuổi thọ</label>
+      <span id="racePageLifespan"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Mức độ trí tuệ</label>
+      <span id="racePageIntelligence"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Kỹ năng đặc trưng</label>
+      <span id="racePageSkills"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Điểm yếu / Hạn chế</label>
+      <span id="racePageWeakness"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Các chủng phụ (Biến thể)</label>
+      <span id="racePageSubTypes"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Vương quốc / Lãnh thổ</label>
+      <span id="racePageKingdom"></span>
+    </div>
+
+    <div class="info-box">
+      <label>Quan hệ ngoại giao</label>
+      <span id="racePageRelations"></span>
+    </div>
+  </div>
+
+  <div class="race-population-section">
+    <h3>
+      <i class="fa-solid fa-users-viewfinder"></i> 
+      Nhân vật thuộc chủng tộc (<span id="racePopCount">0</span>)
+    </h3>
+    <div id="raceCharacters" class="mini-char-list">
+      </div>
+  </div>
+</section>
+<!-- COMPARISON PAGE -->
+<section id="compare" class="page hidden">
+  <div class="page-header"><h2>So sánh nhân vật</h2></div>
+  <div class="compare-select">
+    <select id="compareA"></select>
+    <span class="vs">VS</span>
+    <select id="compareB"></select>
+    <button class="btn-primary" onclick="compareCharacters()">So sánh</button>
+  </div>
+  <div id="compareResult"></div>
+</section>
+<!-- BATTLE PAGE -->
+<section id="battle" class="page hidden">
+  <iframe src="battle.html" loading="lazy"></iframe>
+</section>
+<!-- TIMELINE PAGE -->
+<section id="timeline" class="page hidden">
+  <iframe src="timeline.html" loading="lazy"></iframe>
+</section>
+<!-- MAP PAGE -->
+<section id="mapPage" class="page hidden">
+  <iframe src="map.html" loading="lazy"></iframe>
+</section>
+</main>
+</div>
+<!-- MODAL -->
+<div id="characterModal" class="modal">
+    <div class="modal-content advanced-modal">
+        <div class="modal-header">
+            <div class="header-title">
+                <i class="fa-solid fa-user-plus highlight-gold"></i>
+                <h3 id="modalTitle">Thiết lập nhân vật</h3>
+            </div>
+            <span class="close-modal" onclick="closeCharacterModal()">&times;</span>
+        </div>
+
+        <div class="modal-body-wrapper">
+            <nav class="modal-nav">
+                <a href="#sec-base" class="nav-item active"><i class="fa fa-id-card"></i> <span>Cơ bản</span></a>
+                <a href="#sec-world" class="nav-item"><i class="fa fa-crown"></i> <span>Vương quốc</span></a>
+                <a href="#sec-stats" class="nav-item"><i class="fa fa-bolt"></i> <span>Sức mạnh</span></a>
+                <a href="#sec-relation" class="nav-item"><i class="fa fa-users"></i> <span>Mối quan hệ</span></a>
+                <a href="#sec-bio" class="nav-item"><i class="fa fa-scroll"></i> <span>Tiểu sử</span></a>
+            </nav>
+
+            <form id="charForm" onsubmit="event.preventDefault(); saveCharacter();" class="modal-form">
+                <div class="scroll-container">
+                    
+                    <section class="section-wrapper" id="sec-base">
+                        <div class="section-header-mini">Thông tin danh tính</div>
+                        <div class="form-grid-main">
+                            <div class="avatar-upload-section">
+                                <div class="avatar-preview-container">
+                                    <img id="previewImg" src="https://i.imgur.com/6X8FQyA.png" alt="Preview">
+                                    <label for="charImg" class="upload-badge"><i class="fa fa-camera"></i></label>
+                                </div>
+                                <input type="file" id="charImg" accept="image/*" onchange="previewCharacterImage(event)" hidden>
+                                <small>Kích thước gợi ý: 1:1</small>
+                            </div>
+
+                            <div class="fields-group">
+                                <div class="form-group">
+                                    <label>Tên nhân vật <span class="required">*</span></label>
+                                    <input type="text" id="charName" required placeholder="VD: Arthur Pendragon">
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label>Giới tính</label>
+                                        <select id="charGender">
+                                            <option value="">Không rõ</option>
+                                            <option>Nam</option>
+                                            <option>Nữ</option>
+                                            <option>Khác</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tuổi</label>
+                                        <input type="number" id="charAge" placeholder="0">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ngày sinh (dd/mm/yyyy)</label>
+                                    <input type="text" id="charBirth" placeholder="VD: 20/05/1000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>Chủng tộc</label>
+                                <select id="charRace" class="select-fantasy"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quê quán</label>
+                                <select id="charLocation" class="select-fantasy"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Nghề nghiệp</label>
+                                <input type="text" id="charJob" placeholder="Hiệp sĩ, Pháp sư...">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section-wrapper" id="sec-world">
+                        <div class="section-header-mini">Vị thế thế giới</div>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label><i class="fa fa-fort-awesome"></i> Đế chế / Quốc gia</label>
+                                <select id="charKingdom"></select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa fa-flag"></i> Phe phái / Tổ chức</label>
+                                <select id="charFaction"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <select id="charStatus">
+                                    <option>Còn sống</option>
+                                    <option>Mất tích</option>
+                                    <option>Đã chết</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cấp độ đe dọa (PL)</label>
+                                <input type="number" id="charPL" class="pl-input" placeholder="9999">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section-wrapper" id="sec-stats">
+                        <div class="section-header-mini">Hệ thống thuộc tính</div>
+                        <div class="stats-slider-grid">
+                            <div class="stat-control">
+                                <label>Tài năng: <span id="valTalent">0</span></label>
+                                <input type="range" id="statTalent" min="0" max="100" value="0" oninput="document.getElementById('valTalent').innerText = this.value">
+                            </div>
+                            <div class="stat-control">
+                                <label>Tiềm năng: <span id="valPotential">0</span></label>
+                                <input type="range" id="statPotential" min="0" max="100" value="0" oninput="document.getElementById('valPotential').innerText = this.value">
+                            </div>
+                            <div class="stat-control">
+                                <label>Số mệnh: <span id="valFate">0</span></label>
+                                <input type="range" id="statFate" min="0" max="100" value="0" oninput="document.getElementById('valFate').innerText = this.value">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3" style="margin-top: 20px;">
+                            <div class="form-group">
+                                <label><i class="fa fa-gavel"></i> Vũ khí</label>
+                                <input type="text" id="equipWeapon">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa fa-shield-heart"></i> Bảo hộ</label>
+                                <input type="text" id="equipArmor">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa fa-ring"></i> Linh vật</label>
+                                <input type="text" id="equipAccessory">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section-wrapper" id="sec-relation">
+                        <div class="section-header-mini">Mối liên kết & Biến hình</div>
+                        <div class="dynamic-group">
+                            <label>Liên kết xã hội</label>
+                            <div id="relationContainer" class="dynamic-list-v2"></div>
+                            <button type="button" class="btn-add-dashed" onclick="addRelationField()">
+                                <i class="fa fa-plus"></i> Thêm quan hệ
+                            </button>
+                        </div>
+                        <div class="dynamic-group" style="margin-top: 15px;">
+                            <label>Hình thái đặc biệt</label>
+                            <div id="formsContainer" class="dynamic-list-v2"></div>
+                            <button type="button" class="btn-add-dashed" onclick="addFormField()">
+                                <i class="fa fa-wand-magic-sparkles"></i> Thêm biến hình
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="section-wrapper" id="sec-bio">
+                        <div class="section-header-mini">Tiểu sử & Đặc điểm</div>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label>Ngoại hình</label>
+                                <textarea id="charAppearance" class="auto-expand" placeholder="Mô tả vóc dáng, trang phục..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Tính cách</label>
+                                <textarea id="charPersonality" class="auto-expand" placeholder="Mô tả tâm lý, thói quen..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group full" style="margin-top: 15px;">
+                            <label>Biên niên sử (Tiểu sử chính)</label>
+                            <textarea id="charDesc" rows="6" placeholder="Viết về cuộc đời nhân vật..."></textarea>
+                        </div>
+                    </section>
+
+                </div>
+
+                <div class="modal-footer-fixed">
+                    <button type="button" class="btn-close-text" onclick="closeCharacterModal()">Đóng</button>
+                    <button type="submit" class="btn-save-fantasy">Ghi chép vào sử thi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="factionModal" class="modal">
+  <div class="modal-content" style="max-width: 850px;">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-users-rays"></i> Thiết lập phe phái</h3>
+      <span class="close" onclick="closeFactionModal()">&times;</span>
+    </div>
+    <form onsubmit="event.preventDefault(); saveFaction();">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tên phe phái *</label>
+          <input type="text" id="factionName" required placeholder="VD: Hội Sát Thủ">
+        </div>
+        <div class="form-group">
+          <label>Thủ lĩnh</label>
+          <input type="text" id="factionLeader" placeholder="Tên người đứng đầu">
+        </div>
+        <div class="form-group">
+          <label>Trụ sở (HQ)</label>
+          <input type="text" id="factionHQ">
+        </div>
+        <div class="form-group">
+          <label>Quy mô (Scale)</label>
+          <input type="text" id="factionScale" placeholder="VD: Toàn lục địa">
+        </div>
+        <div class="form-group">
+          <label>Sức mạnh (Power)</label>
+          <input type="text" id="factionPower" placeholder="VD: Cực mạnh">
+        </div>
+        <div class="form-group">
+          <label>Biểu tượng & Ảnh bìa</label>
+          <div style="display: flex; gap: 5px;">
+            <input type="file" id="factionIcon" accept="image/*" style="font-size: 10px;">
+            <input type="file" id="factionBanner" accept="image/*" style="font-size: 10px;">
+          </div>
+        </div>
+      </div>
+
+      <div class="diplomacy-editor-section">
+        <label><i class="fa-solid fa-handshake"></i> Quan hệ với các Phe/Quốc gia khác</label>
+        <div id="factionDiplomacyList" class="dynamic-relation-list"></div>
+        <button type="button" class="btn-add-dashed" onclick="addRelationRow('factionDiplomacyList')">
+          <i class="fa fa-plus"></i> Thêm mối bang giao tùy chỉnh
+        </button>
+      </div>
+
+      <div class="form-group full">
+        <label>Mục tiêu & Mô tả</label>
+        <input type="text" id="factionGoal" placeholder="Mục tiêu tối thượng..." style="margin-bottom: 10px;">
+        <textarea id="factionDesc" rows="3" placeholder="Lịch sử hình thành..."></textarea>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="button" class="btn-secondary" onclick="closeFactionModal()">Hủy</button>
+        <button type="submit" class="btn-primary">Lưu phe phái</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- RACE MODAL -->
+<div id="raceModal" class="modal">
+  <div class="modal-content">
+    <h3>Thiết lập chủng tộc</h3>
+    <form onsubmit="event.preventDefault(); saveRace();">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tên chủng tộc</label>
+          <input type="text" id="raceName">
+        </div>
+        <div class="form-group">
+          <label>Ngoại hình</label>
+          <input type="text" id="raceAppearance">
+        </div>
+
+        <div class="form-group">
+          <label>Nguồn gốc</label>
+          <input type="text" id="raceOrigin" placeholder="Hình thành từ đâu...">
+        </div>
+        <div class="form-group">
+          <label>Môi trường</label>
+          <input type="text" id="raceEnvironment" placeholder="Sống ở đâu (rừng, sa mạc…)">
+        </div>
+        <div class="form-group">
+          <label>Trí tuệ</label>
+          <input type="text" id="raceIntelligence" placeholder="Mức độ thông minh...">
+        </div>
+        <div class="form-group">
+          <label>Điểm yếu</label>
+          <input type="text" id="raceWeakness" placeholder="Hạn chế...">
+        </div>
+        <div class="form-group">
+          <label>Chủng phụ</label>
+          <input type="text" id="raceSubTypes" placeholder="Biến thể...">
+        </div>
+        <div class="form-group">
+          <label>Tuổi thọ</label>
+          <input type="text" id="raceLifespan">
+        </div>
+        <div class="form-group">
+          <label>Kỹ năng</label>
+          <input type="text" id="raceSkills">
+        </div>
+        <div class="form-group">
+          <label>Nơi sinh sống / Vương quốc</label>
+          <input type="text" id="raceKingdom">
+        </div>
+        <div class="form-group">
+          <label>Quan hệ</label>
+          <input type="text" id="raceRelations">
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" onclick="closeRaceModal()">Hủy</button>
+        <button type="submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- KINGDOM MODAL -->
+<section id="kingdomPage" class="page hidden">
+  <div class="kingdom-hero-v2">
+    <div class="hero-bg-overlay"></div>
+    <button class="btn-back-circle-v2" onclick="showPage('kingdoms')" title="Quay lại">
+      <i class="fa fa-chevron-left"></i>
+    </button>
+    
+    <div class="hero-content">
+      <div class="kingdom-logo-frame">
+        <img id="kingdomPageLogoMini" src="" alt="Logo">
+      </div>
+      <div class="hero-text-group">
+        <h2 id="kingdomPageName" class="cinzel-font-bold"></h2>
+        <div class="hero-badges">
+          <span><i class="fa fa-crown"></i> <span id="kingdomPageLeader"></span></span>
+          <span class="badge-divider"></span>
+          <span><i class="fa fa-map-marker-alt"></i> <span id="kingdomPageCapital"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kingdom-container-v2">
+    <div class="kingdom-main-grid">
+      
+      <div class="glass-card stat-detail-card">
+        <h3><i class="fa fa-scroll"></i> Đặc điểm quốc gia</h3>
+        <div class="info-grid-v3">
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-dna"></i></div>
+            <div class="i-text"><label>Chủng tộc</label><span id="kingdomPageRace"></span></div>
+          </div>
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-earth-asia"></i></div>
+            <div class="i-text"><label>Lục địa</label><span id="kingdomPageContinent"></span></div>
+          </div>
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-users"></i></div>
+            <div class="i-text"><label>Dân số</label><span id="kingdomPagePopulation"></span></div>
+          </div>
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-shield-halved"></i></div>
+            <div class="i-text"><label>Binh lực</label><span id="kingdomPageArmy"></span></div>
+          </div>
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-pray"></i></div>
+            <div class="i-text"><label>Tín ngưỡng</label><span id="kingdomPageReligion"></span></div>
+          </div>
+          <div class="info-item">
+            <div class="i-icon"><i class="fa fa-calendar-check"></i></div>
+            <div class="i-text"><label>Năm lập</label><span id="kingdomPageFounded"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card diplomacy-card-v2">
+        <h3><i class="fa fa-handshake-angle"></i> Tình hình bang giao</h3>
+        <div id="kingdomPageRelations" class="relation-tags-container-v2"></div>
+      </div>
+    </div>
+
+    <div class="glass-card description-box-v2">
+      <h3><i class="fa fa-book-open"></i> Biên niên sử & Đặc điểm</h3>
+      <div id="kingdomPageDesc" class="content-text-v2"></div>
+    </div>
+
+    <div class="glass-card structure-section-v2">
+      <h3><i class="fa fa-sitemap"></i> Bộ máy quản trị</h3>
+      <div id="kingdomTabHeader" class="modern-tabs-header"></div>
+      <div id="kingdomTabContent" class="modern-tabs-body"></div>
+    </div>
+
+    <div class="members-section-v2">
+      <div class="section-header-flex">
+        <h3><i class="fa fa-user-shield"></i> Công dân tiêu biểu</h3>
+        <span class="count-badge"><span id="kingdomMemberCount">0</span> nhân vật</span>
+      </div>
+      <div id="kingdomCharacters" class="modern-member-grid"></div>
+      <div id="kingdomMemberPagination" class="pagination-container"></div>
+    </div>
+  </div>
+</section>
+
+<div id="kingdomModal" class="modal">
+  <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-header">
+      <h3><i class="fa fa-crown"></i> Quản lý Đế chế</h3>
+      <span class="close" onclick="closeKingdomModal()">&times;</span>
+    </div>
+
+    <form id="kingdomForm" onsubmit="event.preventDefault(); saveKingdom();">
+      <div class="form-grid">
+        <div class="form-group">
+            <label>Tên đế chế *</label>
+            <input type="text" id="kingdomName" required placeholder="VD: Althea Empire">
+        </div>
+        <div class="form-group">
+            <label>Lãnh đạo</label>
+            <input type="text" id="kingdomLeader" placeholder="Tên vị vua/nữ hoàng">
+        </div>
+        <div class="form-group">
+            <label>Chủng tộc chính</label>
+            <input type="text" id="kingdomRace" placeholder="VD: Nhân loại, Tinh linh...">
+        </div>
+        <div class="form-group">
+            <label>Thủ đô</label>
+            <input type="text" id="kingdomCapital">
+        </div>
+        <div class="form-group">
+            <label>Tín ngưỡng</label>
+            <input type="text" id="kingdomReligion" placeholder="VD: Thần giáo Althea">
+        </div>
+        <div class="form-group">
+            <label>Năm lập quốc</label>
+            <input type="number" id="kingdomFounded">
+        </div>
+        <div class="form-group full">
+          <label>Logo vương quốc</label>
+          <input type="file" id="kingdomImgInput" onchange="previewKingdomImg(event)">
+          <img id="kingdomImgPreview" src="" style="max-height: 100px; margin-top: 10px; display: block; border-radius: 8px;">
+        </div>
+      </div>
+
+      <div class="custom-diplomacy-area">
+        <label><i class="fa-solid fa-handshake-angle"></i> Thiết lập quan hệ Bang giao</label>
+        <div id="kingdomDiplomacyList" class="dynamic-relation-list"></div>
+        <button type="button" class="btn-add-dashed" onclick="addRelationRow('kingdomDiplomacyList')">
+          <i class="fa fa-plus"></i> Thêm quan hệ mới
+        </button>
+      </div>
+
+      <div class="form-group full">
+        <label>Mô tả & Lịch sử vương quốc</label>
+        <textarea id="kingdomDesc" rows="4" placeholder="Viết về nguồn gốc, đặc điểm địa lý, văn hóa..."></textarea>
+      </div>
+
+      <div class="structure-editor-section">
+        <div class="flex-between">
+          <h4>Cấu trúc bộ máy quản trị</h4>
+          <button type="button" class="btn-small" onclick="addNewTab()">+ Thêm bộ phận</button>
+        </div>
+        <div id="kingdomStructureAdmin"></div>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="button" class="btn-cancel" onclick="closeKingdomModal()">Hủy</button>
+        <button type="submit" class="btn-save-gold">Lưu dữ liệu</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- IMAGE VIEWER MODAL -->
+<div id="imgViewerModal">
+  <img id="imgViewer" />
+</div>
+<!-- Modal xem dạng biến hình full -->
+<div id="formModal" class="modal">
+  <div class="modal-content" style="max-width:500px; text-align:center; position:relative;">
+    <!-- Nút đóng -->
+    <span class="close" onclick="closeFormModal()" style="position:absolute; top:5px; right:10px; cursor:pointer;">&times;</span>
+
+    <!-- Nút quay lại -->
+    <button onclick="closeFormModal()" style="position:absolute; top:5px; left:10px; cursor:pointer; background:#ddd; border:none; padding:5px 10px; border-radius:4px;">⏎ Quay lại</button>
+
+    <h3 id="formModalName"></h3>
+    <img id="formModalImg" src="" style="max-width:100%; margin:10px 0;">
+    <p id="formModalDesc"></p>
+  </div>
+</div>
+<section id="worldLawsPage" class="page-content" style="display:none;">
+    <div class="world-laws-container">
+        <h1 class="magic-title">Thư Viện Luật Thế Giới</h1>
+        
+        <div id="lawTabs" class="law-tabs-container">
+            </div>
+
+        <div id="lawsGrid" class="laws-grid">
+            </div>
+
+        <button class="btn-summon" onclick="openLawModal()">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
+</section>
+<div id="lawModal" class="summoning-modal-overlay" style="display:none;">
+    <div class="summoning-modal">
+        <h2 id="modalTitle" style="font-family:'Cinzel', serif; color:var(--ancient-gold);">Ghi Chép Luật Mới</h2>
+        <form id="lawForm" onsubmit="handleLawSubmit(event)">
+            <input type="hidden" id="lawId">
+            <div class="form-group">
+                <label>Chương Luật</label>
+                <select id="lawCategory" required style="width:100%; padding:10px; background:#0a192f; color:white; border:1px solid var(--ancient-gold);">
+                    <option value="Luật Ma Thuật">Luật Ma Thuật</option>
+                    <option value="Luật Linh Hồn">Luật Linh Hồn</option>
+                    <option value="Luật Không Gian">Luật Không Gian</option>
+                    <option value="Luật Sinh Mệnh">Luật Sinh Mệnh</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <input type="text" id="lawTitle" placeholder="Tiêu đề điều luật..." required
+                    style="width:100%; padding:10px; background:transparent; border:none; border-bottom:1px solid var(--ancient-gold); color:white;">
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <textarea id="lawContent" placeholder="Nội dung huyền bí..." rows="4" required
+                    style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #333; color:white;"></textarea>
+            </div>
+            <div style="margin-top:10px;">
+                <label style="cursor:pointer;">
+                    <input type="checkbox" id="lawImportant"> <span style="color:#ccc;">Điều luật tối cao (Phát sáng)</span>
+                </label>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="submit" class="magic-confirm-btn">XÁC NHẬN</button>
+                <button type="button" class="magic-cancel-btn" onclick="closeLawModal()">HỦY</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="idSystem.js"></script>
+<script src="imageDB.js"></script>
+<script src="uiManager.js"></script> 
+<script src="effects.js"></script>
+<script src="diplomacy.js"></script>
+<script src="kingdoms.js"></script>
+<script src="factions.js"></script>
+<script src="skills.js"></script>
+<script src="codexSearch.js"></script>
+<script src="infiniteScroll.js"></script>
+<script src="WorldLaws.js"></script>
+<script src="backup.js"></script>
+<script src="audio.js"></script>
+<script src="sort.js"></script>
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    if(typeof initBackupDB === "function") await initBackupDB();
+  } catch(err){ console.error(err); }
+});
+</script>
+</body>
+</html>

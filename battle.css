@@ -1,0 +1,188 @@
+:root {
+    --bg: #020617;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --gold: #fbbf24;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background: var(--bg);
+    background-image: radial-gradient(circle at top right, #1e1b4b, transparent),
+                      radial-gradient(circle at bottom left, #450a0a, transparent);
+    color: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.glow-text {
+    font-size: 24px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    margin: 0;
+}
+
+.back-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.back-btn:hover { background: #334155; }
+
+/* Arena Layout */
+.arena {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .arena { grid-template-columns: 1fr; }
+    .vs-container { height: 60px; }
+}
+
+.team-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.team-power-badge {
+    background: rgba(0,0,0,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+}
+
+/* Slots */
+.slot {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.slot:hover { border-color: rgba(255,255,255,0.2); }
+
+.slot-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #000;
+    border: 2px solid var(--border);
+}
+
+.select {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 15px;
+    flex: 1;
+    outline: none;
+}
+
+/* VS Circle */
+.vs-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vs-circle {
+    width: 60px;
+    height: 60px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-style: italic;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    border: 4px solid var(--bg);
+}
+
+/* Buttons */
+.add-slot-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed #475569;
+    color: #94a3b8;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-slot-btn:hover { border-color: white; color: white; }
+
+.fight-btn {
+    margin-top: 40px;
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(45deg, #ef4444, #f97316);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+    transition: 0.3s;
+}
+
+.fight-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.6);
+}
+
+/* Result Box */
+.result-box {
+    margin-top: 30px;
+    min-height: 100px;
+    text-align: center;
+    transition: 0.5s ease-in-out;
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Simulator Pro | GM Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="battle.css">
+    <style>
+        :root { --pA: 50%; }
+        .win-prediction {
+            width: 100%; height: 10px; background: #334155;
+            border-radius: 5px; margin: 20px 0; overflow: hidden; display: flex;
+        }
+        .bar-a { width: var(--pA); background: linear-gradient(90deg, #ef4444, #f87171); transition: 0.5s ease; }
+        .bar-b { flex: 1; background: linear-gradient(90deg, #60a5fa, #3b82f6); transition: 0.5s ease; }
+        .battle-history-mini {
+            margin-top: 30px; padding: 15px; background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px; border: 1px border dashed #334155;
+        }
+        .history-item { font-size: 12px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding: 5px 0; }
+        .glow-text { font-family: 'Cinzel', serif; letter-spacing: 2px; }
+    </style>
+</head>
+<body class="dark-mode">
+
+<div class="container">
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left-long"></i> THOÁT
+        </button>
+        <h1 class="glow-text">⚔️ SUPREME ARENA</h1>
+        <button class="icon-btn" onclick="AudioManager.toggleBackground()">
+            <i class="fa-solid fa-volume-high"></i>
+        </button>
+    </div>
+
+    <div class="prediction-label" style="text-align: center; color: #94a3b8; font-size: 13px;">
+        Thế trận: <span id="rateLabel">Cân bằng</span>
+    </div>
+    <div class="win-prediction">
+        <div id="barA" class="bar-a"></div>
+        <div id="barB" class="bar-b"></div>
+    </div>
+
+    <div class="arena">
+        <div class="team-card team-a">
+            <div class="team-header">
+                <div class="team-info">
+                    <h2><i class="fa-solid fa-fire-dragon"></i> QUÂN ĐOÀN ĐỎ</h2>
+                    <p>Lực lượng tấn công</p>
+                </div>
+                <div class="team-power-badge"><span id="powerA">0</span> <small>PL</small></div>
+            </div>
+            <div id="teamA" class="slot-container"></div>
+            <button class="add-slot-btn" onclick="addSlot('teamA'); AudioManager.playClick()">
+                <i class="fa-solid fa-plus-circle"></i> Triệu hồi
+            </button>
+        </div>
+
+        <div class="vs-container">
+            <div class="vs-circle">VS</div>
+        </div>
+
+        <div class="team-card team-b">
+            <div class="team-header">
+                <div class="team-info">
+                    <h2><i class="fa-solid fa-spaghetti-monster-flying"></i> CHIẾN BINH LAM</h2>
+                    <p>Lực lượng phòng thủ</p>
+                </div>
+                <div class="team-power-badge"><span id="powerB">0</span> <small>PL</small></div>
+            </div>
+            <div id="teamB" class="slot-container"></div>
+            <button class="add-slot-btn" onclick="addSlot('teamB'); AudioManager.playClick()">
+                <i class="fa-solid fa-plus-circle"></i> Triệu hồi
+            </button>
+        </div>
+    </div>
+
+    <div class="battle-control">
+        <button class="fight-btn" onclick="handleStartBattle()">
+            <div class="btn-content">
+                <i class="fa-solid fa-bolt-lightning"></i>
+                <span>KHAI CHIẾN</span>
+            </div>
+        </button>
+    </div>
+
+    <div class="footer-grid">
+        <div id="result" class="result-box">
+            <div class="placeholder-text">Đang chờ lệnh từ G Master...</div>
+        </div>
+
+        <div class="battle-history-mini">
+            <h4 style="margin-top:0; color: #fbbf24;"><i class="fa-solid fa-clock-rotate-left"></i> GẦN ĐÂY</h4>
+            <div id="miniHistoryList">
+                <div class="history-item">Chưa có dữ liệu trận đấu.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="audio.js"></script>
+<script src="imageDB.js"></script>
+<script src="battle.js"></script>
+
+<script>
+    // GM: Hàm bọc để thêm hiệu ứng âm thanh và cập nhật UI khi bấm nút đấu
+    async function handleStartBattle() {
+        if (typeof AudioManager !== "undefined") {
+            AudioManager.playBattle ? AudioManager.playBattle() : AudioManager.playClick();
+        }
+        
+        // Gọi hàm startBattle gốc trong battle.js
+        await startBattle();
+        
+        // Cập nhật lại list lịch sử mini sau khi đấu
+        updateMiniHistory();
+    }
+
+    // GM: Hàm cập nhật lịch sử nhanh
+    async function updateMiniHistory() {
+        const list = document.getElementById("miniHistoryList");
+        if (!list || typeof dbGetAll !== "function") return;
+
+        const history = await dbGetAll("battle_history");
+        if (history && history.length > 0) {
+            const lastThree = history.slice(-3).reverse();
+            list.innerHTML = lastThree.map(h => `
+                <div class="history-item">
+                    <b>${h.winner.includes("A") ? "🔴 A" : "🔵 B"} Thắng</b> 
+                    <small>(${h.scoreA} vs ${h.scoreB})</small>
+                    <span style="float:right">${h.date.split(',')[1]}</span>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Khởi tạo lịch sử khi load trang
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(updateMiniHistory, 500);
+    });
+</script>
+
+</body>
+</html>

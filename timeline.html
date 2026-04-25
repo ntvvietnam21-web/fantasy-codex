@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Codex - Timeline</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="timeline.css">
+</head>
+
+<body>
+    <h1>📜 Sử Ký Thế Giới</h1>
+
+    <div class="timeline-container">
+        <div class="timeline-controls">
+            <button type="button" onclick="zoomOut()" title="Thu nhỏ"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <span id="zoomDisplay" style="font-size: 13px; opacity: 0.8; font-weight: bold; min-width: 40px; display: inline-block;">100%</span>
+            <button type="button" onclick="zoomIn()" title="Phóng to"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button type="button" onclick="window.location.href='index.html'" title="Về trang chủ"><i class="fa-solid fa-house"></i></button>
+        </div>
+
+        <div class="timeline-form">
+            <input type="text" id="eventTitle" placeholder="Tên sự kiện quan trọng...">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="eventYear" placeholder="Năm (vd: 1023)" style="flex:1;">
+                <select id="eventType" style="flex:1; cursor: pointer;">
+                    <option value="general">📜 Chung</option>
+                    <option value="war">⚔️ Chiến tranh</option>
+                    <option value="magic">✨ Ma thuật</option>
+                    <option value="discovery">🧭 Khám phá</option>
+                </select>
+            </div>
+            <textarea id="eventDesc" placeholder="Mô tả chi tiết về sự kiện..."></textarea>
+            <button type="button" onclick="addEvent()" style="cursor: pointer;">
+                <i class="fa-solid fa-feather-pointed"></i> Khắc ghi vào sử sách
+            </button>
+        </div>
+
+        <div class="timeline-wrapper" id="timelineWrapper">
+            <div id="timelineList" class="timeline-horizontal"></div>
+        </div>
+    </div>
+<div id="eventModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">×</span>
+        <div id="modalBadge" class="event-badge">GENERAL</div>
+        <h2 id="modalTitle" style="margin-top: 10px;"></h2>
+        <p id="modalYear" class="year-text" style="color: #f1c40f; font-weight: bold;"></p>
+        <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 15px 0;">
+        <div id="modalDesc" style="line-height: 1.6; max-height: 250px; overflow-y: auto; margin-bottom: 20px;"></div>
+        
+        <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #333; padding-top: 15px;">
+            <button onclick="prepareEditEvent()" style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-pen-to-square"></i> Sửa
+            </button>
+            <button id="btnDeleteConfirm" style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-trash"></i> Xóa
+            </button>
+        </div>
+    </div>
+</div>
+    <script src="imageDB.js"></script>
+    <script src="toast.js"></script>
+    <script src="timeline.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codex Master Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="collection.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <a href="index.html" class="back-btn"><i class="fa fa-arrow-left"></i> Quay lại</a>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>GM CODEX</h2>
+            </div>
+            <div class="menu-item active" onclick="showTab('weapons', this)">
+                <i class="fa-solid fa-khanda"></i> Vũ khí
+            </div>
+            <div class="menu-item" onclick="showTab('skills', this)">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Kỹ năng
+            </div>
+            <div class="menu-item" onclick="showTab('items', this)">
+                <i class="fa-solid fa-bag-shopping"></i> Vật phẩm
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="content-header">
+                <div class="search-bar">
+                    <i class="fa fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm nhanh..." onkeyup="handleSearch()">
+                </div>
+                
+                <div class="quick-actions">
+                    <button class="btn-quick add-weapon" onclick="quickAdd('weapons')" title="Thêm Vũ Khí">
+                        <i class="fa-solid fa-khanda"></i>
+                    </button>
+                    <button class="btn-quick add-skill" onclick="quickAdd('skills')" title="Thêm Kỹ Năng">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                    <button class="btn-quick add-item" onclick="quickAdd('items')" title="Thêm Vật Phẩm">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                    </button>
+                </div>
+
+                <button class="fab-add" id="mainAddBtn" onclick="openCurrentModal()" title="Thêm mục mới">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </header>
+
+            <section id="weapons" class="tab">
+                <div class="section-title">Danh sách Vũ Khí</div>
+                <div id="weaponList" class="grid"></div>
+            </section>
+
+            <section id="skills" class="tab hidden">
+                <div class="section-title">Danh sách Kỹ Năng</div>
+                <div id="skillList" class="grid"></div>
+            </section>
+
+            <section id="items" class="tab hidden">
+                <div class="section-title">Danh sách Vật Phẩm</div>
+                <div id="itemList" class="grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="masterModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Thêm Mới</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <div id="modalInputs">
+                <div class="input-group">
+                    <label>Tên gọi <span style="color:var(--clr-weapon)">*</span></label>
+                    <input id="inpName" type="text" placeholder="Nhập tên...">
+                </div>
+                
+                <div class="input-group" id="groupExtra">
+                    <label id="labelExtra">Thông số</label>
+                    <input id="inpExtra" type="text" placeholder="Sức mạnh/Cấp độ...">
+                </div>
+
+                <div class="input-group">
+                    <label>Hình ảnh</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="inpFile" accept="image/*" onchange="previewSelectedImage(this)">
+                        <div id="filePreview" class="file-preview-zone"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Mô tả chi tiết</label>
+                    <textarea id="inpDesc" rows="4" placeholder="Viết tiểu sử hoặc công dụng..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-save" onclick="saveDataEntry()">
+                    <i class="fa fa-save"></i> Lưu lại
+                </button>
+                <button class="btn-cancel" onclick="closeModal()">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailModal" class="modal" style="display: none;">
+        <div class="modal-content detail-view">
+            <span class="close-detail" onclick="closeModal()">&times;</span>
+            <div id="detailContent">
+                </div>
+        </div>
+    </div>
+
+    <script src="imageDB.js"></script>
+    <script src="collection.js"></script>
+</body>
+</html>

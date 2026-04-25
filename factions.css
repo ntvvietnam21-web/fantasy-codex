@@ -1,0 +1,159 @@
+.faction-card{
+
+border:2px solid #6b46c1;
+background:#1a1a2e;
+
+}
+
+.faction-card h3{
+
+cursor:pointer;
+color:#c084fc;
+
+}
+
+.faction-card h3:hover{
+
+color:#f0abfc;
+
+}
+.faction-banner{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.faction-icon{
+  width:40px;
+  height:40px;
+  border-radius:8px;
+}
+
+:root {
+    --gold: #d4af37;
+    --gold-bright: #f1c40f;
+    --bg-dark: #121212;
+    --card-bg: rgba(30, 30, 30, 0.8);
+    --border: rgba(212, 175, 55, 0.3);
+}
+
+body.fantasy-theme {
+    background-color: var(--bg-dark);
+    color: #e0e0e0;
+    font-family: 'Quicksand', sans-serif;
+    line-height: 1.6;
+}
+
+.cinzel-font { font-family: 'Cinzel', serif; color: var(--gold); }
+
+/* Form Layout */
+.form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.visual-inputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+}
+
+.banner-upload { width: 100%; height: 200px; }
+.banner-upload img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px 12px 0 0; }
+
+.icon-upload {
+    margin-top: -60px;
+    z-index: 2;
+}
+
+.drop-zone-circle {
+    width: 120px;
+    height: 120px;
+    border: 3px solid var(--gold);
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    background: #222;
+}
+
+/* Form Grid */
+.form-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--gold);
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+input, textarea, select {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #444;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 5px var(--gold); }
+
+/* Profile Detail */
+.hidden { display: none !important; }
+
+.profile-header { position: relative; margin-bottom: 80px; }
+.banner-wrapper { height: 250px; border-radius: 15px; overflow: hidden; position: relative; }
+.banner-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.overlay { position: absolute; inset: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+
+.identity-block {
+    position: absolute;
+    bottom: -60px;
+    left: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+}
+
+#factionPageIcon {
+    width: 140px;
+    height: 140px;
+    border-radius: 15px;
+    border: 4px solid var(--bg-dark);
+    object-fit: cover;
+}
+
+.profile-content { display: grid; grid-template-columns: 250px 1fr; gap: 30px; padding: 20px; }
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+}
+
+/* Button */
+.btn-primary {
+    background: var(--gold);
+    color: black;
+    font-weight: bold;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-primary:hover { background: var(--gold-bright); transform: translateY(-2px); }
