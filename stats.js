@@ -43,7 +43,7 @@ function getDefaultStats() {
         core: { str: 0, agi: 0, int: 0, vit: 0, spi: 0, luk: 0 },
         vital: { hp: 0, mp: 0, stamina: 0, shield: 0 },
         offense: { atk: 0, matk: 0, critRate: 0, critDmg: 0, pen: 0, atkSpeed: 0, castSpeed: 0 },
-        defense: { def: 0, mdef: 0, eva: 0, block: 0, dmgReduce: 0, resist: 0 }
+        defense: { def: 0, mdef: 0, evasion: 0, block: 0, dmgReduce: 0, resist: 0 }
     };
 }
 
@@ -85,7 +85,7 @@ function loadStats() {
     // DEFENSE
     setVal("def", s.defense?.def);
     setVal("mdef", s.defense?.mdef);
-    setVal("eva", s.defense?.eva);
+    setVal("evasion", s.defense?.evasion);
     setVal("block", s.defense?.block);
     setVal("dmgReduce", s.defense?.dmgReduce);
     setVal("resist", s.defense?.resist);
@@ -111,7 +111,7 @@ async function saveStats() {
         },
         defense: {
             def: getNum("def"), mdef: getNum("mdef"),
-            eva: getNum("eva"), block: getNum("block"),
+            evasion: getNum("evasion"), block: getNum("block"),
             dmgReduce: getNum("dmgReduce"), resist: getNum("resist")
         }
     };
