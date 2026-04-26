@@ -46,8 +46,6 @@ function getDefaultStats() {
         defense: { def: 0, mdef: 0, evasion: 0, block: 0, dmgReduce: 0, resist: 0 }
     };
 }
-
-// ===== ĐƯA DỮ LIỆU VÀO INPUT =====
 function loadStats() {
     if (!char.stats) {
         char.stats = getDefaultStats();
@@ -58,6 +56,11 @@ function loadStats() {
         const el = document.getElementById(id);
         if (el) el.value = val || 0;
     };
+    if (s.hidden) {
+        setVal("statTalent", s.hidden.talent);
+        setVal("statPotential", s.hidden.potential);
+        setVal("statFate", s.hidden.fate);
+    }
 
     // CORE
     setVal("str", s.core?.str);
@@ -93,9 +96,26 @@ function loadStats() {
 
 // ===== LƯU DỮ LIỆU (INDEXED DB) =====
 async function saveStats() {
-    const getNum = (id) => Number(document.getElementById(id)?.value) || 0;
+    const getNum = (id) => {
+        const el = document.getElementById(id);
+        // Nếu không tìm thấy element (do trang stats.html chưa thêm input), 
+        // ta giữ nguyên giá trị cũ của nhân vật thay vì gán bằng 0.
+        if (!el) {
+            if (id === "statTalent") return char.stats?.hidden?.talent || 0;
+            if (id === "statPotential") return char.stats?.hidden?.potential || 0;
+            if (id === "statFate") return char.stats?.hidden?.fate || 0;
+            return 0;
+        }
+        return Number(el.value) || 0;
+    };
 
     char.stats = {
+        // --- GM: THÊM LƯU NHÓM THIÊN PHÚ ---
+        hidden: {
+            talent: getNum("statTalent"),
+            potential: getNum("statPotential"),
+            fate: getNum("statFate")
+        },
         core: {
             str: getNum("str"), agi: getNum("agi"), int: getNum("int"),
             vit: getNum("vit"), spi: getNum("spi"), luk: getNum("luk")
@@ -117,26 +137,24 @@ async function saveStats() {
     };
 
     try {
-        // Lưu lại vào mảng toàn cục
         const index = windowCharacters.findIndex(c => String(c.id) === String(charId));
         if (index !== -1) windowCharacters[index] = char;
 
-        // Gọi hàm dbSave từ imageDB.js (giống app.js)
         if (typeof dbSave === "function") {
             await dbSave("characters", windowCharacters);
-            // Thông báo cho các tab khác nếu cần
             localStorage.setItem("forceRefresh", Date.now()); 
-            showToast("💾 GM: Đã lưu vào hệ thống IndexedDB!");
+            showToast("💾 GM: Đã cập nhật chỉ số hệ thống!");
         } else {
-            // Fallback nếu không có dbSave
             localStorage.setItem("characters", JSON.stringify(windowCharacters));
-            showToast("✅ Đã lưu vào LocalStorage (Fallback)");
+            showToast("✅ Đã lưu (Fallback)");
         }
     } catch (err) {
         console.error("Lỗi lưu Stats:", err);
         alert("Không thể lưu dữ liệu!");
     }
 }
+
+
 
 // ===== RESET =====
 async function resetStats() {

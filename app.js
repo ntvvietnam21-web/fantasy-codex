@@ -173,18 +173,45 @@ function openModal() {
     if (typeof updateKingdomOptions === "function") updateKingdomOptions();
     if (typeof updateCharacterLocationOptions === "function") updateCharacterLocationOptions();
     if (typeof updateFactionOptions === "function") updateFactionOptions();
+
     const modal = document.getElementById("characterModal");
     if (modal) {
         modal.classList.add("active");
+
         if (!editingId) {
+            // --- TRƯỜNG HỢP 1: TẠO MỚI ---
+            // Reset các con số hiển thị
             ['valTalent', 'valPotential', 'valFate'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = "0";
             });
+            // Reset thanh kéo (slider) về 0
+            ['statTalent', 'statPotential', 'statFate'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = 0;
+            });
+
             const preview = document.getElementById("previewImg");
             if (preview) {
                 preview.src = "https://i.imgur.com/6X8FQyA.png";
                 preview.classList.add("hidden");
+            }
+        } else {
+            // --- TRƯỜNG HỢP 2: CHỈNH SỬA (SỬA LỖI RESET TẠI ĐÂY) ---
+            // Tìm dữ liệu nhân vật đang sửa trong mảng toàn cục
+            const char = window.characters.find(c => String(c.id) === String(editingId));
+            if (char && char.stats && char.stats.hidden) {
+                const h = char.stats.hidden;
+
+                // Đổ dữ liệu cũ vào thanh kéo (slider)
+                if (document.getElementById('statTalent')) document.getElementById('statTalent').value = h.talent || 0;
+                if (document.getElementById('statPotential')) document.getElementById('statPotential').value = h.potential || 0;
+                if (document.getElementById('statFate')) document.getElementById('statFate').value = h.fate || 0;
+
+                // Cập nhật con số hiển thị bên cạnh cho khớp
+                if (document.getElementById('valTalent')) document.getElementById('valTalent').innerText = h.talent || 0;
+                if (document.getElementById('valPotential')) document.getElementById('valPotential').innerText = h.potential || 0;
+                if (document.getElementById('valFate')) document.getElementById('valFate').innerText = h.fate || 0;
             }
         }
 
@@ -238,7 +265,6 @@ function previewCharacterImage(event) {
         }
     };
 }
-
 async function saveCharacter() {
     try {
         if (typeof initImageDB === "function") await initImageDB();
@@ -253,7 +279,9 @@ async function saveCharacter() {
 
         const isNew = !editingId;
         const id = editingId || (typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : "char_" + Date.now());
-        const oldChar = !isNew ? window.characters.find(c => String(c.id) === String(editingId)) : null;
+        
+        // Tìm nhân vật cũ để bảo toàn dữ liệu stats
+        const oldChar = window.characters.find(c => String(c.id) === String(id));
         
         // Xử lý ảnh
         let img = oldChar?.img || "";
@@ -266,7 +294,7 @@ async function saveCharacter() {
                 }
             } catch (imgErr) {
                 console.error("❌ Lỗi lưu ảnh nhân vật:", imgErr);
-                if (typeof showToast === "function") showToast("⚠️ Không thể lưu ảnh, nhưng dữ liệu text vẫn sẽ được ghi lại.", "warning");
+                if (typeof showToast === "function") showToast("⚠️ Không thể lưu ảnh...", "warning");
             }
         }
 
@@ -276,17 +304,17 @@ async function saveCharacter() {
             return isNaN(v) ? 0 : v;
         };
 
-        // --- CẬP NHẬT LOGIC STATS ĐỂ ĐỒNG BỘ VỚI stats.js ---
-        // Lấy stats cũ nếu có, nếu không thì khởi tạo mặc định
-        const currentStats = oldChar?.stats || {
+        // --- GM: QUAN TRỌNG - BẢO TOÀN CHỈ SỐ HỆ THỐNG ---
+        const defaultStats = {
             core: { str: 0, agi: 0, int: 0, vit: 0, spi: 0, luk: 0 },
             vital: { hp: 0, mp: 0, stamina: 0, shield: 0 },
             offense: { atk: 0, matk: 0, critRate: 0, critDmg: 0, pen: 0, atkSpeed: 0, castSpeed: 0 },
             defense: { def: 0, mdef: 0, evasion: 0, block: 0, dmgReduce: 0, resist: 0 }
         };
 
+        // Kết hợp chỉ số cũ và chỉ số ẩn mới từ slider
         const stats = {
-            ...currentStats, // Giữ nguyên các chỉ số từ stats.js (ATK, DEF, HP...)
+            ...(oldChar?.stats || defaultStats), 
             hidden: {
                 talent: getNum("statTalent"),
                 potential: getNum("statPotential"),
@@ -294,16 +322,13 @@ async function saveCharacter() {
             }
         };
 
-        // Tính toán lại Lực chiến nếu cần
         let powerLevel = getNum("charPL");
         if (powerLevel === 0 && typeof calculatePL === "function") {
             powerLevel = calculatePL({ stats });
         }
 
         const characterObj = {
-            id, 
-            name, 
-            img,
+            id, name, img,
             race: getVal("charRace"),
             kingdom: getVal("charKingdom"),
             faction: getVal("charFaction"),
@@ -321,13 +346,11 @@ async function saveCharacter() {
             armor: getVal("equipArmor", "Chưa trang bị"),
             accessory: getVal("equipAccessory", "Chưa trang bị"),
             
-            // Quan hệ
             relations: [...document.querySelectorAll(".relation-item")].map(el => ({
                 targetId: el.querySelector(".rel-character")?.value,
                 type: el.querySelector(".rel-type")?.value.trim()
             })).filter(r => r.targetId && r.type),
             
-            // Các dạng biến hình
             forms: [...document.querySelectorAll(".form-item")].map(f => ({
                 id: f.dataset.id || "form_" + Date.now() + Math.random(),
                 name: f.querySelector(".formName")?.value.trim(),
@@ -336,27 +359,24 @@ async function saveCharacter() {
             })).filter(f => f.name),
             
             favorite: oldChar?.favorite || false,
-            activeForm: oldChar?.activeForm || "", // Giữ nguyên dạng đang chọn
-            stats, // Ghi đè stats đã bao gồm hidden stats mới
+            activeForm: oldChar?.activeForm || "",
+            stats, // Ghi đè stats nhưng đã được "merge" ở trên
             updatedAt: Date.now()
         };
 
-        // Lưu vào mảng toàn cục
         if (!isNew) {
-            const index = window.characters.findIndex(c => String(c.id) === String(editingId));
+            const index = window.characters.findIndex(c => String(c.id) === String(id));
             if (index !== -1) window.characters[index] = characterObj;
         } else {
             window.characters.unshift(characterObj);
         }
 
-        // Lưu vào IndexedDB thông qua hàm dùng chung
         if (typeof saveAndRefresh === "function") {
             await saveAndRefresh();
         } else if (typeof dbSave === "function") {
             await dbSave("characters", window.characters);
         }
 
-        // Đóng modal và cập nhật giao diện
         if (typeof closeCharacterModal === "function") closeCharacterModal();
         
         if (window.currentPage === "characterPage") {
@@ -367,13 +387,12 @@ async function saveCharacter() {
         }
 
         if (typeof showToast === "function") {
-            showToast(`✅ ${isNew ? 'Khởi tạo' : 'Cập nhật'} nhân vật [${name}] thành công!`, "success");
+            showToast(`✅ ${isNew ? 'Khởi tạo' : 'Cập nhật'} thành công!`, "success");
         }
 
         editingId = null;
     } catch (err) {
         console.error("❌ Lỗi saveCharacter:", err);
-        if (typeof showToast === "function") showToast("❌ Thao tác thất bại. Kiểm tra Console!", "error");
     }
 }
 async function editCharacter(id) {
@@ -542,9 +561,6 @@ async function openProfile(id) {
     const offense = s.offense || {};
     const defense = s.defense || {};
     const vital = s.vital || {};
-    
-    // SỬA TẠI ĐÂY: Ưu tiên lấy từ s.hidden (do stats.js lưu) 
-    // Nếu không có mới tìm ở c.hidden (do app.js cũ lưu)
     const hidden = s.hidden || c.hidden || {};
     // ----------------------------------
 
@@ -737,9 +753,6 @@ async function openProfile(id) {
 
     showPage("characterPage");
 }
-
-
-
 function renderRelationsHTML(c) {
     const allChars = window.characters || [];
     if (!c.relations || c.relations.length === 0) {
