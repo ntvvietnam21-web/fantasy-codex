@@ -307,41 +307,77 @@ padding:5px;">
   <div id="factionList" class="grid-container"></div>
 </section>
 <section id="factionPage" class="page hidden">
-  <div class="page-header">
-    <button class="btn-sm" onclick="showPage('factions')"><i class="fa fa-arrow-left"></i> Quay lại</button>
-    <h2 id="factionPageName">Tên phe phái</h2>
+  <div class="page-header" style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+    <button class="btn-sm" onclick="showPage('factions')" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: var(--gold); cursor: pointer; padding: 8px 15px; border-radius: 6px;">
+        <i class="fa fa-arrow-left"></i> Quay lại
+    </button>
+    <h2 id="factionPageName" class="cinzel-font" style="margin: 0; font-size: 2rem;">Tên phe phái</h2>
   </div>
 
-  <div class="profile-container">
-    <div class="profile-sidebar">
-      <div class="info-card">
-        <img id="factionPageBanner" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:15px; border: 1px solid var(--border);">
-        <div class="item">
-          <div class="label">Thủ lĩnh</div>
-          <b id="factionPageLeader">-</b>
+  <div class="profile-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+    
+    <aside class="profile-sidebar">
+      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; position: sticky; top: 20px;">
+        <div style="position: relative; margin-bottom: 60px;">
+            <img id="factionPageBanner" src="https://i.imgur.com/eE6C6Wv.png" style="width:100%; height:120px; object-fit:cover; border-radius:8px; border: 1px solid var(--border);">
+            <img id="factionPageIcon" src="https://i.imgur.com/6X8FQyA.png" style="width: 80px; height: 80px; border-radius: 12px; border: 3px solid var(--bg-main); position: absolute; bottom: -40px; left: 20px; object-fit: cover; background: var(--bg-main);">
         </div>
-        <div class="item">
-          <div class="label">Trụ sở</div>
-          <b id="factionPageHQ">-</b>
-        </div>
-        <div class="item">
-          <div class="label">Mục tiêu</div>
-          <b id="factionPageGoal">-</b>
-        </div>
-      </div>
-    </div>
 
-    <div class="profile-main">
-      <div class="info-card">
-        <div class="title"><i class="fa fa-book"></i> Giới thiệu</div>
-        <p id="factionPageDesc" style="line-height:1.6; color:var(--text-dim);"></p>
+        <div class="item" style="margin-bottom: 12px;">
+          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Thủ lĩnh</div>
+          <b id="factionPageLeader" style="font-size: 1.1rem; color: var(--text-main);">-</b>
+        </div>
+        
+        <div class="item" style="margin-bottom: 12px;">
+          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Trụ sở chính</div>
+          <b id="factionPageHQ" style="color: var(--text-dim);">-</b>
+        </div>
+
+        <div class="item" style="margin-bottom: 12px;">
+          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Sức mạnh thế lực</div>
+          <div class="power-meter" style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin: 5px 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+            <div id="powerFill" class="power-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width 1s ease;"></div>
+          </div>
+          <span id="factionPagePower" style="font-size: 0.8rem; color: var(--text-dim);">0/1000</span>
+        </div>
+
+        <div class="item" style="margin-bottom: 12px;">
+            <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Quan hệ ngoại giao</div>
+            <div id="factionPageRelations" class="tag-container" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="profile-main" style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 12px;">
+        <div class="title" style="color: var(--gold); font-family: 'Cinzel'; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+            <i class="fa fa-book"></i> Biên Niên Sử & Tư Tưởng
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
+                <small style="color: var(--gold); display: block;">Mục tiêu tối thượng</small>
+                <span id="factionPageGoal" style="font-style: italic;">-</span>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
+                <small style="color: var(--gold); display: block;">Hệ tư tưởng</small>
+                <span id="factionPageIdeology">-</span>
+            </div>
+        </div>
+        <p id="factionPageDesc" style="line-height:1.7; color:var(--text-main); white-space: pre-wrap;"></p>
       </div>
 
-      <div class="info-card">
-        <div class="title"><i class="fa fa-users"></i> Thành viên thuộc phe</div>
-        <div id="factionCharacters" class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top:10px;">
-           </div>
+      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 12px;">
+        <div class="title" style="color: var(--gold); font-family: 'Cinzel'; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+            <i class="fa fa-sitemap"></i> Sơ đồ tổ chức & Thành viên
+        </div>
+        
+        <div id="factionCharacters" class="structure-display-area">
+           <p style="color: var(--text-dim); text-align: center; padding: 20px;">Đang nạp dữ liệu cấu trúc...</p>
+        </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -753,64 +789,94 @@ padding:5px;">
         </div>
     </div>
 </div>
+
 <div id="factionModal" class="modal">
-  <div class="modal-content" style="max-width: 850px;">
-    <div class="modal-header">
-      <h3><i class="fa-solid fa-users-rays"></i> Thiết lập phe phái</h3>
-      <span class="close" onclick="closeFactionModal()">&times;</span>
+    <div class="modal-content" style="max-width: 900px; width: 95%;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-users-rays"></i> THIẾT LẬP THẾ LỰC</h3>
+            <span class="close" onclick="closeFactionModal()">&times;</span>
+        </div>
+        
+        <form id="factionForm" onsubmit="event.preventDefault(); saveFaction();">
+            <div class="form-grid">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-signature"></i> Tên phe phái *</label>
+                        <input type="text" id="factionName" required placeholder="VD: Hội Tam Điểm">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-crown"></i> Thủ lĩnh tối cao</label>
+                        <input type="text" id="factionLeader" placeholder="Tên người đứng đầu">
+                    </div>
+                    <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-calendar-day"></i> Ngày thành lập</label>
+                            <input type="date" id="factionFounded">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-bolt"></i> Sức mạnh (0-1000)</label>
+                            <input type="number" id="factionPower" placeholder="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-location-dot"></i> Trụ sở chính</label>
+                        <input type="text" id="factionHQ" placeholder="VD: Đảo Thiên Đường">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-expand"></i> Quy mô</label>
+                        <select id="factionScale">
+                            <option value="Bí mật">Bí mật</option>
+                            <option value="Địa phương">Địa phương</option>
+                            <option value="Toàn lục địa">Toàn lục địa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-image"></i> Biểu tượng & Ảnh bìa</label>
+                        <div class="file-inputs" style="display: flex; gap: 5px;">
+                            <input type="file" id="factionIcon" accept="image/*" style="font-size: 11px; flex: 1;">
+                            <input type="file" id="factionBanner" accept="image/*" style="font-size: 11px; flex: 1;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diplomacy-editor-section" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                <label><i class="fa-solid fa-handshake"></i> Quan hệ ngoại giao</label>
+                <div id="factionDiplomacyList" class="dynamic-relation-list"></div>
+                <button type="button" class="btn-add-dashed" onclick="addRelationRow('factionDiplomacyList')" style="width: 100%; margin-top: 5px;">
+                    <i class="fa fa-plus"></i> Thêm bang giao
+                </button>
+            </div>
+
+            <div class="form-group full" style="margin-top: 15px;">
+                <label><i class="fa-solid fa-scroll"></i> Mục tiêu & Tư tưởng</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="factionGoal" placeholder="Mục tiêu tối thượng..." style="flex: 1;">
+                    <input type="text" id="factionIdeology" placeholder="Tư tưởng chủ đạo..." style="flex: 1;">
+                </div>
+                <textarea id="factionDesc" rows="3" placeholder="Lịch sử hình thành và mô tả chi tiết..."></textarea>
+            </div>
+
+            <div class="structure-section" style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px dashed var(--gold);">
+                <h4 style="color: var(--gold); margin-bottom: 10px;"><i class="fa-solid fa-sitemap"></i> CƠ CẤU TỔ CHỨC & CHỨC VỤ</h4>
+                <div id="factionStructureAdmin" class="structure-admin-container">
+                    </div>
+                <button type="button" class="btn-outline" onclick="addFactionTab()" style="width: 100%; margin-top: 10px; border-style: dashed; border-color: var(--gold); color: var(--gold);">
+                    <i class="fa-solid fa-folder-plus"></i> THÊM BỘ PHẬN MỚI (TAB)
+                </button>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 25px; display: flex; gap: 10px;">
+                <button type="button" class="btn-secondary" onclick="closeFactionModal()" style="flex: 1;">HỦY</button>
+                <button type="submit" class="btn-primary" style="flex: 2;">LƯU BIÊN NIÊN SỬ</button>
+            </div>
+        </form>
     </div>
-    <form onsubmit="event.preventDefault(); saveFaction();">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Tên phe phái *</label>
-          <input type="text" id="factionName" required placeholder="VD: Hội Sát Thủ">
-        </div>
-        <div class="form-group">
-          <label>Thủ lĩnh</label>
-          <input type="text" id="factionLeader" placeholder="Tên người đứng đầu">
-        </div>
-        <div class="form-group">
-          <label>Trụ sở (HQ)</label>
-          <input type="text" id="factionHQ">
-        </div>
-        <div class="form-group">
-          <label>Quy mô (Scale)</label>
-          <input type="text" id="factionScale" placeholder="VD: Toàn lục địa">
-        </div>
-        <div class="form-group">
-          <label>Sức mạnh (Power)</label>
-          <input type="text" id="factionPower" placeholder="VD: Cực mạnh">
-        </div>
-        <div class="form-group">
-          <label>Biểu tượng & Ảnh bìa</label>
-          <div style="display: flex; gap: 5px;">
-            <input type="file" id="factionIcon" accept="image/*" style="font-size: 10px;">
-            <input type="file" id="factionBanner" accept="image/*" style="font-size: 10px;">
-          </div>
-        </div>
-      </div>
-
-      <div class="diplomacy-editor-section">
-        <label><i class="fa-solid fa-handshake"></i> Quan hệ với các Phe/Quốc gia khác</label>
-        <div id="factionDiplomacyList" class="dynamic-relation-list"></div>
-        <button type="button" class="btn-add-dashed" onclick="addRelationRow('factionDiplomacyList')">
-          <i class="fa fa-plus"></i> Thêm mối bang giao tùy chỉnh
-        </button>
-      </div>
-
-      <div class="form-group full">
-        <label>Mục tiêu & Mô tả</label>
-        <input type="text" id="factionGoal" placeholder="Mục tiêu tối thượng..." style="margin-bottom: 10px;">
-        <textarea id="factionDesc" rows="3" placeholder="Lịch sử hình thành..."></textarea>
-      </div>
-
-      <div class="modal-buttons">
-        <button type="button" class="btn-secondary" onclick="closeFactionModal()">Hủy</button>
-        <button type="submit" class="btn-primary">Lưu phe phái</button>
-      </div>
-    </form>
-  </div>
 </div>
+
 <!-- RACE MODAL -->
 <div id="raceModal" class="modal">
   <div class="modal-content">

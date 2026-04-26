@@ -157,3 +157,127 @@ input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 5px var(
 }
 
 .btn-primary:hover { background: var(--gold-bright); transform: translateY(-2px); }
+
+/* RESPONSIVE CHO MOBILE (Dưới 768px) */
+@media screen and (max-width: 768px) {
+    /* 1. Modal Layout: Chuyển form-grid từ 2 cột thành 1 cột */
+    #factionModal .form-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px;
+    }
+
+    /* 2. Cấu trúc Page chi tiết (FactionPage) */
+    #factionPage .profile-container {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Sidebar lên trên, Main xuống dưới */
+    #factionPage .profile-sidebar {
+        width: 100% !important;
+        position: static !important; /* Bỏ sticky để dễ cuộn trên đt */
+    }
+
+    /* 3. Chỉnh sửa Header và Identity Block (Icon đè lên Banner) */
+    .identity-block {
+        left: 50% !important;
+        transform: translateX(-50%);
+        bottom: -50px !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+        width: 100%;
+    }
+
+    #factionPageIcon {
+        width: 100px !important;
+        height: 100px !important;
+        margin-bottom: 10px;
+    }
+
+    /* 4. Điều chỉnh các Dual Inputs (Mục tiêu & Tư tưởng) */
+    .dual-inputs {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    /* 5. Tối ưu hóa Grid danh sách nhân vật */
+    .character-grid, .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    /* 6. Nút bấm to hơn để dễ chạm (Touch target) */
+    .btn-primary, .btn-outline, .btn-secondary {
+        width: 100%;
+        padding: 12px !important;
+        font-size: 1rem !important;
+    }
+
+    /* 7. Phần cấu trúc cây (Tree Admin) */
+    .node-editor-item {
+        margin-left: 10px !important; /* Giảm thụt lề để không bị tràn màn hình */
+    }
+
+    .node-editor-item div[style*="display:flex"] {
+        flex-wrap: wrap; /* Cho phép rớt dòng nếu input quá dài */
+    }
+
+    .node-editor-item input, .node-editor-item select {
+        flex: 1 0 100% !important; /* Mỗi input chiếm 1 dòng trên đt */
+        margin-bottom: 5px;
+    }
+}
+
+/* Tối ưu sơ đồ cho Mobile */
+@media (max-width: 768px) {
+    .tree-root {
+        align-items: flex-start !important; /* Căn lề trái thay vì ở giữa */
+        padding-left: 10px;
+    }
+
+    .node-children {
+        flex-direction: column !important; /* Xếp dọc các node con */
+        align-items: flex-start !important;
+        gap: 15px !important;
+        border-top: none !important; /* Bỏ đường kẻ ngang */
+        border-left: 2px dashed var(--gold); /* Thay bằng đường kẻ dọc bên trái */
+        margin-left: 25px !important; /* Tạo khoảng thụt đầu dòng cho cấp dưới */
+        padding-top: 15px !important;
+        padding-left: 20px !important;
+    }
+
+    .node-line {
+        height: 15px !important;
+        margin-left: 25px; /* Nối từ node cha xuống đường kẻ dọc của node con */
+    }
+
+    .node-card {
+        width: 100% !important; /* Thẻ chiếm toàn chiều ngang khả dụng */
+        max-width: 280px;
+        display: flex !important; /* Chuyển sang dạng hàng ngang để tiết kiệm chiều dọc */
+        align-items: center;
+        text-align: left !important;
+        padding: 8px 12px !important;
+        gap: 15px;
+    }
+
+    .node-card .avatar-container {
+        margin: 0 !important; /* Bỏ căn giữa ảnh */
+        width: 45px !important;
+        height: 45px !important;
+    }
+
+    .node-card .info-text {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Hiệu ứng mượt mà */
+.node-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--glass);
+    backdrop-filter: blur(5px);
+}

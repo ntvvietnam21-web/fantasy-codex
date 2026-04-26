@@ -33,9 +33,6 @@ function normalizeCharacters(data) {
       c.stats.hidden.potential = parseInt(c.stats.hidden.potential) || 0;
       c.stats.hidden.fate = parseInt(c.stats.hidden.fate) || 0;
     }
-
-    // 2. CHUẨN HÓA SKILL (Quan trọng cho Vortex Tree)
-    // Đảm bảo nhân vật luôn có mảng kỹ năng tùy chỉnh
     if (!Array.isArray(c.customSkills)) {
       c.customSkills = []; 
     }
@@ -170,7 +167,6 @@ async function importCodexFile(file, key) {
     if (!confirm(`⚠️ Ghi đè dữ liệu [${key}]?`)) return;
 
     try {
-        // GM: Xử lý Import cho Sinh vật (Giữ nguyên)
         if (key === "creatures") {
             const creatureDBRequest = indexedDB.open("CreatureCodexDB", 1);
             creatureDBRequest.onsuccess = (e) => {
@@ -197,7 +193,6 @@ async function importCodexFile(file, key) {
             return;
         }
 
-        // GM: Xử lý Import cho Luật Thế Giới (laws & law_categories)
         if (key === "laws" || key === "law_categories") {
             const lawDBRequest = indexedDB.open("WorldLawsDB", 2);
             lawDBRequest.onsuccess = (e) => {
@@ -215,7 +210,6 @@ async function importCodexFile(file, key) {
             return;
         }
 
-        // --- Logic chuẩn hóa dữ liệu cho các key khác ---
         let finalizedData = importedData.map(item => {
             switch (key) {
                 case "characters":
@@ -243,6 +237,7 @@ async function importCodexFile(file, key) {
                     };
 
                 case "kingdoms":
+                case "factions": // Thêm phe phái vào logic chuẩn hóa sơ đồ cây
                     let struct = Array.isArray(item.structure) ? item.structure : [];
                     struct = struct.map(tab => {
                         if (!tab.treeNodes) {
@@ -250,9 +245,13 @@ async function importCodexFile(file, key) {
                         }
                         const repairNode = (node) => {
                             if (!node.children) node.children = [];
-                            node.children.forEach(repairNode);
+                            if (Array.isArray(node.children)) {
+                                node.children.forEach(repairNode);
+                            }
                         };
-                        tab.treeNodes.forEach(repairNode);
+                        if (Array.isArray(tab.treeNodes)) {
+                            tab.treeNodes.forEach(repairNode);
+                        }
                         return tab;
                     });
                     return { ...item, structure: struct };
@@ -262,7 +261,6 @@ async function importCodexFile(file, key) {
             }
         });
 
-        // Thực hiện lưu vào IndexedDB mặc định
         if (key.includes("_data")) {
             if (typeof dbSaveCustom === "function") await dbSaveCustom(key, finalizedData);
             else await dbSave(key, finalizedData);
@@ -293,46 +291,57 @@ function handleImportFile(e) {
   e.target.value = null; // reset input
 }
 async function exportImages(batchSize = 200) {
-    if (!imageDB) await initImageDB();
+    if (typeof initImageDB === "function" && !imageDB) await initImageDB();
 
     const tx = imageDB.transaction("images", "readonly");
     const store = tx.objectStore("images");
-
     const request = store.getAll();
 
     request.onsuccess = async () => {
         const images = request.result || [];
         if (!images.length) return showToast("❌ Không có ảnh để export");
 
+        showToast(`⏳ Đang xử lý ${images.length} ảnh...`);
         let batchIndex = 0;
+        const totalImages = [...images];
 
-        while (images.length) {
-            const batch = images.splice(0, batchSize);
+        while (totalImages.length) {
+            const batch = totalImages.splice(0, batchSize);
 
             const converted = await Promise.all(batch.map(async img => {
-                let data;
-                if (img.data instanceof Blob) data = await blobToBase64(img.data);
-                else if (typeof img.data === "string") data = img.data;
-                else return null;
+                try {
+                    let data;
+                    if (img.data instanceof Blob) {
+                        data = await blobToBase64(img.data);
+                    } else if (typeof img.data === "string") {
+                        data = img.data;
+                    } else return null;
 
-                return { id: img.id, data };
+                    return { 
+                        id: img.id, 
+                        key: img.key, // Giữ key để tránh nhân bản khi import lại
+                        data: data,
+                        timestamp: img.timestamp || Date.now()
+                    };
+                } catch (e) { return null; }
             }));
 
-            // loại bỏ null
-            const batchData = converted.filter(x => x);
-
-            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-            downloadJSON(batchData, `images_Backup_batch${batchIndex}_${timestamp}.json`);
-            batchIndex++;
+            const batchData = converted.filter(x => x !== null);
+            if (batchData.length > 0) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 10);
+                downloadJSON(batchData, `Codex_Images_Batch${batchIndex + 1}_${timestamp}.json`);
+                batchIndex++;
+            }
         }
 
-        showToast(`🖼️ Export xong ${batchIndex} batch ảnh`);
+        showToast(`🖼️ Export xong ${batchIndex} tệp ảnh.`);
     };
 
-    request.onerror = () => showToast("❌ Lỗi đọc database");
+    request.onerror = () => showToast("❌ Lỗi truy cập kho ảnh");
 }
+
 async function importImagesFromJSON(file) {
-    if (!imageDB) await initImageDB(false);
+    if (typeof initImageDB === "function" && !imageDB) await initImageDB(false);
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -353,23 +362,33 @@ async function importImagesFromJSON(file) {
         for (const img of data) {
             if (!img.id || !img.data) continue;
 
-            let blob;
-            if (typeof img.data === "string") {
-                if (!img.data.startsWith("data:")) continue;
-                const parts = img.data.split(",");
-                const byteString = atob(parts[1]);
-                const mimeString = parts[0].split(":")[1].split(";")[0];
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-                blob = new Blob([ab], { type: mimeString });
-            } else if (img.data instanceof Blob) {
-                blob = img.data;
-            } else continue;
+            try {
+                let blob;
+                if (typeof img.data === "string" && img.data.startsWith("data:")) {
+                    const parts = img.data.split(",");
+                    const byteString = atob(parts[1]);
+                    const mimeString = parts[0].split(":")[1].split(";")[0];
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+                    blob = new Blob([ab], { type: mimeString });
+                } else if (img.data instanceof Blob) {
+                    blob = img.data;
+                } else continue;
 
-            const key = `${img.id}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-            store.put({ key, id: img.id, data: blob, timestamp: Date.now() });
-            imported++;
+                // Ưu tiên dùng key cũ để đè dữ liệu nếu trùng, tránh rác DB
+                const key = img.key || `${img.id}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                
+                store.put({ 
+                    key: key, 
+                    id: img.id, 
+                    data: blob, 
+                    timestamp: img.timestamp || Date.now() 
+                });
+                imported++;
+            } catch (err) {
+                console.error("Lỗi xử lý ảnh đơn lẻ:", err);
+            }
         }
 
         tx.oncomplete = async () => {
@@ -377,11 +396,13 @@ async function importImagesFromJSON(file) {
             if (typeof renderImages === "function") await renderImages();
         };
 
-        tx.onerror = () => showToast("❌ Lỗi import ảnh");
+        tx.onerror = () => showToast("❌ Lỗi import ảnh vào database");
     };
 
     reader.readAsText(file);
 }
+
+
 async function renderImages() {
     const container = document.getElementById("imageContainer");
     if (!container) return;

@@ -1,5 +1,6 @@
 window.factions = window.factions || []; 
 let editingFaction = -1;
+window.currentFactionStructure = []; 
 function getCharacters(){
     return window.characters || [];
 }
@@ -69,6 +70,9 @@ async function renderFactions() {
         }
     });
 }
+
+
+
 async function saveFaction() {
     const val = (id) => document.getElementById(id)?.value.trim() || "";
     const name = val("factionName");
@@ -81,24 +85,29 @@ async function saveFaction() {
     let isEdit = editingFaction >= 0;
     let factionId = isEdit ? window.factions[editingFaction].id : "f_" + Date.now();
     
+    // 1. Xử lý lưu trữ hình ảnh
     let iconKey = isEdit ? window.factions[editingFaction].icon : "";
     let bannerKey = isEdit ? window.factions[editingFaction].banner : "";
 
     const iconFile = document.getElementById("factionIcon")?.files[0];
     if (iconFile) {
         iconKey = factionId + "_icon_" + Date.now();
-        await saveImage(iconKey, iconFile);
+        if (typeof saveImage === "function") await saveImage(iconKey, iconFile);
     }
 
     const bannerFile = document.getElementById("factionBanner")?.files[0];
     if (bannerFile) {
         bannerKey = factionId + "_banner_" + Date.now();
-        await saveImage(bannerKey, bannerFile);
+        if (typeof saveImage === "function") await saveImage(bannerKey, bannerFile);
     }
 
-    // Lấy dữ liệu ngoại giao từ UI (Hàm từ diplomacy.js)
+    // 2. Thu thập dữ liệu ngoại giao
     const diplomacy = typeof getDiplomacyDataFromUI === "function" ? 
                         getDiplomacyDataFromUI('factionDiplomacyList') : [];
+
+    // 3. QUAN TRỌNG: Thu thập cấu trúc chức vụ từ bộ nhớ tạm
+    // Đảm bảo clone sâu để tránh lỗi tham chiếu
+    const structure = JSON.parse(JSON.stringify(window.currentFactionStructure || []));
 
     const obj = {
         id: factionId,
@@ -109,36 +118,48 @@ async function saveFaction() {
         scale: val("factionScale"),
         power: val("factionPower"),
         goal: val("factionGoal"),
+        ideology: val("factionIdeology"), 
         desc: val("factionDesc"),
-        diplomacy: diplomacy, // Lưu mảng quan hệ mới
+        diplomacy: diplomacy,
+        structure: structure, 
         icon: iconKey,
         banner: bannerKey,
         updatedAt: Date.now()
     };
 
+    // 4. Cập nhật vào mảng dữ liệu toàn cục
     if (isEdit) {
         window.factions[editingFaction] = obj;
     } else {
         window.factions.push(obj);
     }
 
+    // 5. Lưu vào Database (IndexedDB)
     if (typeof saveAndRefresh === "function") {
         await saveAndRefresh();
     } else {
-        await dbSave("factions", window.factions);
-        await renderFactions();
+        if (typeof dbSave === "function") await dbSave("factions", window.factions);
+        if (typeof renderFactions === "function") await renderFactions();
     }
     
+    // 6. Cập nhật các thành phần liên quan khác
     if (typeof updateFactionOptions === "function") updateFactionOptions();
-
-    // Cập nhật lại sơ đồ ngoại giao phe phái nếu đang hiển thị
-    if (typeof renderDiplomacyNetwork === "function") {
-        renderDiplomacyNetwork('faction', 'factionNetworkCanvas');
+    if (typeof renderDiplomacyNetwork === "function") renderDiplomacyNetwork('faction', 'factionNetworkCanvas');
+    
+    // 7. KIỂM TRA HIỂN THỊ CHI TIẾT
+    // Nếu trang chi tiết đang mở, gọi hàm vẽ lại cây chức vụ ngay lập tức
+    const factionPage = document.getElementById("factionPage");
+    if (factionPage && !factionPage.classList.contains("hidden")) {
+        if (typeof renderFactionTreeDisplay === "function") {
+            console.log("🚀 GM: Đang vẽ lại cấu trúc chức vụ cho:", obj.name);
+            renderFactionTreeDisplay(obj);
+        }
     }
     
     closeFactionModal();
     if (typeof showToast === "function") showToast("✅ Đã cập nhật biên niên sử phe phái!");
 }
+
 function editFaction(i) {
     const f = window.factions[i];
     if (!f) return;
@@ -157,65 +178,25 @@ function editFaction(i) {
     setVal("factionScale", f.scale);
     setVal("factionPower", f.power);
     setVal("factionGoal", f.goal);
+    setVal("factionIdeology", f.ideology);
     setVal("factionDesc", f.desc);
 
-    // Xử lý nạp danh sách ngoại giao vào Modal
+    // GM: Nạp cấu trúc Tab & Chức vụ từ IndexedDB data vào biến tạm
+    window.currentFactionStructure = f.structure ? JSON.parse(JSON.stringify(f.structure)) : [];
+    if (typeof renderFactionStructureAdmin === "function") renderFactionStructureAdmin();
+
     const dipContainer = document.getElementById('factionDiplomacyList');
     if (dipContainer) {
         dipContainer.innerHTML = "";
         if (f.diplomacy && Array.isArray(f.diplomacy)) {
             f.diplomacy.forEach(rel => {
-                if (typeof addRelationRow === "function") {
-                    addRelationRow('factionDiplomacyList', rel);
-                }
+                if (typeof addRelationRow === "function") addRelationRow('factionDiplomacyList', rel);
             });
         }
     }
 
     const modal = document.getElementById("factionModal");
-    if (modal) {
-        modal.style.display = "flex";
-    }
-}
-async function loadFactionCharacters(f) {
-    let list = document.getElementById("factionCharacters");
-    if (!list) return;
-    list.innerHTML = "";
-    let members = (window.characters || []).filter(c => String(c.faction) === String(f.id));
-
-    if (members.length === 0) {
-        list.innerHTML = "<p style='color:var(--text-dim); font-size:0.8rem; padding: 10px;'>Chưa có thành viên nào gia nhập.</p>";
-        return;
-    }
-
-    for (const c of members) {
-        let div = document.createElement("div");
-        div.className = "character-mini-card"; // Dùng class chung của hệ thống
-        div.style = "cursor:pointer; text-align:center; background:var(--card-bg); border-radius:8px; padding:8px; border:1px solid var(--border);";
-
-        div.innerHTML = `
-            <img id="f-char-img-${c.id}" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:80px; object-fit:cover; border-radius:4px; margin-bottom:5px;">
-            <p style="font-size:0.75rem; margin:0; font-weight:bold; color:var(--gold);">${c.name}</p>
-        `;
-
-        list.appendChild(div);
-
-        // Load ảnh nhân vật từ DB
-        if (c.img) {
-            const imgEl = document.getElementById(`f-char-img-${c.id}`);
-            const src = (c.img.startsWith("http") || c.img.startsWith("data:")) 
-                        ? c.img 
-                        : (typeof getImage === "function" ? await getImage(c.img) : "");
-            if (imgEl && src) imgEl.src = src;
-        }
-
-        div.onclick = () => {
-            if (typeof openProfile === "function") {
-                openProfile(c.id);
-                showPage("characterPage");
-            }
-        };
-    }
+    if (modal) modal.style.display = "flex";
 }
 async function deleteFaction(index) {
     if (!confirm("Bạn có chắc chắn muốn xóa phe phái này?")) return;
@@ -230,20 +211,29 @@ async function deleteFaction(index) {
 function resetFactionForm() {
     const fields = [
         "factionName", "factionLeader", "factionHQ", "factionFounded", 
-        "factionScale", "factionPower", "factionGoal", "factionDesc"
+        "factionScale", "factionPower", "factionGoal", "factionIdeology", "factionDesc"
     ];
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
 
-    // Xóa danh sách hàng ngoại giao cũ trong Modal
+    // GM: Reset biến cấu trúc tạm thời
+    window.currentFactionStructure = [];
+    if (typeof renderFactionStructureAdmin === "function") renderFactionStructureAdmin();
+
     const dipContainer = document.getElementById('factionDiplomacyList');
     if (dipContainer) dipContainer.innerHTML = "";
 
     if (document.getElementById("factionIcon")) document.getElementById("factionIcon").value = "";
     if (document.getElementById("factionBanner")) document.getElementById("factionBanner").value = "";
+    
+    // Reset ảnh preview
+    if(document.getElementById("prevIcon")) document.getElementById("prevIcon").src = "https://i.imgur.com/6X8FQyA.png";
+    if(document.getElementById("prevBanner")) document.getElementById("prevBanner").src = "https://i.imgur.com/eE6C6Wv.png";
 }
+
+
 async function updateFactionOptions() {
     let select = document.getElementById("charFaction");
     if (!select) return;
@@ -306,27 +296,38 @@ async function openFactionPage(i) {
     setText("factionPageIdeology", f.ideology);
     setText("factionPageFounded", f.founded);
     setText("factionPageDesc", f.desc);
-    setText("factionPagePower", f.power);
+    setText("factionPagePower", `${f.power || 0}/1000`);
 
-    // Hiển thị ngoại giao dưới dạng Tags (Gọi từ diplomacy.js)
-    const relContainer = document.getElementById("factionPageRelations");
-    if (relContainer && typeof renderDiplomacyTags === "function") {
-        renderDiplomacyTags("factionPageRelations", f.diplomacy || []);
+    // Render sơ đồ chức vụ
+    if (typeof renderFactionTreeDisplay === "function") {
+        renderFactionTreeDisplay(f);
     }
 
-    const scaleEl = document.getElementById("factionPageScaleBadge") || document.getElementById("factionPageScale");
+    // Render Diplomacy Tags
+    const relContainer = document.getElementById("factionPageRelations");
+    if (relContainer) {
+        relContainer.innerHTML = "";
+        if (typeof renderDiplomacyTags === "function") {
+            renderDiplomacyTags("factionPageRelations", f.diplomacy || []);
+        }
+    }
+
+    // Badge quy mô
+    const scaleEl = document.getElementById("factionPageScaleBadge");
     if (scaleEl) {
         scaleEl.textContent = f.scale || "N/A";
         scaleEl.className = "badge " + (f.scale === "Toàn lục địa" ? "danger" : "info");
     }
 
-    const powerFill = document.getElementById("powerFill") || document.getElementById("factionPagePowerBar");
+    // Thanh sức mạnh (Animate Fill)
+    const powerFill = document.getElementById("powerFill");
     if (powerFill) {
         const powerVal = parseInt(f.power) || 0;
         const percent = Math.min((powerVal / 1000) * 100, 100); 
-        powerFill.style.width = percent + "%";
+        setTimeout(() => { powerFill.style.width = percent + "%"; }, 100);
     }
 
+    // Xử lý ảnh Banner và Icon
     const handleImage = async (imgId, imgData) => {
         const el = document.getElementById(imgId);
         if (!el) return;
@@ -344,28 +345,349 @@ async function openFactionPage(i) {
 
     await handleImage("factionPageBanner", f.banner);
     await handleImage("factionPageIcon", f.icon);
+}
+async function loadFactionCharacters(f) {
+    let list = document.getElementById("factionCharacters");
+    if (!list) return;
+    list.innerHTML = "";
+    let members = (window.characters || []).filter(c => String(c.faction) === String(f.id));
 
-    if (typeof loadFactionCharacters === "function") {
-        loadFactionCharacters(f);
+    if (members.length === 0) {
+        list.innerHTML = "<p style='color:var(--text-dim); text-align:center; width:100%; padding:20px;'>Chưa có thành viên nào gia nhập.</p>";
+        return;
     }
+
+    const grid = document.createElement("div");
+    grid.className = "character-grid"; 
+    grid.style = "display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;";
+
+    for (const c of members) {
+        let div = document.createElement("div");
+        div.className = "char-mini-card";
+        div.style = "cursor:pointer; text-align:center; background:rgba(255,255,255,0.05); border-radius:8px; padding:10px; border:1px solid var(--border); transition: 0.3s;";
+
+        div.innerHTML = `
+            <img id="f-char-img-${c.id}" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:50%; margin-bottom:8px; border:2px solid var(--gold);">
+            <p style="font-size:0.8rem; margin:0; font-weight:bold; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.name}</p>
+        `;
+
+        div.onclick = () => {
+            if (typeof openProfile === "function") {
+                openProfile(c.id);
+                showPage("characterPage");
+            }
+        };
+        grid.appendChild(div);
+
+        if (c.img) {
+            const imgEl = div.querySelector('img');
+            const src = (c.img.startsWith("http") || c.img.startsWith("data:")) 
+                        ? c.img 
+                        : (typeof getImage === "function" ? await getImage(c.img) : "");
+            if (imgEl && src) imgEl.src = src;
+        }
+    }
+    list.appendChild(grid);
+}
+function renderFactionNodeEditor(node, allChars) {
+    return `
+        <div class="node-editor-item" style="margin-left:12px; border-left:1px dashed var(--gold); padding-left:8px; margin-top:8px;">
+            <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center; background:rgba(0,0,0,0.2); padding:5px; border-radius:4px;">
+                <input type="text" value="${node.title}" 
+                    oninput="updateFactionNode('${node.id}', 'title', this.value)" 
+                    placeholder="Chức vụ" 
+                    style="flex:1; min-width:120px; font-size:0.8rem; padding:5px;">
+                
+                <select onchange="updateFactionNode('${node.id}', 'memberId', this.value)" 
+                    style="flex:1; min-width:120px; font-size:0.8rem; padding:5px;">
+                    <option value="">-- Nhân sự --</option>
+                    ${allChars.map(c => `<option value="${c.id}" ${node.memberId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+                
+                <div style="display:flex; gap:2px;">
+                    <button type="button" onclick="addFactionRole('${node.id}')" class="btn-mini" style="background:var(--primary); color:white; width:28px;">+</button>
+                    <button type="button" onclick="removeFactionRole('${node.id}')" class="btn-mini" style="background:#ef4444; color:white; width:28px;">&times;</button>
+                </div>
+            </div>
+            <div class="child-nodes">${node.children.map(c => renderFactionNodeEditor(c, allChars)).join('')}</div>
+        </div>
+    `;
 }
 function openFactionForm() {
     openFactionModal();
 }
+
 function closeFactionModal() {
     const modal = document.getElementById("factionModal");
-    if (modal) modal.style.display = "none";
+    if (modal) {
+        modal.style.display = "none";
+    }
+    
+    // Reset trạng thái index đang chỉnh sửa
     editingFaction = -1;
+    
+    // Xóa dữ liệu cấu trúc tạm thời trong bộ nhớ để tránh rò rỉ dữ liệu sang lần mở sau
+    window.currentFactionStructure = [];
+    
+    // Làm trống giao diện quản lý chức vụ (nếu có)
+    const container = document.getElementById('factionStructureAdmin');
+    if (container) container.innerHTML = "";
+    
+    console.log("🚀 GM: Đã đóng Modal Phe phái và giải phóng bộ nhớ tạm.");
 }
 function openFactionModal() {
+    // Đưa trạng thái về tạo mới (-1)
     editingFaction = -1;
-    resetFactionForm();
+    
+    // Gọi hàm reset các input text, date, textarea, image và diplomacy
+    if (typeof resetFactionForm === "function") {
+        resetFactionForm();
+    }
+    
+    // Khởi tạo mảng cấu trúc chức vụ mới (dùng cho Unlimited Tabs & Tree)
+    window.currentFactionStructure = [];
+    
+    // Render lại vùng quản lý chức vụ (lúc này sẽ trống)
+    if (typeof renderFactionStructureAdmin === "function") {
+        renderFactionStructureAdmin();
+    }
+
     const modal = document.getElementById("factionModal");
     if (modal) {
         modal.style.display = "flex";
+        console.log("🚀 GM: Đã mở Modal tạo Phe phái mới.");
     } else {
-        console.error("❌ GM: Không tìm thấy ID 'factionModal' trong index.html");
+        // Thông báo lỗi nếu thiếu element trong index.html hoặc faction.html
+        console.error("❌ GM: Không tìm thấy ID 'factionModal'. Hãy kiểm tra lại file HTML.");
+        if (typeof showToast === "function") showToast("Lỗi hệ thống: Không tìm thấy khung giao diện!", "error");
     }
 }
 
+// --- LOGIC QUẢN LÝ CƠ CẤU (ADMIN) ---
 
+function addFactionTab() {
+    const name = prompt("Nhập tên Tab chức vụ (VD: Hội Đồng Tối Cao, Đội Đặc Nhiệm):");
+    if (!name) return;
+    window.currentFactionStructure.push({
+        id: "ftab_" + Date.now(),
+        name: name,
+        treeNodes: []
+    });
+    renderFactionStructureAdmin();
+}
+function addFactionRole(parentId) {
+    const newNode = { id: "frole_" + Date.now(), title: "Chức vụ mới", memberId: "", children: [] };
+    
+    const findAndAdd = (nodes) => {
+        for (let n of nodes) {
+            if (n.id === parentId) { n.children.push(newNode); return true; }
+            if (n.children && findAndAdd(n.children)) return true;
+        }
+        return false;
+    };
+
+    window.currentFactionStructure.forEach(tab => {
+        if (tab.id === parentId) tab.treeNodes.push(newNode);
+        else findAndAdd(tab.treeNodes);
+    });
+    renderFactionStructureAdmin();
+}
+function removeFactionRole(id) {
+    if(!confirm("Xóa chức vụ này và tất cả cấp dưới?")) return;
+    const findAndRemove = (nodes) => {
+        const idx = nodes.findIndex(n => n.id === id);
+        if (idx !== -1) { nodes.splice(idx, 1); return true; }
+        for (let n of nodes) { if (n.children && findAndRemove(n.children)) return true; }
+        return false;
+    };
+    window.currentFactionStructure = window.currentFactionStructure.filter(t => t.id !== id);
+    window.currentFactionStructure.forEach(tab => findAndRemove(tab.treeNodes));
+    renderFactionStructureAdmin();
+}
+function updateFactionNode(id, field, value) {
+    const findAndUpdate = (nodes) => {
+        for (let n of nodes) {
+            if (n.id === id) { n[field] = value; return true; }
+            if (n.children && findAndUpdate(n.children)) return true;
+        }
+        return false;
+    };
+    window.currentFactionStructure.forEach(tab => findAndUpdate(tab.treeNodes));
+}
+function renderFactionStructureAdmin() {
+    const container = document.getElementById('factionStructureAdmin');
+    if (!container) return;
+    const allChars = window.characters || [];
+
+    container.innerHTML = window.currentFactionStructure.map(tab => `
+        <div class="admin-tab-group" style="border:1px solid var(--border); padding:10px; margin-bottom:10px; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b style="color:var(--gold)">${tab.name}</b>
+                <button type="button" onclick="addFactionRole('${tab.id}')" class="btn-mini">+ Thêm chức vụ gốc</button>
+            </div>
+            <div class="tree-editor">
+                ${tab.treeNodes.map(node => renderFactionNodeEditor(node, allChars)).join('')}
+            </div>
+            <button type="button" onclick="removeFactionRole('${tab.id}')" style="color:red; background:none; border:none; font-size:0.7rem; cursor:pointer;">Xóa Tab này</button>
+        </div>
+    `).join('');
+}
+function renderFactionTreeDisplay(f) {
+    const container = document.getElementById("factionCharacters");
+    if (!container) return;
+    if (!f.structure || f.structure.length === 0) {
+        if (typeof loadFactionCharacters === "function") {
+            loadFactionCharacters(f);
+        }
+        return;
+    }
+
+    let html = `<div class="faction-structure-view">`;
+    
+    // 1. Tạo hệ thống Tab (Bộ phận)
+    html += `<div class="structure-tabs" style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto; padding-bottom:10px; border-bottom: 1px solid rgba(212,175,55,0.2);">`;
+    f.structure.forEach((tab, idx) => {
+        html += `
+            <button class="tab-btn ${idx === 0 ? 'active' : ''}" 
+                onclick="switchFactionTab(this, '${tab.id}')"
+                style="padding:8px 15px; background:var(--glass); border:1px solid var(--gold); color:var(--gold); border-radius:6px; cursor:pointer; white-space:nowrap; transition:0.3s;">
+                <i class="fas fa-sitemap" style="margin-right:5px; font-size:0.8rem;"></i> ${tab.name}
+            </button>`;
+    });
+    html += `</div>`;
+
+    // 2. Nội dung các Tab (Cấu trúc cây)
+    f.structure.forEach((tab, idx) => {
+        html += `
+            <div id="content-${tab.id}" class="tab-content faction-tree-container" 
+                 style="display: ${idx === 0 ? 'block' : 'none'}; overflow-x: auto; padding: 20px 0;">
+                <div class="tree-root" style="display:flex; flex-direction:column; align-items:center; min-width: max-content; margin: 0 auto;">
+                    ${tab.treeNodes.map(node => renderNodeRecursive(node)).join('')}
+                </div>
+            </div>`;
+    });
+
+    html += `</div>`;
+    
+    // 3. Ghi vào DOM
+    container.innerHTML = html;
+
+    // 4. QUAN TRỌNG: Kích hoạt nạp ảnh từ imageDB
+    // Sau khi innerHTML được gán, chúng ta quét tất cả các node để lấy ảnh từ IndexedDB
+    if (typeof loadFactionNodeImages === "function") {
+        loadFactionNodeImages();
+    } else {
+        // Nếu chưa có hàm bổ trợ này, chạy logic nạp ảnh nhanh tại đây:
+        const nodeImages = container.querySelectorAll('.faction-node-img[data-img-key]');
+        nodeImages.forEach(async (imgEl) => {
+            const imgKey = imgEl.getAttribute('data-img-key');
+            if (!imgKey) return;
+            
+            if (imgKey.startsWith("http") || imgKey.startsWith("data:")) {
+                imgEl.src = imgKey;
+            } else if (typeof getImage === "function") {
+                const blobUrl = await getImage(imgKey);
+                if (blobUrl) imgEl.src = blobUrl;
+            }
+        });
+    }
+}
+
+// Hàm bổ sung để chuyển Tab mượt mà
+function switchFactionTab(btn, tabId) {
+    const parent = btn.closest('.faction-structure-view');
+    // Active button
+    parent.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = "var(--glass)";
+        b.style.color = "var(--gold)";
+    });
+    btn.classList.add('active');
+    btn.style.background = "var(--gold)";
+    btn.style.color = "black";
+
+    // Show content
+    parent.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    const target = document.getElementById(`content-${tabId}`);
+    if (target) target.style.display = 'block';
+}
+function renderNodeRecursive(node) {
+    const char = (window.characters || []).find(c => String(c.id) === String(node.memberId));
+    const imgElementId = `node-img-${node.id}`;
+    
+    // 3. Ảnh mặc định ban đầu
+    const placeholder = "https://i.imgur.com/6X8FQyA.png";
+    
+    // 4. Sự kiện click (sử dụng hàm openProfile và showPage từ app.js)
+    const clickAction = char 
+        ? `onclick="if(typeof openProfile === 'function'){ openProfile('${char.id}'); showPage('characterPage'); }"` 
+        : "";
+
+    // 5. Lưu lại thông tin ảnh vào thuộc tính dữ liệu (data-img-key) 
+    // thay vì dùng thẻ <script> lồng bên trong (vốn bị trình duyệt chặn khi dùng innerHTML)
+    const imgKeyAttr = (char && char.img) ? `data-img-key="${char.img}"` : "";
+
+    return `
+        <div class="tree-node" style="display:flex; flex-direction:column; align-items:center; min-width:140px; margin: 0 10px;">
+            <div class="node-card ${char ? 'has-member' : 'empty-member'}" 
+                 ${clickAction}
+                 style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:12px; border-radius:12px; width:150px; cursor:${char ? 'pointer' : 'default'}; transition: all 0.3s ease; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                
+                <div style="font-size:0.7rem; color:var(--gold); text-transform:uppercase; margin-bottom:8px; font-weight:bold; letter-spacing:0.5px;">
+                    ${node.title || "Chức vụ"}
+                </div>
+                
+                <div style="width:65px; height:65px; margin: 0 auto 8px; position:relative;">
+                    <img id="${imgElementId}" 
+                         src="${placeholder}" 
+                         ${imgKeyAttr} 
+                         class="faction-node-img"
+                         style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gold); background:rgba(0,0,0,0.4);">
+                    
+                    ${char ? `
+                        <div style="position:absolute; bottom:2px; right:2px; width:14px; height:14px; background:#22c55e; border:2px solid var(--bg-main); border-radius:50%; box-shadow: 0 0 5px #22c55e;"></div>
+                    ` : ''}
+                </div>
+
+                <div style="font-weight:600; font-size:0.85rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px;">
+                    ${char ? char.name : "<span style='color:var(--text-dim); font-weight:400; font-style:italic;'>Đang trống</span>"}
+                </div>
+            </div>
+
+            ${node.children && node.children.length > 0 ? `
+                <div class="node-line" style="height:20px; border-left:2px solid var(--gold); opacity:0.5;"></div>
+                <div class="node-children" style="display:flex; gap:20px; justify-content:center; border-top:1px dashed var(--gold); padding-top:20px; position:relative;">
+                    ${node.children.map(child => renderNodeRecursive(child)).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+async function loadFactionNodeImages() {
+    const nodeImages = document.querySelectorAll('.faction-node-img[data-img-key]');
+    for (const imgEl of nodeImages) {
+        const imgKey = imgEl.getAttribute('data-img-key');
+        if (!imgKey) continue;
+
+        if (imgKey.startsWith("http") || imgKey.startsWith("data:")) {
+            imgEl.src = imgKey;
+        } else if (typeof getImage === "function") {
+            try {
+                const blobUrl = await getImage(imgKey);
+                if (blobUrl) imgEl.src = blobUrl;
+            } catch (err) {
+                console.warn("❌ Lỗi nạp ảnh từ DB:", err);
+            }
+        }
+    }
+}
+
+// Hàm hỗ trợ đổi Tab
+function switchFactionTab(btn, tabId) {
+    const parent = btn.parentElement.parentElement;
+    parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    parent.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('content-' + tabId).style.display = 'block';
+}

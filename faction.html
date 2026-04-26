@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Phe Phái | Fantasy Chronicle</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="factions.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="fantasy-theme">
@@ -15,111 +17,127 @@
             <p class="subtitle">Ghi danh bang hội vào sử thi của bạn</p>
         </div>
 
-        <form id="factionForm" onsubmit="event.preventDefault(); saveFaction();">
-            
-            <div class="form-card visual-inputs">
-                <div class="banner-upload">
-                    <label>Ảnh Banner Phe Phái</label>
-                    <div class="drop-zone" id="bannerDropZone" onclick="document.getElementById('factionBanner').click()">
-                        <img id="prevBanner" src="https://i.imgur.com/eE6C6Wv.png">
-                        <input type="file" id="factionBanner" accept="image/*" hidden onchange="previewImg(this, 'prevBanner')">
+        <div id="factionModal" style="display: none; flex-direction: column;">
+            <form id="factionForm" onsubmit="event.preventDefault(); saveFaction();">
+                
+                <div class="form-card visual-inputs">
+                    <div class="banner-upload">
+                        <label>Ảnh Banner Phe Phái</label>
+                        <div class="drop-zone" id="bannerDropZone" onclick="document.getElementById('factionBanner').click()">
+                            <img id="prevBanner" src="https://i.imgur.com/eE6C6Wv.png">
+                            <input type="file" id="factionBanner" accept="image/*" hidden onchange="previewImg(this, 'prevBanner')">
+                        </div>
+                    </div>
+                    <div class="icon-upload">
+                        <div class="drop-zone-circle" id="iconDropZone" onclick="document.getElementById('factionIcon').click()">
+                            <img id="prevIcon" src="https://i.imgur.com/6X8FQyA.png">
+                            <input type="file" id="factionIcon" accept="image/*" hidden onchange="previewImg(this, 'prevIcon')">
+                        </div>
                     </div>
                 </div>
-                <div class="icon-upload">
-                    <div class="drop-zone-circle" id="iconDropZone" onclick="document.getElementById('factionIcon').click()">
-                        <img id="prevIcon" src="https://i.imgur.com/6X8FQyA.png">
-                        <input type="file" id="factionIcon" accept="image/*" hidden onchange="previewImg(this, 'prevIcon')">
-                    </div>
-                </div>
-            </div>
 
-            <div class="form-grid-layout">
-                <div class="form-column">
-                    <div class="form-card">
-                        <h3 class="section-title"><i class="fa-solid fa-crown"></i> Thông tin cơ bản</h3>
-                        <div class="form-group">
-                            <label>Tên phe phái</label>
-                            <input type="text" id="factionName" placeholder="VD: Hội Tam Điểm">
-                        </div>
-                        <div class="form-group">
-                            <label>Thủ lĩnh</label>
-                            <input type="text" id="factionLeader" placeholder="Tên vương/vua">
-                        </div>
-                        <div class="form-group">
-                            <label>Ngày thành lập</label>
-                            <input type="date" id="factionFounded">
-                        </div>
-                    </div>
-
-                    <div class="form-card">
-                        <h3 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Lãnh thổ & Quy mô</h3>
-                        <div class="form-group">
-                            <label>Trụ sở chính</label>
-                            <input type="text" id="factionHQ">
-                        </div>
-                        <div class="grid-2">
+                <div class="form-grid-layout">
+                    <div class="form-column">
+                        <div class="form-card">
+                            <h3 class="section-title"><i class="fa-solid fa-crown"></i> Thông tin cơ bản</h3>
                             <div class="form-group">
-                                <label>Quy mô</label>
-                                <select id="factionScale">
-                                    <option value="Bí mật">Bí mật</option>
-                                    <option value="Địa phương">Địa phương</option>
-                                    <option value="Toàn lục địa">Toàn lục địa</option>
-                                </select>
+                                <label>Tên phe phái</label>
+                                <input type="text" id="factionName" placeholder="VD: Hội Tam Điểm">
                             </div>
                             <div class="form-group">
-                                <label>Sức mạnh (Power)</label>
-                                <input type="number" id="factionPower">
+                                <label>Thủ lĩnh tối cao</label>
+                                <input type="text" id="factionLeader" placeholder="Tên người đứng đầu">
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày thành lập</label>
+                                <input type="date" id="factionFounded">
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <h3 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Lãnh thổ & Quy mô</h3>
+                            <div class="form-group">
+                                <label>Trụ sở chính</label>
+                                <input type="text" id="factionHQ">
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Quy mô</label>
+                                    <select id="factionScale">
+                                        <option value="Bí mật">Bí mật</option>
+                                        <option value="Địa phương">Địa phương</option>
+                                        <option value="Toàn lục địa">Toàn lục địa</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Sức mạnh (0 - 1000)</label>
+                                    <input type="number" id="factionPower" placeholder="100">
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="form-column">
-                    <div class="form-card">
-                        <h3 class="section-title"><i class="fa-solid fa-handshake"></i> Chính trị</h3>
-                        <div class="form-group">
-                            <label>Đồng minh</label>
-                            <input type="text" id="factionAllies" placeholder="Các phe hữu hảo">
+                    <div class="form-column">
+                        <div class="form-card">
+                            <h3 class="section-title"><i class="fa-solid fa-handshake"></i> Quan hệ ngoại giao</h3>
+                            <div id="factionDiplomacyList" class="diplomacy-container">
+                                </div>
+                            <button type="button" class="btn-mini" onclick="if(typeof addRelationRow === 'function') addRelationRow('factionDiplomacyList')">
+                                <i class="fa-solid fa-plus"></i> Thêm mối quan hệ
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label>Kẻ thù</label>
-                            <input type="text" id="factionEnemies" placeholder="Các phe đối địch">
-                        </div>
-                    </div>
 
-                    <div class="form-card">
-                        <h3 class="section-title"><i class="fa-solid fa-scroll"></i> Worldbuilding</h3>
-                        <div class="form-group">
-                            <label>Mục tiêu & Tư tưởng</label>
-                            <div class="dual-inputs">
-                                <input type="text" id="factionGoal" placeholder="Mục tiêu">
-                                <input type="text" id="factionIdeology" placeholder="Tư tưởng">
+                        <div class="form-card">
+                            <h3 class="section-title"><i class="fa-solid fa-scroll"></i> Worldbuilding</h3>
+                            <div class="form-group">
+                                <label>Mục tiêu & Tư tưởng</label>
+                                <div class="dual-inputs" style="display: flex; gap: 10px;">
+                                    <input type="text" id="factionGoal" placeholder="Mục tiêu">
+                                    <input type="text" id="factionIdeology" placeholder="Tư tưởng">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Mô tả chi tiết</label>
+                                <textarea id="factionDesc" rows="5" placeholder="Lịch sử hình thành..."></textarea>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Mô tả chi tiết</label>
-                            <textarea id="factionDesc" rows="5"></textarea>
-                        </div>
+                    </div>
+
+                    <div class="form-card" style="grid-column: 1 / -1; margin-top: 20px;">
+                        <h3 class="section-title"><i class="fa-solid fa-sitemap"></i> Cơ cấu tổ chức & Chức vụ</h3>
+                        <div id="factionStructureAdmin" class="structure-admin-container">
+                            </div>
+                        <button type="button" class="btn-outline" onclick="addFactionTab()" style="margin-top: 15px; width: 100%; border-style: dashed; color: var(--gold);">
+                            <i class="fa-solid fa-plus"></i> Thêm bộ phận mới (VD: Hội đồng, Sát thủ, Ngoại giao...)
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="button" class="btn-outline" onclick="history.back()">Quay lại</button>
-                <button type="submit" class="btn-primary">Lưu Phe Phái</button>
-            </div>
-        </form>
+                <div class="form-actions" style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button type="button" class="btn-outline" onclick="closeFactionModal()" style="flex: 1;">Hủy bỏ</button>
+                    <button type="submit" class="btn-primary" style="flex: 2;">Ghi chép vào Sử thi</button>
+                </div>
+            </form>
+        </div>
 
-        <hr class="fancy-hr">
+        <div id="factionListContainer">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="cinzel-font" style="margin: 0;">Danh sách Thế lực (<span id="factionCount">0</span>)</h3>
+                <button class="btn-primary" onclick="openFactionModal()">+ Khai sinh Phe phái</button>
+            </div>
+            <div id="factionList" class="faction-grid"></div>
+        </div>
+
+        <hr class="fancy-hr" style="margin: 50px 0;">
 
         <section id="factionPage" class="hidden">
             <div class="profile-header">
                 <div class="banner-wrapper">
-                    <img id="factionPageBanner">
+                    <img id="factionPageBanner" src="https://i.imgur.com/eE6C6Wv.png">
                     <div class="overlay"></div>
                 </div>
                 <div class="identity-block">
-                    <img id="factionPageIcon">
+                    <img id="factionPageIcon" src="https://i.imgur.com/6X8FQyA.png">
                     <div class="identity-text">
                         <h2 id="factionPageName" class="cinzel-font"></h2>
                         <span id="factionPageScaleBadge" class="badge"></span>
@@ -130,44 +148,54 @@
             <div class="profile-content">
                 <aside class="side-info">
                     <div class="info-box">
-                        <label>Thủ lĩnh</label>
+                        <label><i class="fa-solid fa-user-tie"></i> Thủ lĩnh</label>
                         <p id="factionPageLeader"></p>
                     </div>
                     <div class="info-box">
-                        <label>Trụ sở</label>
+                        <label><i class="fa-solid fa-building-shield"></i> Trụ sở</label>
                         <p id="factionPageHQ"></p>
                     </div>
                     <div class="info-box">
-                        <label>Sức mạnh</label>
+                        <label><i class="fa-solid fa-bolt"></i> Sức mạnh quân sự</label>
                         <div class="power-meter"><div id="powerFill" class="power-fill"></div></div>
-                        <p id="factionPagePower"></p>
+                        <p id="factionPagePower" style="font-size: 0.8rem; margin-top: 5px;"></p>
+                    </div>
+                    <div class="info-box">
+                        <label><i class="fa-solid fa-globe"></i> Ngoại giao</label>
+                        <div id="factionPageRelations" class="tag-container"></div>
                     </div>
                 </aside>
                 
                 <main class="main-info">
                     <div class="content-card">
-                        <h3>Lịch sử & Tư tưởng</h3>
-                        <p id="factionPageDesc"></p>
-                        <div class="goal-ideology">
-                            <div><strong>Mục tiêu:</strong> <span id="factionPageGoal"></span></div>
-                            <div><strong>Tư tưởng:</strong> <span id="factionPageIdeology"></span></div>
+                        <h3 class="cinzel-font">Lịch sử & Tư tưởng</h3>
+                        <p id="factionPageDesc" style="white-space: pre-wrap;"></p>
+                        <div class="goal-ideology" style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="sub-card"><strong>Mục tiêu:</strong> <span id="factionPageGoal"></span></div>
+                            <div class="sub-card"><strong>Tư tưởng:</strong> <span id="factionPageIdeology"></span></div>
                         </div>
                     </div>
                     
                     <div class="content-card">
-                        <h3>Thành viên chủ chốt</h3>
-                        <div id="factionCharacters" class="character-grid"></div>
+                        <h3 class="cinzel-font">Cơ cấu tổ chức & Thành viên</h3>
+                        <div id="factionCharacters">
+                            </div>
                     </div>
                 </main>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn-outline" onclick="showPage('home')">Quay lại Tổng quan</button>
             </div>
         </section>
     </div>
 
+    <script src="idSystem.js"></script>
     <script src="imageDB.js"></script>
+    <script src="diplomacy.js"></script>
     <script src="app.js"></script>
     <script src="factions.js"></script>
     <script>
-        // Preview ảnh nhanh khi chọn
         function previewImg(input, targetId) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
