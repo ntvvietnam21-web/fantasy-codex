@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="stats.css">
 </head>
 
-<body>
+<body onload="initStatsPage()">
 
 <div class="container">
 
@@ -23,60 +23,39 @@
     </div>
 
     <h1 id="charName">Đang tải nhân vật...</h1>
-
+    
     <div id="statsContainer">
 
-        <div class="stat-group animate-slide-up">
-            <h3><i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Chỉ số cơ bản</h3>
-            <p class="desc">Nền tảng sức mạnh cốt lõi</p>
-
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.05s;">
+            <h3><i class="fa-solid fa-star" style="color: #ffd700;"></i> Thiên phú đặc biệt</h3>
+            <p class="desc">Chỉ số tiềm năng và số mệnh định sẵn</p>
             <div class="grid-inputs">
-                <label>
-                    <span>Sức mạnh (STR)<small>ST vật lý, mang vác</small></span>
-                    <input id="str" type="number" value="0">
-                </label>
-                <label>
-                    <span>Nhanh nhẹn (AGI)<small>Tốc độ, né tránh</small></span>
-                    <input id="agi" type="number" value="0">
-                </label>
-                <label>
-                    <span>Trí tuệ (INT)<small>Sức mạnh phép, MP</small></span>
-                    <input id="int" type="number" value="0">
-                </label>
-                <label>
-                    <span>Thể lực (VIT)<small>Máu, chống chịu</small></span>
-                    <input id="vit" type="number" value="0">
-                </label>
-                <label>
-                    <span>Tinh thần (SPI)<small>Hồi MP, kháng phép</small></span>
-                    <input id="spi" type="number" value="0">
-                </label>
-                <label>
-                    <span>May mắn (LUK)<small>Chí mạng, may rủi</small></span>
-                    <input id="luk" type="number" value="0">
-                </label>
+                <label><span>Tài năng</span><input id="statTalent" type="number" value="0"></label>
+                <label><span>Tiềm năng</span><input id="statPotential" type="number" value="0"></label>
+                <label><span>Số mệnh</span><input id="statFate" type="number" value="0"></label>
             </div>
         </div>
 
         <div class="stat-group animate-slide-up" style="animation-delay: 0.1s;">
+            <h3><i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Chỉ số cơ bản</h3>
+            <p class="desc">Nền tảng sức mạnh cốt lõi</p>
+            <div class="grid-inputs">
+                <label><span>Sức mạnh (STR)<small>ST vật lý, mang vác</small></span><input id="str" type="number" value="0"></label>
+                <label><span>Nhanh nhẹn (AGI)<small>Tốc độ, né tránh</small></span><input id="agi" type="number" value="0"></label>
+                <label><span>Trí tuệ (INT)<small>Sức mạnh phép, MP</small></span><input id="int" type="number" value="0"></label>
+                <label><span>Thể lực (VIT)<small>Máu, chống chịu</small></span><input id="vit" type="number" value="0"></label>
+                <label><span>Tinh thần (SPI)<small>Hồi MP, kháng phép</small></span><input id="spi" type="number" value="0"></label>
+                <label><span>May mắn (LUK)<small>Chí mạng, may rủi</small></span><input id="luk" type="number" value="0"></label>
+            </div>
+        </div>
+
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.15s;">
             <h3><i class="fa-solid fa-heart" style="color: #ef4444;"></i> Chỉ số sinh tồn</h3>
             <div class="grid-inputs">
-                <label>
-                    <span>HP (Máu)</span>
-                    <input id="hp" type="number" value="0">
-                </label>
-                <label>
-                    <span>MP (Năng lượng)</span>
-                    <input id="mp" type="number" value="0">
-                </label>
-                <label>
-                    <span>Thể lực (Stamina)</span>
-                    <input id="stamina" type="number" value="0">
-                </label>
-                <label>
-                    <span>Khiên (Shield)</span>
-                    <input id="shield" type="number" value="0">
-                </label>
+                <label><span>HP (Máu)</span><input id="hp" type="number" value="0"></label>
+                <label><span>MP (Năng lượng)</span><input id="mp" type="number" value="0"></label>
+                <label><span>Thể lực (Stamina)</span><input id="stamina" type="number" value="0"></label>
+                <label><span>Khiên (Shield)</span><input id="shield" type="number" value="0"></label>
             </div>
         </div>
 
@@ -92,19 +71,18 @@
                 <label><span>Tốc độ cast</span><input id="castSpeed" type="number" value="0"></label>
             </div>
         </div>
-<div class="stat-group animate-slide-up" style="animation-delay: 0.3s;">
-    <h3><i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> Chỉ số phòng thủ</h3>
-    <div class="grid-inputs">
-        <label><span>Giáp (DEF)</span><input id="def" type="number" value="0"></label>
-        <label><span>Kháng phép (MDEF)</span><input id="mdef" type="number" value="0"></label>
-        <label><span>Né tránh (%)</span><input id="evasion" type="number" value="0" step="0.1"></label>
-        <label><span>Đỡ đòn (Block) (%)</span><input id="block" type="number" value="0"></label>
-        <label><span>Giảm ST (%)</span><input id="dmgReduce" type="number" value="0"></label>
-        <label><span>Kháng hiệu ứng (%)</span><input id="resist" type="number" value="0"></label>
-    </div>
-</div>
 
-
+        <div class="stat-group animate-slide-up" style="animation-delay: 0.25s;">
+            <h3><i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> Chỉ số phòng thủ</h3>
+            <div class="grid-inputs">
+                <label><span>Giáp (DEF)</span><input id="def" type="number" value="0"></label>
+                <label><span>Kháng phép (MDEF)</span><input id="mdef" type="number" value="0"></label>
+                <label><span>Né tránh (%)</span><input id="evasion" type="number" value="0" step="0.1"></label>
+                <label><span>Đỡ đòn (Block) (%)</span><input id="block" type="number" value="0"></label>
+                <label><span>Giảm ST (%)</span><input id="dmgReduce" type="number" value="0"></label>
+                <label><span>Kháng hiệu ứng (%)</span><input id="resist" type="number" value="0"></label>
+            </div>
+        </div>
 
     </div>
 
@@ -118,7 +96,8 @@
 
 <script src="idSystem.js"></script>
 <script src="imageDB.js"></script>
-<script src="effects.js"></script> <script src="stats.js"></script>
+<script src="effects.js"></script> 
+<script src="stats.js"></script>
 
 </body>
 </html>
