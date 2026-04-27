@@ -3285,3 +3285,77 @@ button {
         color: #444;
         font-style: italic;
     }
+.structure-section-v2 {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.section-header-flex {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.header-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--gold), transparent);
+    opacity: 0.3;
+}
+
+/* Tab Header Style */
+.modern-tabs-header {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 15px;
+}
+
+.modern-tabs-header::-webkit-scrollbar {
+    height: 4px;
+}
+
+.modern-tabs-header::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+/* Tab Content Style */
+.modern-tabs-body {
+    min-height: 300px;
+    display: flex;
+    justify-content: center; /* Căn giữa sơ đồ Mermaid */
+    align-items: flex-start;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: auto; /* Quan trọng để cuộn nếu sơ đồ quá lớn */
+}
+
+/* Placeholder khi chưa có dữ liệu */
+.empty-structure-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    color: var(--text-dim);
+    opacity: 0.5;
+    padding: 40px 0;
+}
+
+.empty-structure-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+/* Fix Mermaid Text Color */
+.mermaid text {
+    fill: var(--text-main) !important;
+}

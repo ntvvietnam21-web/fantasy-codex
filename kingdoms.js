@@ -226,36 +226,96 @@ function renderStructureAdmin() {
     if (!container) return;
     const allChars = window.characters || [];
 
+    // 1. Đổ cấu trúc HTML vào container trước
     container.innerHTML = currentStructure.map((tab, tIdx) => `
-        <div class="admin-tab-group" style="border: 1px solid var(--border); padding: 10px; margin-bottom: 15px; border-radius: 8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <b style="color:var(--gold)">${tab.name}</b>
+        <div class="admin-tab-group" style="border: 1px solid var(--border); padding: 12px; margin-bottom: 20px; border-radius: 10px; background: rgba(0,0,0,0.15);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                <b style="color:var(--gold); font-size: 14px;">
+                    <i class="fas fa-sitemap" style="margin-right:5px;"></i>${tab.name}
+                </b>
                 <div>
-                    <button type="button" onclick="addChildRole('${tab.id}')" style="font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px;">+ Thêm Cha</button>
-                    <button type="button" onclick="currentStructure.splice(${tIdx}, 1); renderStructureAdmin();" style="background:none; border:none; color:#f87171; cursor:pointer; margin-left:10px;">×</button>
+                    <button type="button" onclick="addChildRole('${tab.id}')" 
+                            style="font-size:10px; padding:3px 10px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">
+                        + Thêm Gốc
+                    </button>
+                    <button type="button" onclick="if(confirm('Xóa bộ phận này?')){ currentStructure.splice(${tIdx}, 1); renderStructureAdmin(); }" 
+                            style="background:none; border:none; color:#f87171; cursor:pointer; margin-left:12px; font-size: 16px;">
+                        &times;
+                    </button>
                 </div>
             </div>
-            ${tab.treeNodes.map(node => renderNodeEditor(node, allChars)).join('')}
+            <div class="tab-tree-root">
+                ${tab.treeNodes && tab.treeNodes.length > 0 
+                    ? tab.treeNodes.map(node => renderNodeEditor(node, allChars)).join('') 
+                    : '<p style="font-size:11px; opacity:0.3; text-align:center; padding:10px;">Chưa có sơ đồ nhân sự.</p>'}
+            </div>
         </div>
     `).join('');
+
+    // 2. Sau khi innerHTML đã chạy xong, kích hoạt logic nạp ảnh cho từng node
+    // Logic này sẽ tìm các thẻ img có ID preview tương ứng đã được renderNodeEditor tạo ra
+    const processNodeImages = async (nodes) => {
+        for (const node of nodes) {
+            const char = allChars.find(c => String(c.id) === String(node.memberId));
+            if (char && char.img) {
+                const imgEl = document.querySelector(`#preview-node-${node.id} img`);
+                if (imgEl) {
+                    if (char.img.startsWith("http") || char.img.startsWith("data:")) {
+                        imgEl.src = char.img;
+                    } else if (typeof getImage === "function") {
+                        const src = await getImage(char.img);
+                        if (src) imgEl.src = src;
+                    }
+                }
+            }
+            if (node.children) await processNodeImages(node.children);
+        }
+    };
+
+    currentStructure.forEach(tab => {
+        if (tab.treeNodes) processNodeImages(tab.treeNodes);
+    });
 }
 function renderNodeEditor(node, allChars) {
+    const char = allChars.find(c => String(c.id) === String(node.memberId));
+    const previewId = `node-img-${node.id}`;
+    const fallbackImg = "https://i.imgur.com/6X8FQyA.png";
+    setTimeout(async () => {
+        const imgEl = document.getElementById(previewId);
+        if (!imgEl) return;
+
+        if (char && char.img) {
+            if (char.img.startsWith("http") || char.img.startsWith("data:")) {
+                imgEl.src = char.img;
+            } else if (typeof getImage === "function") {
+                const src = await getImage(char.img);
+                if (src) imgEl.src = src;
+            }
+        }
+    }, 0);
+
     return `
-        <div class="node-edit-row" style="margin-left: 12px; border-left: 1px solid #334155; padding-left: 8px; margin-top: 4px;">
-            <div style="display:flex; gap:3px; align-items:center;">
+        <div class="node-edit-row" style="margin-left: 15px; border-left: 1px solid #334155; padding-left: 10px; margin-top: 8px;">
+            <div style="display:flex; gap:8px; align-items:center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="width:28px; height:28px; border-radius:4px; overflow:hidden; border:1px solid #444; flex-shrink:0; background:#000;">
+                    <img id="${previewId}" src="${fallbackImg}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                
                 <input type="text" value="${node.title || ''}" 
                        oninput="const n = findNodeById(currentStructure, '${node.id}'); if(n) n.title = this.value;" 
                        placeholder="Chức vụ" 
-                       style="width:70px; font-size:10px; padding:2px; background:#000; border:1px solid #334155; color:#fbbf24;">
+                       style="width:90px; font-size:11px; padding:3px; background:#020617; border:1px solid #334155; color:#fbbf24; border-radius:4px;">
                 
-                <select onchange="const n = findNodeById(currentStructure, '${node.id}'); if(n) n.memberId = this.value;" 
-                        style="width:85px; font-size:10px; padding:2px; background:#000; border:1px solid #334155; color:#fff;">
+                <select onchange="const n = findNodeById(currentStructure, '${node.id}'); if(n) { n.memberId = this.value; renderStructureAdmin(); }" 
+                        style="width:110px; font-size:11px; padding:3px; background:#020617; border:1px solid #334155; color:#fff; border-radius:4px;">
                     <option value="">-- Trống --</option>
                     ${allChars.map(c => `<option value="${c.id}" ${node.memberId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
                 </select>
 
-                <button type="button" onclick="addChildRole('${node.id}')" style="background:none; border:none; color:#10b981; font-weight:bold; cursor:pointer; padding:0 2px;">+</button>
-                <button type="button" onclick="removeRole('${node.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:0 2px;">×</button>
+                <div style="display:flex; gap:4px; margin-left: auto;">
+                    <button type="button" onclick="addChildRole('${node.id}')" title="Thêm cấp dưới" style="background:rgba(16,185,129,0.1); border:none; color:#10b981; font-weight:bold; cursor:pointer; padding:2px 6px; border-radius:4px;">+</button>
+                    <button type="button" onclick="removeRole('${node.id}')" title="Xóa" style="background:rgba(239,68,68,0.1); border:none; color:#ef4444; cursor:pointer; padding:2px 6px; border-radius:4px;">×</button>
+                </div>
             </div>
             <div class="node-children">
                 ${node.children ? node.children.map(c => renderNodeEditor(c, allChars)).join('') : ''}
@@ -331,8 +391,6 @@ function resetKingdomForm() {
   const input = document.getElementById("kingdomImgInput");
   if (input) input.value = "";
 }
-
-
 function updateKingdomOptions() {
     let select = document.getElementById("charKingdom");
     if (!select) return;
@@ -365,116 +423,177 @@ function updateKingdomOptions() {
     });
 }
 async function openKingdomPage(i) {
-  let k;
-  if (typeof i === 'string' && i.startsWith('k_')) {
-      k = window.kingdoms.find(item => item.id === i);
-  } else {
-      k = window.kingdoms ? window.kingdoms[i] : null;
-  }
-  
-  if (!k) return;
-
-  const setText = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.innerText = value || "-";
-  };
-
-  // Đã bổ sung "Religion" vào mảng fields
-  const fields = ["Name", "Leader", "Race", "Continent", "Capital", "Population", "Army", "Government", "Religion", "Founded", "Desc"];
-  fields.forEach(f => setText("kingdomPage" + f, k[f.toLowerCase()]));
-
-  if (typeof renderDiplomacyTags === "function") {
-    renderDiplomacyTags("kingdomPageRelations", k.diplomacy || []);
-  }
-
-  const logoMini = document.getElementById("kingdomPageLogoMini");
-  if (logoMini) {
-    logoMini.src = (k.img && k.img.startsWith("http")) ? k.img : (await getImage(k.img) || "https://i.imgur.com/6X8FQyA.png");
-  }
-
-  const tabHeader = document.getElementById("kingdomTabHeader");
-  const tabContent = document.getElementById("kingdomTabContent");
-  
-  if (tabHeader && tabContent) {
-    tabHeader.innerHTML = ""; 
-    if (!k.structure || k.structure.length === 0) {
-      tabContent.innerHTML = `<p class="empty-msg">Chưa có bộ máy.</p>`;
+    let k;
+    if (typeof i === 'string' && i.startsWith('k_')) {
+        k = window.kingdoms.find(item => item.id === i);
     } else {
-      k.structure.forEach((tab, idx) => {
-        const btn = document.createElement("button");
-        btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
-        btn.innerText = tab.name;
-        btn.onclick = async () => {
-          tabHeader.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          await displayTabRoles(tab); 
-        };
-        tabHeader.appendChild(btn);
-      });
-      await displayTabRoles(k.structure[0]);
+        k = window.kingdoms ? window.kingdoms[i] : null;
     }
-  }
+    
+    if (!k) return;
 
-  const allChars = window.characters || [];
-  const kingdomMembers = allChars.filter(c => String(c.kingdom) === String(k.id));
-  if (typeof renderKingdomMembersList === "function") renderKingdomMembersList(kingdomMembers);
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = value || "-";
+    };
 
-  if (typeof showPage === "function") showPage("kingdomPage");
+    // 1. Thông tin văn bản
+    const fields = ["Name", "Leader", "Race", "Continent", "Capital", "Population", "Army", "Government", "Religion", "Founded", "Desc"];
+    fields.forEach(f => setText("kingdomPage" + f, k[f.toLowerCase()]));
+
+    // 2. Logo Vương Quốc (Xử lý DB)
+    const logoEl = document.getElementById("kingdomPageLogoMini");
+    if (logoEl) {
+        const fallback = "https://i.imgur.com/6X8FQyA.png";
+        logoEl.src = fallback; // Set tạm ảnh mặc định
+        if (k.img) {
+            if (k.img.startsWith("http") || k.img.startsWith("data:")) {
+                logoEl.src = k.img;
+            } else if (typeof getImage === "function") {
+                const dbSrc = await getImage(k.img);
+                if (dbSrc) logoEl.src = dbSrc;
+            }
+        }
+    }
+
+    // 3. Ngoại giao
+    if (typeof renderDiplomacyTags === "function") {
+        renderDiplomacyTags("kingdomPageRelations", k.diplomacy || []);
+    }
+
+    // 4. Tabs & Sơ đồ bộ máy
+    const tabHeader = document.getElementById("kingdomTabHeader");
+    const tabContent = document.getElementById("kingdomTabContent");
+    
+    if (tabHeader && tabContent) {
+        tabHeader.innerHTML = ""; 
+        if (!k.structure || k.structure.length === 0) {
+            tabContent.innerHTML = `<p class="empty-msg" style="padding:40px; opacity:0.5; text-align:center;">Chưa có dữ liệu bộ máy.</p>`;
+        } else {
+            // Tạo các tab bộ phận
+            for (let idx = 0; idx < k.structure.length; idx++) {
+                const tab = k.structure[idx];
+                const btn = document.createElement("button");
+                btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
+                btn.innerText = tab.name;
+                
+                btn.onclick = async () => {
+                    tabHeader.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if (typeof displayTabRoles === "function") await displayTabRoles(tab);
+                };
+                tabHeader.appendChild(btn);
+            }
+
+            // Hiển thị tab đầu tiên mặc định
+            if (typeof displayTabRoles === "function") {
+                await displayTabRoles(k.structure[0]);
+            }
+        }
+    }
+
+    // 5. Cư dân
+    const allChars = window.characters || [];
+    const members = allChars.filter(c => String(c.kingdom) === String(k.id));
+    if (typeof renderKingdomMembersList === "function") {
+        renderKingdomMembersList(members);
+    }
+
+    // 6. Chuyển trang
+    if (typeof showPage === "function") showPage("kingdomPage");
 }
 async function displayTabRoles(tab) {
     const content = document.getElementById("kingdomTabContent");
     if (!tab || !content) return;
+    
     let mermaidConfig = `graph TD\n`;
     const allChars = window.characters || [];
-    const buildTree = async (node, parentId = null) => {
+    const nodesToLoad = []; // Lưu danh sách để nạp ảnh sau
+
+    // 1. Hàm xây dựng cấu trúc sơ đồ (Chạy nhanh, chưa lấy ảnh từ DB ngay)
+    const buildTree = (node, parentId = null) => {
         const char = allChars.find(c => String(c.id) === String(node.memberId));
         const charName = char ? char.name : "Trống";
-        let imgUrl = "https://i.imgur.com/6X8FQyA.png";
-        if (char && char.img) {
-            imgUrl = char.img.startsWith("http") ? char.img : (await getImage(char.img) || imgUrl);
+        const nodeId = `mermaid_node_${node.id}`;
+        
+        // Dùng ảnh mặc định làm placeholder
+        let initialImg = "https://i.imgur.com/6X8FQyA.png";
+        
+        // Nếu là URL trực tiếp thì nạp luôn
+        if (char && char.img && (char.img.startsWith("http") || char.img.startsWith("data:"))) {
+            initialImg = char.img;
+        } else if (char && char.img) {
+            // Nếu là ảnh từ DB, lưu lại để nạp sau
+            nodesToLoad.push({ domId: nodeId, imgKey: char.img });
         }
-        const nodeHTML = `"<div class='role-node-mini clickable-node' data-char-id='${char ? char.id : ''}'>
-            <div class='role-img-mini'><img src='${imgUrl}'></div>
+
+        const nodeHTML = `"<div class='role-node-mini clickable-node' data-char-id='${char ? char.id : ''}' id='${nodeId}'>
+            <div class='role-img-mini'><img src='${initialImg}' class='node-avatar'></div>
             <div class='role-info-mini'>
-                <div class='title'>${node.title || 'CHỨC VỤ'}</div>
+                <div class='title'>${(node.title || 'CHỨC VỤ').toUpperCase()}</div>
                 <div class='name'>${charName}</div>
             </div>
         </div>"`;
+
         mermaidConfig += `  ${node.id}[${nodeHTML}]\n`;
         if (parentId) mermaidConfig += `  ${parentId} --> ${node.id}\n`;
 
         if (node.children) {
             for (let child of node.children) {
-                await buildTree(child, node.id);
+                buildTree(child, node.id);
             }
         }
     };
+
     if (tab.treeNodes && tab.treeNodes.length > 0) {
         for (let rootNode of tab.treeNodes) {
-            await buildTree(rootNode);
+            buildTree(rootNode);
         }
     } else {
-        content.innerHTML = "<p style='font-size:12px; opacity:0.5;'>Chưa có sơ đồ bộ máy.</p>";
+        content.innerHTML = "<p style='font-size:12px; opacity:0.5; padding:20px;'>Chưa có sơ đồ bộ máy.</p>";
         return;
     }
+
+    // 2. Render Mermaid khung trước
     content.innerHTML = `<div class="mermaid">${mermaidConfig}</div>`;
+
     if (window.mermaid) {
-        mermaid.initialize({ 
-            startOnLoad: false, 
-            theme: 'dark', 
-            securityLevel: 'loose',
-            flowchart: { nodeSpacing: 20, rankSpacing: 30, htmlLabels: true } 
-        });
-        await mermaid.run({ nodes: [content.querySelector('.mermaid')] });
-        content.querySelectorAll('.clickable-node').forEach(el => {
-            el.onclick = function() {
-                const cid = this.getAttribute('data-char-id');
-                if (cid && typeof openProfile === 'function') {
-                    openProfile(cid);
-                    showPage("characterPage");
+        try {
+            mermaid.initialize({ 
+                startOnLoad: false, 
+                theme: 'dark', 
+                securityLevel: 'loose',
+                flowchart: { nodeSpacing: 30, rankSpacing: 40, htmlLabels: true } 
+            });
+
+            await mermaid.run({ nodes: [content.querySelector('.mermaid')] });
+
+            // 3. SAU KHI VẼ XONG: Nạp ảnh từ imageDB vào các node tương ứng
+            for (const item of nodesToLoad) {
+                if (typeof getImage === "function") {
+                    getImage(item.imgKey).then(src => {
+                        if (src) {
+                            const imgEl = document.querySelector(`#${item.domId} .node-avatar`);
+                            if (imgEl) imgEl.src = src;
+                        }
+                    });
                 }
-            };
-        });
+            }
+
+            // 4. Gán sự kiện click
+            content.querySelectorAll('.clickable-node').forEach(el => {
+                el.onclick = function() {
+                    const cid = this.getAttribute('data-char-id');
+                    if (cid && typeof openProfile === 'function') {
+                        openProfile(cid);
+                        if (typeof showPage === 'function') showPage("characterPage");
+                    }
+                };
+            });
+        } catch (err) {
+            console.error("❌ Mermaid Render Error:", err);
+            content.innerHTML = "<p style='color:red; font-size:12px;'>Lỗi hiển thị sơ đồ.</p>";
+        }
     }
 }
 async function switchKingdomTab(btn, tabId, kingdomIdx) {
