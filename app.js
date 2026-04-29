@@ -1799,19 +1799,35 @@ function updateCharacterLocationOptions() {
 
     select.appendChild(fragment);
 }
+
 async function drawNetwork() {
     const container = document.getElementById('relationshipPage');
     if (!container) return;
+    
     let networkCanvas = document.getElementById('network-canvas');
     if (!networkCanvas) {
         networkCanvas = document.createElement('div');
         networkCanvas.id = 'network-canvas';
         networkCanvas.style.width = "100%";
-        networkCanvas.style.height = "600px";
+        networkCanvas.style.height = "750px"; 
         container.innerHTML = '<h2 class="page-title">Sơ Đồ Quan Hệ Nhân Vật</h2>';
         container.appendChild(networkCanvas);
     }
-    networkCanvas.innerHTML = `<div class="loading-network">Đang khởi tạo sơ đồ...</div>`;
+    
+    networkCanvas.innerHTML = `<div class="loading-network" style="color:#fbbf24; text-align:center; padding-top:100px;">
+        <i class="fas fa-spinner fa-spin"></i> Đang ma trận hóa hàng nghìn mối quan hệ...
+    </div>`;
+
+    if (typeof vis === "undefined") {
+        networkCanvas.innerHTML = "<p style='color:red; padding:20px;'>Lỗi: Thư viện Vis.js chưa được tải.</p>";
+        return;
+    }
+
+    // 1. Khởi tạo DataSet (Dùng DataSet để có thể Filter động)
+    const nodesView = new vis.DataSet([]);
+    const edgesView = new vis.DataSet([]);
+
+    // 2. Xử lý Nodes
     const nodeList = await Promise.all(window.characters.map(async (c) => {
         let imgUrl = "https://i.imgur.com/6X8FQyA.png";
         if (c.img) {
@@ -1821,7 +1837,7 @@ async function drawNetwork() {
                 try {
                     const storedImg = await getImage(c.img);
                     if (storedImg) imgUrl = storedImg;
-                } catch (e) { console.warn("Lỗi tải ảnh:", e); }
+                } catch (e) { }
             }
         }
         return {
@@ -1829,64 +1845,92 @@ async function drawNetwork() {
             label: `<b>${c.name}</b>\n<i>${c.job || ''}</i>`,
             shape: 'circularImage',
             image: imgUrl,
-            size: 35,
-            borderWidth: 3,
+            size: 30,
+            borderWidth: 2,
             color: {
                 border: c.gender === 'Nữ' ? '#ec4899' : '#6366f1',
                 background: '#1e293b',
                 highlight: { border: '#fbbf24', background: '#1e293b' }
             },
-            font: { 
-                multi: 'html', 
-                color: '#f1f5f9', 
-                size: 14,
-                face: 'Plus Jakarta Sans'
-            }
+            font: { multi: 'html', color: '#f1f5f9', size: 12, face: 'Plus Jakarta Sans' }
         };
     }));
-    const edges = [];
+
+    // 3. Xử lý Edges
+    const edgeList = [];
     window.characters.forEach(c => {
         if (c.relations && Array.isArray(c.relations)) {
             c.relations.forEach(rel => {
-                const targetExists = window.characters.some(t => t.id === rel.targetId);
-                if (targetExists) {
-                    edges.push({
+                if (window.characters.some(t => t.id === rel.targetId)) {
+                    edgeList.push({
                         from: c.id,
                         to: rel.targetId,
                         label: rel.type,
-                        arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-                        color: { color: 'rgba(148, 163, 184, 0.6)', hover: '#fbbf24', highlight: '#fbbf24' },
-                        font: { size: 11, color: '#cbd5e1', strokeWidth: 0, align: 'top' },
-                        smooth: { type: 'curvedCW', roundness: 0.2 }
+                        arrows: { to: { enabled: true, scaleFactor: 0.4 } },
+                        color: { color: 'rgba(148, 163, 184, 0.4)', hover: '#fbbf24', highlight: '#fbbf24' },
+                        font: { size: 9, color: '#94a3b8', strokeWidth: 0, align: 'middle' },
+                        smooth: { type: 'continuous', roundness: 0.5 }
                     });
                 }
             });
         }
     });
+
+    nodesView.add(nodeList);
+    edgesView.add(edgeList);
+
     const options = {
         physics: {
             enabled: true,
-            barnesHut: {
-                gravitationalConstant: -4000,
-                springLength: 200,
-                avoidOverlap: 1
-            },
-            stabilization: { iterations: 150 }
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: { gravitationalConstant: -150, centralGravity: 0.01, springLength: 150, springConstant: 0.05, avoidOverlap: 1 },
+            stabilization: { enabled: true, iterations: 200 }
         },
         interaction: {
             hover: true,
-            tooltipDelay: 200,
-            hideEdgesOnDrag: true
+            hideEdgesOnDrag: true,
+            hideEdgesOnZoom: true,
+            navigationButtons: true
         }
     };
 
     networkCanvas.innerHTML = "";
-    if (typeof vis === "undefined") {
-        networkCanvas.innerHTML = "<p style='color:red; padding:20px;'>Lỗi: Thư viện Vis.js chưa được tải. Vui lòng thêm script Vis.js vào index.html</p>";
-        return;
-    }
-    const data = { nodes: new vis.DataSet(nodeList), edges: new vis.DataSet(edges) };
-    const network = new vis.Network(networkCanvas, data, options);
+    const network = new vis.Network(networkCanvas, { nodes: nodesView, edges: edgesView }, options);
+
+    // --- LOGIC ẨN CÁC NODE KHÔNG LIÊN QUAN ---
+    network.on("click", function(params) {
+        if (params.nodes.length > 0) {
+            const selectedNodeId = params.nodes[0];
+            
+            // Lấy danh sách các node có kết nối trực tiếp
+            const connectedNodes = network.getConnectedNodes(selectedNodeId);
+            const allVisibleNodes = [selectedNodeId, ...connectedNodes];
+
+            // Cập nhật lại DataSet: Ẩn bằng cách filter hoặc cập nhật hidden
+            const updateArray = nodeList.map(node => ({
+                id: node.id,
+                hidden: !allVisibleNodes.includes(node.id)
+            }));
+            nodesView.update(updateArray);
+
+            // Tự động căn chỉnh màn hình vào cụm nhân vật đang xem
+            network.fit({
+                nodes: allVisibleNodes,
+                animation: true
+            });
+        } else {
+            // Click ra vùng trống -> Hiện lại tất cả
+            const resetArray = nodeList.map(node => ({
+                id: node.id,
+                hidden: false
+            }));
+            nodesView.update(resetArray);
+            network.fit({ animation: true });
+        }
+    });
+
+    network.on("stabilizationIterationsDone", () => network.setOptions({ physics: false }));
+
     network.on("doubleClick", (params) => {
         if (params.nodes.length > 0) {
             const charId = params.nodes[0];
