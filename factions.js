@@ -70,9 +70,6 @@ async function renderFactions() {
         }
     });
 }
-
-
-
 async function saveFaction() {
     const val = (id) => document.getElementById(id)?.value.trim() || "";
     const name = val("factionName");
@@ -232,8 +229,6 @@ function resetFactionForm() {
     if(document.getElementById("prevIcon")) document.getElementById("prevIcon").src = "https://i.imgur.com/6X8FQyA.png";
     if(document.getElementById("prevBanner")) document.getElementById("prevBanner").src = "https://i.imgur.com/eE6C6Wv.png";
 }
-
-
 async function updateFactionOptions() {
     let select = document.getElementById("charFaction");
     if (!select) return;
@@ -389,6 +384,7 @@ async function loadFactionCharacters(f) {
     }
     list.appendChild(grid);
 }
+
 function renderFactionNodeEditor(node, allChars) {
     return `
         <div class="node-editor-item" style="margin-left:12px; border-left:1px dashed var(--gold); padding-left:8px; margin-top:8px;">
@@ -514,10 +510,22 @@ function updateFactionNode(id, field, value) {
     };
     window.currentFactionStructure.forEach(tab => findAndUpdate(tab.treeNodes));
 }
+
 function renderFactionStructureAdmin() {
     const container = document.getElementById('factionStructureAdmin');
     if (!container) return;
-    const allChars = window.characters || [];
+
+    // Xác định ID của phe phái đang chỉnh sửa
+    let currentFactionId = null;
+    if (editingFaction >= 0 && window.factions[editingFaction]) {
+        currentFactionId = window.factions[editingFaction].id;
+    }
+
+    // Lọc danh sách nhân vật: Chỉ hiện nhân vật thuộc phe này
+    // Nếu là tạo mới (currentFactionId chưa có), danh sách sẽ trống để tránh nhầm lẫn
+    const filteredChars = (window.characters || []).filter(c => 
+        currentFactionId && String(c.faction) === String(currentFactionId)
+    );
 
     container.innerHTML = window.currentFactionStructure.map(tab => `
         <div class="admin-tab-group" style="border:1px solid var(--border); padding:10px; margin-bottom:10px; border-radius:8px;">
@@ -526,12 +534,14 @@ function renderFactionStructureAdmin() {
                 <button type="button" onclick="addFactionRole('${tab.id}')" class="btn-mini">+ Thêm chức vụ gốc</button>
             </div>
             <div class="tree-editor">
-                ${tab.treeNodes.map(node => renderFactionNodeEditor(node, allChars)).join('')}
+                ${tab.treeNodes.map(node => renderFactionNodeEditor(node, filteredChars)).join('')}
             </div>
             <button type="button" onclick="removeFactionRole('${tab.id}')" style="color:red; background:none; border:none; font-size:0.7rem; cursor:pointer;">Xóa Tab này</button>
         </div>
     `).join('');
 }
+
+
 function renderFactionTreeDisplay(f) {
     const container = document.getElementById("factionCharacters");
     if (!container) return;
@@ -592,8 +602,6 @@ function renderFactionTreeDisplay(f) {
         });
     }
 }
-
-// Hàm bổ sung để chuyển Tab mượt mà
 function switchFactionTab(btn, tabId) {
     const parent = btn.closest('.faction-structure-view');
     // Active button
@@ -681,8 +689,6 @@ async function loadFactionNodeImages() {
         }
     }
 }
-
-// Hàm hỗ trợ đổi Tab
 function switchFactionTab(btn, tabId) {
     const parent = btn.parentElement.parentElement;
     parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

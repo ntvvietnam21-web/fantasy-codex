@@ -62,7 +62,6 @@ async function renderKingdoms() {
 
     if (typeof updateKingdomCount === "function") updateKingdomCount();
 }
-
 async function saveKingdom() {
     const val = id => document.getElementById(id)?.value.trim() || "";
     const isNew = editingKingdom === -1;
@@ -148,7 +147,6 @@ async function saveKingdom() {
         if (typeof showToast === "function") showToast("❌ Lỗi hệ thống khi lưu vương quốc!", "error");
     }
 }
-
 async function editKingdom(i) {
   let k = window.kingdoms[i];
   if (!k) return;
@@ -205,8 +203,6 @@ async function editKingdom(i) {
 
   openKingdomModal();
 }
-
-
 function addNewTab(name = "") {
     const tabName = name || prompt("Nhập tên bộ phận (VD: Hoàng gia, Quân đội):");
     if (!tabName) return;
@@ -280,6 +276,16 @@ function renderNodeEditor(node, allChars) {
     const char = allChars.find(c => String(c.id) === String(node.memberId));
     const previewId = `node-img-${node.id}`;
     const fallbackImg = "https://i.imgur.com/6X8FQyA.png";
+
+    // 1. Xác định ID của vương quốc đang chỉnh sửa
+    const currentKingdomId = editingKingdom !== -1 ? window.kingdoms[editingKingdom].id : null;
+
+    // 2. Lọc danh sách: Chỉ lấy nhân vật thuộc vương quốc này 
+    // hoặc nhân vật đang được chọn ở node hiện tại (để tránh mất dữ liệu cũ)
+    const filteredChars = allChars.filter(c => 
+        String(c.kingdom) === String(currentKingdomId) || String(c.id) === String(node.memberId)
+    );
+
     setTimeout(async () => {
         const imgEl = document.getElementById(previewId);
         if (!imgEl) return;
@@ -309,7 +315,8 @@ function renderNodeEditor(node, allChars) {
                 <select onchange="const n = findNodeById(currentStructure, '${node.id}'); if(n) { n.memberId = this.value; renderStructureAdmin(); }" 
                         style="width:110px; font-size:11px; padding:3px; background:#020617; border:1px solid #334155; color:#fff; border-radius:4px;">
                     <option value="">-- Trống --</option>
-                    ${allChars.map(c => `<option value="${c.id}" ${node.memberId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    ${/* Sử dụng danh sách filteredChars đã lọc thay vì allChars */
+                      filteredChars.map(c => `<option value="${c.id}" ${node.memberId == c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
                 </select>
 
                 <div style="display:flex; gap:4px; margin-left: auto;">
