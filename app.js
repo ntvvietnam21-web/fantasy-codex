@@ -533,7 +533,6 @@ async function toggleFavorite(id) {
     await saveAndRefresh();
     showToast(c.favorite ? "❤️ Đã thêm vào yêu thích" : "💔 Đã bỏ yêu thích");
 }
-
 async function openProfile(id) {
     const c = window.characters.find(x => String(x.id) === String(id));
     if (!c) return showToast("❌ Không tìm thấy nhân vật!");
@@ -549,9 +548,15 @@ async function openProfile(id) {
             } catch (e) { console.warn("Lỗi load ảnh:", e); }
         }
     }
+
+    // --- TÌM TÊN HIỂN THỊ CHO CÁC LIÊN KẾT ID ---
     const kname = window.kingdoms?.find(k => String(k.id) === String(c.kingdom))?.name || "Tự do";
     const factionObj = window.factions?.find(f => String(f.id) === String(c.faction));
     const fname = factionObj ? factionObj.name : (c.faction || "Không");
+    
+    // Tìm tên địa điểm từ ID
+    const locationObj = window.locations?.find(l => String(l.id) === String(c.location));
+    const lname = locationObj ? locationObj.name : (c.location || "-");
     
     // --- KHỞI TẠO VÀ ĐỒNG BỘ CHỈ SỐ ---
     const s = c.stats || {};
@@ -661,7 +666,7 @@ async function openProfile(id) {
                         <div class="data-row"><span class="data-label">Tuổi / Ngày sinh</span><span class="data-value">${c.age || '0'} / ${c.birth || '-'}</span></div>
                         <div class="data-row"><span class="data-label">Đế chế</span><span class="data-value">${kname}</span></div>
                         <div class="data-row"><span class="data-label">Phe phái</span><span class="data-value" style="color:var(--accent)">${fname}</span></div>
-                        <div class="data-row"><span class="data-label">Quê quán</span><span class="data-value">${c.location || '-'}</span></div>
+                        <div class="data-row"><span class="data-label">Quê quán</span><span class="data-value">${lname}</span></div>
                     </div>
 
                     <div class="info-box">
