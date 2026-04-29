@@ -541,7 +541,6 @@ function renderFactionStructureAdmin() {
     `).join('');
 }
 
-
 function renderFactionTreeDisplay(f) {
     const container = document.getElementById("factionCharacters");
     if (!container) return;
@@ -552,26 +551,37 @@ function renderFactionTreeDisplay(f) {
         return;
     }
 
-    let html = `<div class="faction-structure-view">`;
+    let html = `<div class="faction-structure-view" style="width:100%; height:100%; display:flex; flex-direction:column;">`;
     
-    // 1. Tạo hệ thống Tab (Bộ phận)
-    html += `<div class="structure-tabs" style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto; padding-bottom:10px; border-bottom: 1px solid rgba(212,175,55,0.2);">`;
+    // 1. Tab (Bộ phận) - Giữ nguyên nhưng tối ưu padding
+    html += `<div class="structure-tabs" style="display:flex; gap:5px; margin-bottom:10px; overflow-x:auto; padding-bottom:5px; flex-shrink:0;">`;
     f.structure.forEach((tab, idx) => {
         html += `
             <button class="tab-btn ${idx === 0 ? 'active' : ''}" 
                 onclick="switchFactionTab(this, '${tab.id}')"
-                style="padding:8px 15px; background:var(--glass); border:1px solid var(--gold); color:var(--gold); border-radius:6px; cursor:pointer; white-space:nowrap; transition:0.3s;">
-                <i class="fas fa-sitemap" style="margin-right:5px; font-size:0.8rem;"></i> ${tab.name}
+                style="padding:5px 10px; background:var(--glass); border:1px solid var(--gold); color:var(--gold); border-radius:4px; cursor:pointer; white-space:nowrap; font-size:0.7rem;">
+                ${tab.name}
             </button>`;
     });
     html += `</div>`;
 
-    // 2. Nội dung các Tab (Cấu trúc cây)
+    // 2. Nội dung các Tab - Ép cố định khung hình
     f.structure.forEach((tab, idx) => {
+        // Cố định chiều cao và cấm cuộn tuyệt đối (overflow: hidden)
         html += `
             <div id="content-${tab.id}" class="tab-content faction-tree-container" 
-                 style="display: ${idx === 0 ? 'block' : 'none'}; overflow-x: auto; padding: 20px 0;">
-                <div class="tree-root" style="display:flex; flex-direction:column; align-items:center; min-width: max-content; margin: 0 auto;">
+                 style="display: ${idx === 0 ? 'flex' : 'none'}; 
+                        width: 100%; 
+                        height: 60vh; 
+                        overflow: hidden; 
+                        position: relative; 
+                        justify-content: center; 
+                        align-items: flex-start;
+                        background: rgba(0,0,0,0.1);
+                        border-radius: 8px;">
+                
+                <div class="tree-root" id="tree-root-${tab.id}" 
+                     style="display:flex; flex-direction:column; align-items:center; transform-origin: top center; transition: transform 0.3s ease;">
                     ${tab.treeNodes.map(node => renderNodeRecursive(node)).join('')}
                 </div>
             </div>`;
@@ -579,29 +589,36 @@ function renderFactionTreeDisplay(f) {
 
     html += `</div>`;
     
-    // 3. Ghi vào DOM
     container.innerHTML = html;
 
-    // 4. QUAN TRỌNG: Kích hoạt nạp ảnh từ imageDB
-    // Sau khi innerHTML được gán, chúng ta quét tất cả các node để lấy ảnh từ IndexedDB
-    if (typeof loadFactionNodeImages === "function") {
-        loadFactionNodeImages();
-    } else {
-        // Nếu chưa có hàm bổ trợ này, chạy logic nạp ảnh nhanh tại đây:
-        const nodeImages = container.querySelectorAll('.faction-node-img[data-img-key]');
-        nodeImages.forEach(async (imgEl) => {
-            const imgKey = imgEl.getAttribute('data-img-key');
-            if (!imgKey) return;
-            
-            if (imgKey.startsWith("http") || imgKey.startsWith("data:")) {
-                imgEl.src = imgKey;
-            } else if (typeof getImage === "function") {
-                const blobUrl = await getImage(imgKey);
-                if (blobUrl) imgEl.src = blobUrl;
+    // 3. Logic tự động thu nhỏ để vừa màn hình Android (Auto-Fit)
+    setTimeout(() => {
+        f.structure.forEach(tab => {
+            const root = document.getElementById(`tree-root-${tab.id}`);
+            const wrapper = document.getElementById(`content-${tab.id}`);
+            if (root && wrapper) {
+                // Tính toán tỷ lệ co giãn dựa trên chiều rộng thực tế của hàng trăm node
+                const scaleX = (wrapper.offsetWidth - 20) / root.scrollWidth;
+                const scaleY = (wrapper.offsetHeight - 20) / root.scrollHeight;
+                
+                // Chọn tỷ lệ nhỏ nhất để không bị mất hình
+                let finalScale = Math.min(scaleX, scaleY);
+                
+                // Nếu cây nhỏ hơn màn hình thì không phóng to, chỉ thu nhỏ khi cần
+                if (finalScale > 1) finalScale = 1;
+
+                root.style.transform = `scale(${finalScale})`;
             }
         });
+    }, 100);
+
+    // 4. Load ảnh
+    if (typeof loadFactionNodeImages === "function") {
+        loadFactionNodeImages();
     }
 }
+
+
 function switchFactionTab(btn, tabId) {
     const parent = btn.closest('.faction-structure-view');
     // Active button
@@ -619,6 +636,9 @@ function switchFactionTab(btn, tabId) {
     const target = document.getElementById(`content-${tabId}`);
     if (target) target.style.display = 'block';
 }
+
+
+
 function renderNodeRecursive(node) {
     const char = (window.characters || []).find(c => String(c.id) === String(node.memberId));
     const imgElementId = `node-img-${node.id}`;
@@ -630,45 +650,43 @@ function renderNodeRecursive(node) {
 
     const imgKeyAttr = (char && char.img) ? `data-img-key="${char.img}"` : "";
 
-    // Render các node con trước để tính toán logic đường nối
     const childrenHtml = (node.children && node.children.length > 0) 
         ? node.children.map(child => renderNodeRecursive(child)).join('') 
         : "";
 
+    // Giữ nguyên cấu trúc ngang nhưng dùng các đơn vị cực nhỏ và flex-shrink
     return `
-        <div class="tree-branch" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+        <div class="tree-branch" style="display: flex; flex-direction: column; align-items: center; position: relative; flex: 0 0 auto;">
             
-            <div class="node-card-wrapper" style="padding: 0 15px; position: relative; display: flex; flex-direction: column; align-items: center;">
+            <div class="node-card-wrapper" style="padding: 0 2px; position: relative; display: flex; flex-direction: column; align-items: center;">
                 <div class="node-card ${char ? 'has-member' : 'empty-member'}" 
                      ${clickAction}
-                     style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:10px; border-radius:12px; width:140px; cursor:${char ? 'pointer' : 'default'}; transition: all 0.3s ease; position:relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                     style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:4px; border-radius:4px; width:60px; cursor:${char ? 'pointer' : 'default'}; position:relative; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                     
-                    <div style="font-size:0.65rem; color:var(--gold); text-transform:uppercase; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px; opacity: 0.9;">
-                        ${node.title || "Chức vụ"}
+                    <div style="font-size:0.4rem; color:var(--gold); text-transform:uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height:1;">
+                        ${node.title || "CV"}
                     </div>
                     
-                    <div style="width:50px; height:50px; margin: 0 auto 6px; position:relative;">
+                    <div style="width:20px; height:20px; margin: 2px auto; position:relative;">
                         <img id="${imgElementId}" 
                              src="${placeholder}" 
                              ${imgKeyAttr} 
                              class="faction-node-img"
-                             style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gold); background:rgba(0,0,0,0.4);">
-                        ${char ? `<div style="position:absolute; bottom:1px; right:1px; width:12px; height:12px; background:#22c55e; border:2px solid var(--bg-main); border-radius:50%;"></div>` : ''}
+                             style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:0.5px solid var(--gold);">
                     </div>
 
-                    <div style="font-weight:600; font-size:0.8rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${char ? char.name : "<span style='color:var(--text-dim); font-style:italic; font-size:0.75rem;'>Trống</span>"}
+                    <div style="font-weight:600; font-size:0.45rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${char ? char.name : "..."}
                     </div>
                 </div>
 
-                ${childrenHtml ? `<div class="line-down" style="width:2px; height:20px; background:var(--gold); opacity:0.6;"></div>` : ''}
+                ${childrenHtml ? `<div class="line-down" style="width:1px; height:10px; background:var(--gold); opacity:0.3;"></div>` : ''}
             </div>
 
             ${childrenHtml ? `
-                <div class="node-children-container" style="display: flex; position: relative; padding-top: 0;">
-                    <div class="line-horizontal" style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold); opacity: 0.4; width: calc(100% - 140px); margin: 0 auto;"></div>
-                    
-                    <div class="node-children-list" style="display: flex; gap: 10px; justify-content: center;">
+                <div class="node-children-container" style="display: flex; position: relative;">
+                    <div class="line-horizontal" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gold); opacity: 0.2; width: calc(100% - 60px); margin: 0 auto;"></div>
+                    <div class="node-children-list" style="display: flex; gap: 4px; justify-content: center;">
                         ${childrenHtml}
                     </div>
                 </div>
@@ -676,8 +694,6 @@ function renderNodeRecursive(node) {
         </div>
     `;
 }
-
-
 async function loadFactionNodeImages() {
     const nodeImages = document.querySelectorAll('.faction-node-img[data-img-key]');
     for (const imgEl of nodeImages) {
