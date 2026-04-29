@@ -3359,3 +3359,47 @@ button {
 .mermaid text {
     fill: var(--text-main) !important;
 }
+
+/* Container chính cho sơ đồ */
+.faction-tree-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+}
+
+/* Cấu trúc các nhánh */
+.node-children {
+    display: flex;
+    flex-direction: row; /* Trải ngang các con */
+    position: relative;
+    padding-top: 20px;
+}
+
+/* Đường kẻ ngang nối các con */
+.node-children::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: var(--gold);
+}
+
+/* Đường nối ngang phía trên các node con */
+.tree-node {
+    position: relative;
+}
+
+/* Hiệu ứng hover cho node card */
+.node-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
+    border-color: #fff !important;
+}
+
+.node-card.has-member {
+    border-left: 4px solid #22c55e !important;
+}

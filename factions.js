@@ -622,55 +622,62 @@ function switchFactionTab(btn, tabId) {
 function renderNodeRecursive(node) {
     const char = (window.characters || []).find(c => String(c.id) === String(node.memberId));
     const imgElementId = `node-img-${node.id}`;
-    
-    // 3. Ảnh mặc định ban đầu
     const placeholder = "https://i.imgur.com/6X8FQyA.png";
     
-    // 4. Sự kiện click (sử dụng hàm openProfile và showPage từ app.js)
     const clickAction = char 
         ? `onclick="if(typeof openProfile === 'function'){ openProfile('${char.id}'); showPage('characterPage'); }"` 
         : "";
 
-    // 5. Lưu lại thông tin ảnh vào thuộc tính dữ liệu (data-img-key) 
-    // thay vì dùng thẻ <script> lồng bên trong (vốn bị trình duyệt chặn khi dùng innerHTML)
     const imgKeyAttr = (char && char.img) ? `data-img-key="${char.img}"` : "";
 
+    // Render các node con trước để tính toán logic đường nối
+    const childrenHtml = (node.children && node.children.length > 0) 
+        ? node.children.map(child => renderNodeRecursive(child)).join('') 
+        : "";
+
     return `
-        <div class="tree-node" style="display:flex; flex-direction:column; align-items:center; min-width:140px; margin: 0 10px;">
-            <div class="node-card ${char ? 'has-member' : 'empty-member'}" 
-                 ${clickAction}
-                 style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:12px; border-radius:12px; width:150px; cursor:${char ? 'pointer' : 'default'}; transition: all 0.3s ease; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                
-                <div style="font-size:0.7rem; color:var(--gold); text-transform:uppercase; margin-bottom:8px; font-weight:bold; letter-spacing:0.5px;">
-                    ${node.title || "Chức vụ"}
-                </div>
-                
-                <div style="width:65px; height:65px; margin: 0 auto 8px; position:relative;">
-                    <img id="${imgElementId}" 
-                         src="${placeholder}" 
-                         ${imgKeyAttr} 
-                         class="faction-node-img"
-                         style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gold); background:rgba(0,0,0,0.4);">
+        <div class="tree-branch" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+            
+            <div class="node-card-wrapper" style="padding: 0 15px; position: relative; display: flex; flex-direction: column; align-items: center;">
+                <div class="node-card ${char ? 'has-member' : 'empty-member'}" 
+                     ${clickAction}
+                     style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:10px; border-radius:12px; width:140px; cursor:${char ? 'pointer' : 'default'}; transition: all 0.3s ease; position:relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
                     
-                    ${char ? `
-                        <div style="position:absolute; bottom:2px; right:2px; width:14px; height:14px; background:#22c55e; border:2px solid var(--bg-main); border-radius:50%; box-shadow: 0 0 5px #22c55e;"></div>
-                    ` : ''}
+                    <div style="font-size:0.65rem; color:var(--gold); text-transform:uppercase; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px; opacity: 0.9;">
+                        ${node.title || "Chức vụ"}
+                    </div>
+                    
+                    <div style="width:50px; height:50px; margin: 0 auto 6px; position:relative;">
+                        <img id="${imgElementId}" 
+                             src="${placeholder}" 
+                             ${imgKeyAttr} 
+                             class="faction-node-img"
+                             style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gold); background:rgba(0,0,0,0.4);">
+                        ${char ? `<div style="position:absolute; bottom:1px; right:1px; width:12px; height:12px; background:#22c55e; border:2px solid var(--bg-main); border-radius:50%;"></div>` : ''}
+                    </div>
+
+                    <div style="font-weight:600; font-size:0.8rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${char ? char.name : "<span style='color:var(--text-dim); font-style:italic; font-size:0.75rem;'>Trống</span>"}
+                    </div>
                 </div>
 
-                <div style="font-weight:600; font-size:0.85rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px;">
-                    ${char ? char.name : "<span style='color:var(--text-dim); font-weight:400; font-style:italic;'>Đang trống</span>"}
-                </div>
+                ${childrenHtml ? `<div class="line-down" style="width:2px; height:20px; background:var(--gold); opacity:0.6;"></div>` : ''}
             </div>
 
-            ${node.children && node.children.length > 0 ? `
-                <div class="node-line" style="height:20px; border-left:2px solid var(--gold); opacity:0.5;"></div>
-                <div class="node-children" style="display:flex; gap:20px; justify-content:center; border-top:1px dashed var(--gold); padding-top:20px; position:relative;">
-                    ${node.children.map(child => renderNodeRecursive(child)).join('')}
+            ${childrenHtml ? `
+                <div class="node-children-container" style="display: flex; position: relative; padding-top: 0;">
+                    <div class="line-horizontal" style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold); opacity: 0.4; width: calc(100% - 140px); margin: 0 auto;"></div>
+                    
+                    <div class="node-children-list" style="display: flex; gap: 10px; justify-content: center;">
+                        ${childrenHtml}
+                    </div>
                 </div>
             ` : ''}
         </div>
     `;
 }
+
+
 async function loadFactionNodeImages() {
     const nodeImages = document.querySelectorAll('.faction-node-img[data-img-key]');
     for (const imgEl of nodeImages) {
