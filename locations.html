@@ -9,7 +9,150 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="GiaoDien.css"> <link rel="stylesheet" href="locations.css">
+<link rel="stylesheet" href="GiaoDien.css"> 
+<link rel="stylesheet" href="locations.css">
+
+<style>
+    /* 1. SỬA LỖI LAYOUT FORM (CỰC KỲ QUAN TRỌNG) */
+    .modal-content {
+        background: #0f172a;
+        border: 1px solid var(--gold, #fbbf24);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        border-radius: 12px;
+        max-width: 700px !important;
+    }
+
+    .fantasy-form {
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    /* Đảm bảo mọi ô nhập liệu không bao giờ tràn khung */
+    .fantasy-form *, .fantasy-form *:before, .fantasy-form *:after {
+        box-sizing: border-box;
+    }
+
+    /* Hệ thống dòng và cột thẳng hàng */
+    .two-cols {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* Chia đều 50-50 */
+        margin-bottom: 15px;
+        min-width: 0; /* Ngăn chặn vỡ layout flex */
+    }
+
+    /* Style Nhãn (Label) */
+    .form-group label {
+        font-family: 'Cinzel', serif;
+        color: var(--gold, #fbbf24);
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Input & Textarea Fantasy */
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+        width: 100% !important;
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(251, 191, 36, 0.3) !important;
+        border-radius: 6px;
+        color: #fff;
+        padding: 12px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+        border-color: var(--gold, #fbbf24) !important;
+        outline: none;
+        background: #1e293b !important;
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 50px;
+    }
+
+    /* Nút bấm */
+    .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(251, 191, 36, 0.2);
+    }
+
+    .btn-save.shadow-glow {
+        background: var(--gold, #fbbf24);
+        color: #000;
+        border: none;
+        padding: 12px 25px;
+        font-weight: 700;
+        font-family: 'Cinzel', serif;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    /* 2. STYLE TRANG CHI TIẾT ĐẸP HƠN */
+    .detail-content {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 15px;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-image-wrapper {
+        width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid rgba(251, 191, 36, 0.2);
+        margin: 20px 0;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        background: rgba(0,0,0,0.3);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .info-item b {
+        color: var(--gold, #fbbf24);
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .info-block h4 {
+        font-family: 'Cinzel', serif;
+        color: var(--gold, #fbbf24);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+</style>
 </head>
 <body class="dark-mode">
 
@@ -46,9 +189,9 @@
 
     <div class="detail-content">
       <div class="detail-main-info">
-        <h2 id="detailName"></h2>
+        <h2 id="detailName" class="cinzel-font" style="font-size: 2.5rem; text-align: center; color: var(--gold, #fbbf24);"></h2>
         <div class="detail-image-wrapper">
-            <img id="detailImage" src="https://i.imgur.com/6X8FQyA.png">
+            <img id="detailImage" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:100%; object-fit:cover;">
         </div>
       </div>
 
@@ -63,81 +206,92 @@
 
       <div class="detail-full-width">
         <div class="info-block">
-          <h4>Mô tả</h4>
-          <p id="detailDescriptionText"></p>
+          <h4><i class="fa fa-scroll"></i> Mô tả</h4>
+          <div id="detailDescription" class="markdown-body"></div>
         </div>
-        <div class="info-block">
-          <h4>Nét đặc trưng</h4>
-          <p id="detailFeatures"></p>
+        <div class="info-block" style="margin-top: 25px;">
+          <h4><i class="fa fa-sparkles"></i> Nét đặc trưng</h4>
+          <div id="detailFeatures" class="markdown-body"></div>
         </div>
       </div>
     </div>
   </section>
-</main>
 
-<div id="locationFormModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <div class="modal-header">
-        <h3 id="formTitle">Thêm địa điểm</h3>
-        <span class="close" onclick="closeForm()">&times;</span>
+  <div id="locationFormModal" class="modal" style="display:none;">
+    <div class="modal-content fade-in">
+      <div class="modal-header">
+          <h3 id="formTitle" class="cinzel-font">Thêm địa điểm</h3>
+          <span class="close" onclick="closeForm()">&times;</span>
+      </div>
+      <form id="locationForm" onsubmit="event.preventDefault(); saveLocation();" class="fantasy-form">
+        <div class="form-scroll-area">
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-map-marker-alt"></i> Tên địa điểm *</label>
+                    <input type="text" id="locationName" placeholder="Tên vùng đất..." required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-image"></i> Hình ảnh</label>
+                    <input type="file" id="locationImage" accept="image/*">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-tag"></i> Loại địa điểm</label>
+                    <input type="text" id="locationType" placeholder="VD: Thánh đường, Hang động...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-hourglass-half"></i> Niên đại</label>
+                    <input type="text" id="locationEra" placeholder="Niên đại kỷ nguyên...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa fa-compass"></i> Vị trí / Địa chỉ</label>
+                <input type="text" id="locationAddress" placeholder="Vị trí trên bản đồ...">
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-crown"></i> Đế chế quản lý</label>
+                    <select id="locationEmpire"></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-shield-halved"></i> Phe phái ảnh hưởng</label>
+                    <select id="locationFaction"></select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fa fa-scroll"></i> Mô tả chi tiết (Markdown)</label>
+                <textarea id="locationDescription" rows="4" placeholder="Viết nên sử thi về nơi này..."></textarea>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-heart-pulse"></i> Tình trạng</label>
+                    <textarea id="locationCondition" rows="2" placeholder="Hiện trạng nơi này..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-sparkles"></i> Đặc trưng</label>
+                    <textarea id="locationFeatures" rows="2" placeholder="Nét độc bản..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="closeForm()">HỦY</button>
+            <button type="submit" class="btn-save shadow-glow">LƯU DỮ LIỆU</button>
+        </div>
+      </form>
     </div>
-    <form id="locationForm" onsubmit="event.preventDefault(); saveLocation();">
-      <div class="form-scroll-area">
-          <div class="form-group">
-            <label>Tên địa điểm *</label>
-            <input type="text" id="locationName" required>
-          </div>
-          <div class="form-group">
-            <label>Hình ảnh</label>
-            <input type="file" id="locationImage" accept="image/*">
-          </div>
-          <div class="two-cols">
-              <div class="form-group">
-                <label>Loại địa điểm</label>
-                <input type="text" id="locationType" placeholder="VD: Thành phố, Hang động...">
-              </div>
-              <div class="form-group">
-                <label>Niên đại</label>
-                <input type="text" id="locationEra">
-              </div>
-          </div>
-          <div class="form-group">
-            <label>Vị trí / Địa chỉ</label>
-            <input type="text" id="locationAddress">
-          </div>
-          <div class="two-cols">
-              <div class="form-group">
-                <label>Đế chế quản lý</label>
-                <select id="locationEmpire"></select>
-              </div>
-              <div class="form-group">
-                <label>Phe phái ảnh hưởng</label>
-                <select id="locationFaction"></select>
-              </div>
-          </div>
-          <div class="form-group">
-            <label>Mô tả chi tiết</label>
-            <textarea id="locationDescription" rows="4"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Tình trạng / Hiện trạng</label>
-            <input type="text" id="locationCondition">
-          </div>
-          <div class="form-group">
-            <label>Điểm đặc trưng</label>
-            <input type="text" id="locationFeatures">
-          </div>
-      </div>
-      <div class="modal-buttons">
-        <button type="button" class="btn-cancel" onclick="closeForm()">Hủy</button>
-        <button type="submit" class="btn-save">Lưu dữ liệu</button>
-      </div>
-    </form>
   </div>
-</div>
+</main>
 
 <script src="imageDB.js"></script>
 <script src="effects.js"></script>
-<script src="app.js"></script> <script src="locations.js"></script>
+<script src="app.js"></script> 
+<script src="locations.js"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    // Chờ app.js khởi tạo xong DB và nạp window.locations
     if (typeof reloadAllData === "function") {
         await reloadAllData();
     }
@@ -182,57 +181,74 @@ window.updateLocationOptions = function() {
 window.searchLocations = function() {
     renderLocations();
 };
+
+
+
 window.showDetail = function(id) {
     const loc = window.locations.find(l => l.id === id);
     if (!loc) return;
-    currentDetailId = id;
+    currentDetailId = id; // Lưu ID đang xem để phục vụ hàm Sửa/Xóa
 
-    // 1️⃣ Hiển thị trang chi tiết
+    // 1. Chuyển đổi hiển thị trang
     document.getElementById("locationDetail").style.display = "block";
     document.getElementById("locationListPage").style.display = "none";
 
-    // 2️⃣ Cập nhật thông tin chữ
+    // 2. Các hàm trợ giúp nạp dữ liệu
+    // Dùng cho text thuần
     const setText = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.innerText = val || "Chưa có thông tin";
     };
 
+    // Dùng cho nội dung Markdown (Mô tả, Đặc trưng, Tình trạng)
+    const setHTML = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Ưu tiên dùng renderMarkdown từ app.js để xử lý xuống dòng và link nhân vật
+            el.innerHTML = typeof renderMarkdown === "function" 
+                ? renderMarkdown(val) 
+                : (val ? val.replace(/\n/g, '<br>') : "<i>Chưa có thông tin</i>");
+        }
+    };
+
+    // 3. Cập nhật thông tin cơ bản
     setText("detailName", loc.name);
     setText("detailType", loc.type);
     setText("detailAddress", loc.location);
     setText("detailEra", loc.era);
-    setText("detailDescription", loc.description);
-    setText("detailCondition", loc.condition);
-    setText("detailFeatures", loc.features);
 
-    // Xử lý Empire/Faction
+    // 4. Cập nhật nội dung chi tiết (Markdown/Xuống dòng)
+    setHTML("detailDescription", loc.description); // ID mới trong HTML div
+    setHTML("detailFeatures", loc.features);
+    setHTML("detailCondition", loc.condition);
+
+    // 5. Xử lý hiển thị Tên Đế chế & Phe phái
     const empire = (window.kingdoms || []).find(k => String(k.id) === String(loc.empire));
     const faction = (window.factions || []).find(f => String(f.id) === String(loc.faction));
+    
     setText("detailEmpire", empire ? empire.name : "Tự do");
     setText("detailFaction", faction ? faction.name : "Không có");
 
-    // 3️⃣ Cập nhật hình ảnh (Nhỏ hơn và không bị cắt)
+    // 6. Xử lý hình ảnh Banner
     const imgEl = document.getElementById("detailImage");
     if (imgEl) {
-        // Thiết lập Style trực tiếp để đảm bảo ảnh nhỏ và đủ hình
-        imgEl.style.width = "auto";
-        imgEl.style.maxWidth = "100%";     // Không tràn màn hình
-        imgEl.style.maxHeight = "300px";   // GM: Giới hạn chiều cao nhỏ lại
-        imgEl.style.display = "block";
-        imgEl.style.margin = "0 auto 15px"; // Căn giữa
-        imgEl.style.objectFit = "contain";  // GM: Không cắt góc, hiện toàn bộ ảnh
-        imgEl.style.borderRadius = "8px";
-
-        imgEl.src = "https://i.imgur.com/6X8FQyA.png"; // Ảnh chờ
+        // Reset về ảnh chờ trong khi nạp
+        imgEl.src = "https://i.imgur.com/6X8FQyA.png"; 
         
         if (typeof getImage === "function") {
             getImage(loc.id).then(url => {
-                if (url) imgEl.src = url;
+                if (url) {
+                    imgEl.src = url;
+                }
+            }).catch(err => {
+                console.error("Lỗi nạp ảnh địa điểm:", err);
             });
         }
     }
-};
 
+    // Cuộn lên đầu trang chi tiết
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 window.backToList = function() {
     document.getElementById("locationDetail").style.display = "none";

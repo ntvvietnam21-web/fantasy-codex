@@ -1,7 +1,3 @@
-/* ===================================================
-   FANTASY CODEX - LOCATIONS MODULE STYLES (PRO)
-   Style: Ancient Mystical & Glassmorphism
-   =================================================== */
 
 :root {
     --fantasy-gold: #ffd700;
@@ -305,4 +301,119 @@
 
 .parent-card.open {
     animation: fantasyGlow 3s infinite;
+}
+
+/* Container form */
+.fantasy-form {
+    padding: 10px;
+}
+
+/* Khu vực cuộn */
+.form-scroll-area {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Chia cột thẳng hàng */
+.two-cols {
+    display: flex;
+    gap: 20px; /* Khoảng cách giữa 2 cột */
+    margin-bottom: 15px;
+}
+
+.two-cols .form-group {
+    flex: 1; /* Chia đều 50% */
+    margin-bottom: 0; /* Reset margin để căn thẳng hàng */
+}
+
+/* Group nhập liệu */
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Input, Select, Textarea đồng bộ */
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+    width: 100% !important; /* Đảm bảo luôn lấp đầy container */
+    box-sizing: border-box; /* Cực kỳ quan trọng để không bị tràn */
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 6px;
+    color: #fff;
+    padding: 10px 12px;
+    font-family: 'Quicksand', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.form-group textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* Hiệu ứng khi focus */
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: var(--gold);
+    background: rgba(30, 41, 59, 1);
+    outline: none;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+}
+
+/* Nút bấm ở cuối */
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.btn-save {
+    background: var(--gold);
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-cancel {
+    background: transparent;
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-save:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}
+
+/* Responsive cho điện thoại */
+@media (max-width: 600px) {
+    .two-cols {
+        flex-direction: column;
+        gap: 15px;
+    }
 }
