@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="WorldLaws.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+<link rel="manifest" href="./manifest.json">
 </head>
 <body class="dark-mode">
   <link rel="stylesheet" href="SkillTreeVortex.css">
@@ -71,6 +72,12 @@ padding:5px;">
     </div>
     <div class="nav-item" onclick="showPage('characters')" id="nav-characters">
       <i class="fa fa-users"></i><span data-ui="nav_chars">Nhân vật</span>
+    </div>
+    <div class="nav-item" onclick="showPage('tournamentPage')" id="nav-tournamentPage">
+      <i class="fa fa-trophy"></i><span data-ui="nav_tournament">Giải đấu</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboardPage')" id="nav-dashboardPage">
+      <i class="fa fa-chart-pie"></i><span data-ui="nav_dashboard">Thống kê Thế giới</span>
     </div>
     <div class="nav-item" id="nav-relationshipPage" onclick="showPage('relationshipPage')">
       <i class="fa-solid fa-circle-nodes"></i><span data-ui="nav_rel">Phả hệ & Quan hệ</span>
@@ -234,6 +241,29 @@ padding:5px;">
 
   <div id="characterList" class="grid-container-v2"></div>
 </section>
+
+<!-- TOURNAMENT PAGE -->
+<section id="tournamentPage" class="page hidden">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-trophy"></i> Giải đấu Vô địch</h2>
+        <button class="btn-primary" onclick="if(window.characters) window.startTournament(window.characters)"><i class="fa-solid fa-play"></i> Bắt đầu giải đấu mới</button>
+    </div>
+    <div id="tournamentBracket"></div>
+    <div style="margin-top:40px;">
+        <h3 style="color:#d4af37; font-family:'Cinzel', serif; margin-bottom:15px;"><i class="fa-solid fa-medal"></i> Bảng Vàng (Leaderboard)</h3>
+        <div id="leaderboardContainer" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; overflow:hidden;"></div>
+    </div>
+</section>
+
+<!-- DASHBOARD PAGE -->
+<section id="dashboardPage" class="page hidden">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-chart-pie"></i> Thống kê Thế giới</h2>
+        <button class="btn-primary" onclick="renderWorldDashboard('dashboardContent')"><i class="fa-solid fa-rotate-right"></i> Cập nhật dữ liệu</button>
+    </div>
+    <div id="dashboardContent"></div>
+</section>
+
 <section id="relationshipPage" class="page hidden">
     <div class="page-header">
         <h2>Mạng Lưới Quan Hệ</h2>
@@ -1179,6 +1209,12 @@ padding:5px;">
 <script src="audio.js"></script>
 <script src="sort.js"></script>
 <script src="app.js"></script>
+<!-- Scripts mới -->
+<script src="features.js"></script>
+<script src="tournament.js"></script>
+<script src="weather.js"></script>
+<script src="commandPalette.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
@@ -1186,6 +1222,19 @@ padding:5px;">
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if(typeof initBackupDB === "function") await initBackupDB();
+    
+    // Khởi tạo các module mới
+    if(typeof initParticleBackground === "function") initParticleBackground();
+    if(typeof initCommandPaletteDOM === "function") initCommandPaletteDOM();
+    if(typeof initTiltEffect === "function") initTiltEffect();
+
+    // Đăng ký Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(() => {
+            console.log('[PWA] Service Worker registered.');
+        }).catch(err => console.error('[PWA] SW Error:', err));
+    }
+
   } catch(err){ console.error(err); }
 });
 </script>

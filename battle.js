@@ -147,7 +147,13 @@ async function startBattle() {
         return typeof showToast === "function" ? showToast("⚠️ Đội hình chưa sẵn sàng!") : alert("Lỗi đội hình");
     }
 
-    // Mô phỏng Crit/Dodge
+    // Lấy thời tiết từ features.js nếu có
+    let weatherData = null;
+    if (typeof window.getCurrentWeather === 'function') {
+        weatherData = window.getCurrentWeather('battle');
+    }
+
+    // Mô phỏng Crit/Dodge cơ bản (giữ nguyên logic gốc cho Win Rate)
     const simA = applyCombatEffects(teamA.total);
     const simB = applyCombatEffects(teamB.total);
 
@@ -156,10 +162,13 @@ async function startBattle() {
     const isAWin = roll < winRateA;
     const winnerText = isAWin ? "🔥 ĐỘI A CHIẾN THẮNG" : "💀 ĐỘI B CHIẾN THẮNG";
 
-    // Cập nhật giao diện kết quả
+    // Xóa kết quả cũ và hiển thị Layout
     renderResult(teamA, teamB, simA, simB, winRateA, winnerText);
 
-    // GM: Lưu lịch sử vào IndexedDB — mỗi entry là một record riêng lẻ
+    // Chạy Log Turn-based Battle
+    await playBattleReplay(teamA.detail, teamB.detail, simA.power, simB.power, isAWin, weatherData);
+
+    // Lưu lịch sử
     const historyEntry = {
         id: "battle_" + Date.now(),
         date: new Date().toLocaleString(),
@@ -172,12 +181,66 @@ async function startBattle() {
 
     if (typeof dbSave === "function") {
         try {
-            // Lưu từng entry riêng lẻ, không ghi đè toàn bộ mảng
             await dbSave("battle_history", historyEntry);
             battleHistory.push(historyEntry);
         } catch (e) {
             console.warn("⚠️ Không thể lưu lịch sử chiến đấu:", e);
         }
+    }
+}
+
+/**
+ * Hàm sinh log mô phỏng turn-based và in ra kiểu typewriter
+ */
+async function playBattleReplay(namesA, namesB, powerA, powerB, isAWin, weatherData) {
+    const logContainer = document.getElementById("battleLogContainer");
+    if (!logContainer) return;
+    
+    logContainer.innerHTML = '';
+    
+    const logs = [];
+    logs.push(`<div class="battle-log-line log-system">Hệ thống mô phỏng chiến đấu khởi động...</div>`);
+    if (weatherData) {
+        logs.push(`<div class="battle-log-line log-system" style="color:${weatherData.color}">Trạng thái thời tiết: ${weatherData.name} - ${weatherData.description}</div>`);
+    }
+
+    const tA = namesA.join(", ") || "Đội A";
+    const tB = namesB.join(", ") || "Đội B";
+    
+    logs.push(`<div class="battle-log-line"><span style="color:#3b82f6;">[${tA}]</span> VS <span style="color:#ef4444;">[${tB}]</span></div>`);
+    
+    let hpA = powerA * 10;
+    let hpB = powerB * 10;
+    let turn = 1;
+
+    // Sinh ngẫu nhiên 4-6 lượt
+    const totalTurns = 4 + Math.floor(Math.random() * 3);
+    for (let i = 1; i <= totalTurns; i++) {
+        const attacker = i % 2 !== 0 ? (isAWin ? tA : tB) : (isAWin ? tB : tA);
+        const defender = i % 2 !== 0 ? (isAWin ? tB : tA) : (isAWin ? tA : tB);
+        
+        let dmg = Math.floor((Math.random() * 0.4 + 0.8) * (isAWin ? powerA : powerB) * 2);
+        let isCrit = Math.random() < 0.2;
+        if (isCrit) dmg = Math.floor(dmg * 1.5);
+
+        let actionLog = `<div class="battle-log-line">Lượt ${i}: <span style="color:#d4af37">${attacker}</span> tung đòn tấn công vào <span style="color:#94a3b8">${defender}</span>, `;
+        actionLog += `gây <span class="log-dmg">${dmg} sát thương</span>${isCrit ? ' 💥(Chí mạng)' : ''}!</div>`;
+        logs.push(actionLog);
+
+        if (i % 3 === 0) {
+            let heal = Math.floor(dmg * 0.5);
+            logs.push(`<div class="battle-log-line log-heal">✨ ${attacker} sử dụng kỹ năng phục hồi, lấy lại ${heal} HP.</div>`);
+        }
+    }
+
+    logs.push(`<div class="battle-log-line">...Trận đấu kết thúc...</div>`);
+    logs.push(`<div class="battle-log-line log-winner">🏆 KẾT QUẢ: ${isAWin ? tA : tB} GIÀNH CHIẾN THẮNG!</div>`);
+
+    // In theo kiểu Typewriter
+    for (let i = 0; i < logs.length; i++) {
+        logContainer.insertAdjacentHTML('beforeend', logs[i]);
+        logContainer.scrollTop = logContainer.scrollHeight;
+        await new Promise(r => setTimeout(r, 600)); // Nghỉ 0.6s giữa các dòng
     }
 }
 
@@ -203,6 +266,9 @@ function renderResult(teamA, teamB, simA, simB, winRateA, winner) {
                 <div class="rate-fill" style="width: ${winRateA * 100}%"></div>
             </div>
             <p>Tỉ lệ thắng Đội A dự đoán: ${(winRateA * 100).toFixed(1)}%</p>
+            
+            <!-- Typewriter Battle Log -->
+            <div id="battleLogContainer" class="battle-log-container" style="margin-top:20px; text-align:left;"></div>
         </div>
     `;
 }

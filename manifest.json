@@ -1,0 +1,21 @@
+{
+  "name": "Fantasy Codex Pro",
+  "short_name": "Codex Pro",
+  "description": "Siêu ứng dụng quản lý dữ liệu thế giới giả tưởng cao cấp.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#060810",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/6X8FQyA.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.imgur.com/6X8FQyA.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

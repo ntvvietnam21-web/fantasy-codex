@@ -127,10 +127,15 @@ function renderMarkdown(text) {
     let html = text
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\[\[(.*?)\]\]/g, (match, name) => {
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+    if (typeof processWikiLinks === 'function') {
+        html = processWikiLinks(html);
+    } else {
+        html = html.replace(/\[\[(.*?)\]\]/g, (match, name) => {
             return `<span class="char-link-wiki" onclick="openCharacterByName('${name.trim()}')">${name}</span>`;
         });
+    }
     // Sửa: dùng replace với callback thay vì flag /s để tương thích cross-browser
     const listItemsRegex = /^\s*-\s+(.*)$/gm;
     const liItems = [];
@@ -992,15 +997,22 @@ function resetCharacterList(data) {
         else if (pl >= 50000) tierClass = "tier-epic";
         else if (pl >= 10000) tierClass = "tier-rare";
         return `
-        <div class="char-card animate-card ${tierClass}" id="card-${c.id}" onclick="openProfile('${c.id}')">
+        <div class="char-card animate-card card-3d-tilt ${tierClass}" id="card-${c.id}" onclick="openProfile('${c.id}')">
             
             <button class="fav-btn ${c.favorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${c.id}')">
                 <i class="fa-${c.favorite ? 'solid' : 'regular'} fa-heart"></i>
             </button>
 
+            <!-- Nút xuất TXT -->
             <button class="export-btn" onclick="event.stopPropagation(); window.exportCharacterToTXT('${c.id}')" 
                     style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất file TXT">
                 <i class="fa-solid fa-file-export"></i>
+            </button>
+            
+            <!-- Nút xuất Ảnh Thẻ (Character Card) -->
+            <button class="export-card-btn" onclick="event.stopPropagation(); if(typeof exportCharacterCard === 'function') exportCharacterCard('${c.id}')" 
+                    style="position: absolute; top: 10px; left: 45px; z-index: 10; background: rgba(0,0,0,0.6); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất Thẻ Ảnh (PNG)">
+                <i class="fa-solid fa-image"></i>
             </button>
 
             <div class="card-image-container">
@@ -1031,6 +1043,7 @@ function resetCharacterList(data) {
         `;
     }).join("");
     if (typeof initLazyLoading === "function") initLazyLoading();
+    if (typeof initTiltEffect === "function") initTiltEffect(); // Kích hoạt 3D Tilt
     if (typeof renderCharacterPagination === "function") {
         renderCharacterPagination(totalPages, data);
     }
