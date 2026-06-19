@@ -354,3 +354,118 @@ window.renderLeaderboard = async function(containerId) {
 };
 
 console.log('🏆 tournament.js: Đã tải Tournament Bracket và Leaderboard');
+
+// ============================================================
+// CHỌN NHÂN VẬT THAM GIA GIẢI ĐẤU
+// ============================================================
+
+window.tournamentSelectedChars = [];
+
+window.openTournamentSetup = function() {
+    let modal = document.getElementById('tournamentSetupModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'tournamentSetupModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:9000;display:flex;align-items:center;justify-content:center;';
+        document.body.appendChild(modal);
+    }
+
+    const chars = window.characters || [];
+    window.tournamentSelectedChars = [];
+
+    // Tạo danh sách HTML tạm thời
+    const charHtmls = chars.map(c => {
+        let imgSrc = 'https://i.imgur.com/6X8FQyA.png';
+        if (c.img) {
+            imgSrc = (c.img.startsWith('http') || c.img.startsWith('data:')) ? c.img : imgSrc;
+        }
+        return `
+            <div class="tournament-player-card" data-charid="${c.id}" onclick="toggleTournamentChar('${c.id}')">
+                <img src="${imgSrc}" crossorigin="anonymous">
+                <div class="tp-name">${c.name}</div>
+                <div style="font-size:0.7rem;color:#64748b;">PL: ${c.pl || 0}</div>
+            </div>
+        `;
+    }).join('');
+
+    modal.innerHTML = `
+        <div style="background:#111827;border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:24px;width:min(800px,90vw);height:80vh;display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="color:#d4af37;font-family:'Cinzel',serif;"><i class="fa-solid fa-users-rays"></i> Chọn Nhân Vật Tham Gia Giải</h3>
+                <div style="color:#94a3b8;font-size:0.9rem;">Đã chọn: <span id="tsCount" style="color:#f1f5f9;font-weight:bold;">0</span></div>
+            </div>
+            
+            <div style="display:flex;gap:10px;margin-bottom:16px;">
+                <button onclick="selectAllTournamentChars()" style="padding:6px 12px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;font-size:0.8rem;">Chọn Tất Cả</button>
+                <button onclick="deselectAllTournamentChars()" style="padding:6px 12px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;font-size:0.8rem;">Bỏ Chọn Tất Cả</button>
+            </div>
+
+            <div class="tournament-player-grid" style="overflow-y:auto;flex:1;padding-right:8px;align-content:start;" id="tsGrid">
+                ${charHtmls}
+            </div>
+            
+            <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+                <button onclick="document.getElementById('tournamentSetupModal').style.display='none'" style="padding:10px 20px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;">Hủy</button>
+                <button onclick="startCustomTournament()" style="padding:10px 20px;border-radius:8px;background:#d4af37;border:none;color:#0f172a;font-weight:600;cursor:pointer;"><i class="fa-solid fa-play"></i> Khởi Tranh (<span id="tsBtnCount">0</span>)</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+    
+    // Tải ảnh xịn qua hệ thống IndexedDB (nếu cần thiết)
+    setTimeout(async () => {
+        const cards = modal.querySelectorAll('.tournament-player-card');
+        for (const card of cards) {
+            const charId = card.getAttribute('data-charid');
+            const c = chars.find(x => String(x.id) === charId);
+            if (c) {
+                const imgEl = card.querySelector('img');
+                const loadedImg = await getTournamentPlayerImage(c);
+                imgEl.src = loadedImg;
+            }
+        }
+    }, 100);
+};
+
+window.toggleTournamentChar = function(charId) {
+    const card = document.querySelector(`.tournament-player-card[data-charid="${charId}"]`);
+    if (!card) return;
+    
+    const idx = window.tournamentSelectedChars.indexOf(charId);
+    if (idx === -1) {
+        window.tournamentSelectedChars.push(charId);
+        card.classList.add('selected');
+    } else {
+        window.tournamentSelectedChars.splice(idx, 1);
+        card.classList.remove('selected');
+    }
+    
+    document.getElementById('tsCount').innerText = window.tournamentSelectedChars.length;
+    document.getElementById('tsBtnCount').innerText = window.tournamentSelectedChars.length;
+};
+
+window.selectAllTournamentChars = function() {
+    window.tournamentSelectedChars = (window.characters || []).map(c => String(c.id));
+    document.querySelectorAll('.tournament-player-card').forEach(c => c.classList.add('selected'));
+    document.getElementById('tsCount').innerText = window.tournamentSelectedChars.length;
+    document.getElementById('tsBtnCount').innerText = window.tournamentSelectedChars.length;
+};
+
+window.deselectAllTournamentChars = function() {
+    window.tournamentSelectedChars = [];
+    document.querySelectorAll('.tournament-player-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('tsCount').innerText = 0;
+    document.getElementById('tsBtnCount').innerText = 0;
+};
+
+window.startCustomTournament = function() {
+    if (window.tournamentSelectedChars.length < 2) {
+        if(typeof showToast === 'function') showToast('⚠️ Cần chọn ít nhất 2 nhân vật!', 'warning');
+        else alert('⚠️ Cần chọn ít nhất 2 nhân vật!');
+        return;
+    }
+    
+    const participants = (window.characters || []).filter(c => window.tournamentSelectedChars.includes(String(c.id)));
+    document.getElementById('tournamentSetupModal').style.display = 'none';
+    window.startTournament(participants);
+};
