@@ -4,10 +4,21 @@ const DB_NAME = "FantasyCodexImages";
 const STORE_NAME = "images";
 let DB_VERSION = 26;
 const CURRENT_SCHEMA_VERSION = 6;
+// Mutex: tránh race condition khi nhiều lời gọi initImageDB() đồng thời
+let _initPromise = null;
 
 function initImageDB(forceReset = false) {
-    return new Promise((resolve, reject) => {
-        if (!window.indexedDB) return reject("Trình duyệt không hỗ trợ IndexedDB.");
+    // Nếu DB đã mở và không cần reset, trả về ngay
+    if (imageDB && !forceReset) return Promise.resolve(imageDB);
+
+    // Mutex: nếu đang có một lời gọi init đang chạy, trả về cùng promise đó
+    if (_initPromise && !forceReset) return _initPromise;
+
+    _initPromise = new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+            _initPromise = null;
+            return reject("Trình duyệt không hỗ trợ IndexedDB.");
+        }
 
         const savedVersion = localStorage.getItem(SCHEMA_VERSION_KEY);
         if (!savedVersion || Number(savedVersion) !== CURRENT_SCHEMA_VERSION) {
@@ -26,7 +37,8 @@ function initImageDB(forceReset = false) {
                     store.createIndex("id", "id", { unique: false });
                 }
 
-                const stores = ["characters", "races", "kingdoms", "factions", "locations", "map_routes", "world_maps_v2", "timeline"];
+                // Thêm battle_history store để battle.js lưu lịch sử chiến đấu
+                const stores = ["characters", "races", "kingdoms", "factions", "locations", "map_routes", "world_maps_v2", "timeline", "battle_history"];
                 stores.forEach(s => {
                     if (!db.objectStoreNames.contains(s)) {
                         const key = (s === "races") ? "name" : "id";
@@ -41,22 +53,40 @@ function initImageDB(forceReset = false) {
             };
 
             request.onerror = (e) => {
-                if (e.target.error.name === "VersionError") {
-                    indexedDB.deleteDatabase(DB_NAME);
-                    location.reload();
+                _initPromise = null;
+                if (e.target.error && e.target.error.name === "VersionError") {
+                    // Chờ xóa DB xong mới reload, tránh vòng lặp vô tận
+                    const delReq = indexedDB.deleteDatabase(DB_NAME);
+                    delReq.onsuccess = () => location.reload();
+                    delReq.onerror = () => location.reload();
+                    return;
                 }
                 reject("Lỗi DB: " + e.target.error);
             };
         };
 
         if (forceReset) {
+            imageDB = null;
+            _initPromise = null;
             const deleteReq = indexedDB.deleteDatabase(DB_NAME);
-            deleteReq.onsuccess = () => openDB();
-            deleteReq.onerror = () => reject("Không thể xóa database cũ.");
+            deleteReq.onsuccess = () => {
+                // Tạo promise mới sau khi reset
+                _initPromise = null;
+                openDB();
+            };
+            deleteReq.onerror = () => {
+                _initPromise = null;
+                reject("Không thể xóa database cũ.");
+            };
         } else {
             openDB();
         }
+    }).finally(() => {
+        // Khi promise xong (dù resolve hay reject), xóa mutex để lần sau có thể retry
+        if (!imageDB) _initPromise = null;
     });
+
+    return _initPromise;
 }
 
 async function dbGet(storeName) {

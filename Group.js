@@ -15,6 +15,7 @@ function generateId() {
 // 🔥 Render nhóm ra grid
 async function renderTeams() {
     const grid = document.getElementById("teamGrid");
+    if (!grid) return; // Guard: tránh crash nếu element không tồn tại
     grid.innerHTML = "";
 
     for (let team of teams) {
@@ -43,18 +44,17 @@ async function renderTeams() {
     }
 }
 
-// 🔥 Thêm nhóm mới
-document.getElementById("addTeamBtn").addEventListener("click", () => openTeamModal());
-
 // 🔥 Modal Thêm/Sửa nhóm
 function openTeamModal(team = null) {
     const modal = document.getElementById("teamModal");
+    if (!modal) return; // Guard
     modal.classList.add("active");
 
     const title = document.getElementById("teamModalTitle");
-    title.textContent = team ? "Sửa Nhóm" : "Thêm Nhóm";
+    if (title) title.textContent = team ? "Sửa Nhóm" : "Thêm Nhóm";
 
     const form = document.getElementById("teamForm");
+    if (!form) return; // Guard
     form.dataset.id = team ? team.id : "";
 
     form.teamName.value = team?.name || "";
@@ -74,7 +74,7 @@ function openTeamModal(team = null) {
 }
 
 // 🔥 Submit form Thêm/Sửa nhóm
-document.getElementById("teamForm").addEventListener("submit", async (e) => {
+async function handleTeamFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
 
@@ -86,7 +86,7 @@ document.getElementById("teamForm").addEventListener("submit", async (e) => {
     let imageKey = null;
 
     const fileInput = document.getElementById("teamImage");
-    if (fileInput.files[0]) {
+    if (fileInput && fileInput.files[0]) {
         // 🔥 Lưu ảnh vào imageDB.js
         imageKey = await saveImage(id, fileInput.files[0]);
     }
@@ -102,7 +102,7 @@ document.getElementById("teamForm").addEventListener("submit", async (e) => {
 
     saveTeams();
     closeTeamModal();
-});
+}
 
 // 🔥 Xoá nhóm
 function deleteTeam(id) {
@@ -119,9 +119,9 @@ function editTeam(id) {
 }
 
 // 🔥 Đóng modal
-document.getElementById("cancelTeamBtn").addEventListener("click", closeTeamModal);
 function closeTeamModal() {
-    document.getElementById("teamModal").classList.remove("active");
+    const modal = document.getElementById("teamModal");
+    if (modal) modal.classList.remove("active");
 }
 
 // 🔥 Hiển thị chi tiết team + link nhân vật
@@ -135,5 +135,28 @@ function openTeamDetail(team) {
     alert(html); // có thể đổi sang modal fancy hơn
 }
 
-// 🔥 Hiển thị khi load
-renderTeams();
+// 🔥 Khởi động sau khi DOM sẵn sàng — tránh crash khi element chưa tồn tại
+document.addEventListener("DOMContentLoaded", () => {
+    // Gắn sự kiện cho nút Thêm nhóm
+    const addTeamBtn = document.getElementById("addTeamBtn");
+    if (addTeamBtn) {
+        addTeamBtn.addEventListener("click", () => openTeamModal());
+    }
+
+    // Gắn submit form
+    const teamForm = document.getElementById("teamForm");
+    if (teamForm) {
+        teamForm.addEventListener("submit", handleTeamFormSubmit);
+    }
+
+    // Gắn nút Hủy
+    const cancelTeamBtn = document.getElementById("cancelTeamBtn");
+    if (cancelTeamBtn) {
+        cancelTeamBtn.addEventListener("click", closeTeamModal);
+    }
+
+    // Hiển thị khi load (chỉ render nếu grid tồn tại)
+    if (document.getElementById("teamGrid")) {
+        renderTeams();
+    }
+});

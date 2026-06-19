@@ -46,19 +46,18 @@ const AudioManager = (() => {
     sounds[name].play().catch(err => console.warn(`⚠️ GM: Âm thanh ${name} chờ tương tác.`, err));
   };
 
-  // 6️⃣ Gán âm thanh cho các thành phần UI
+  // 6️⃣ Gán âm thanh cho các thành phần UI (guard tránh listener chồng chéo)
   const bindClickSounds = () => {
-    document.querySelectorAll('button').forEach(btn => {
+    document.querySelectorAll('button:not([data-sound-bound])').forEach(btn => {
       btn.addEventListener('click', () => play('click'));
-    });
-    document.querySelectorAll('.modal button').forEach(btn => {
-      btn.addEventListener('click', () => play('click'));
+      btn.dataset.soundBound = 'true';
     });
   };
 
   const bindHoverSounds = () => {
-    document.querySelectorAll('.nav-item').forEach(item => {
+    document.querySelectorAll('.nav-item:not([data-hover-bound])').forEach(item => {
       item.addEventListener('mouseenter', () => play('hover'));
+      item.dataset.hoverBound = 'true';
     });
   };
 

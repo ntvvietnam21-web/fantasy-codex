@@ -1,5 +1,6 @@
 /* =========================
 IMAGE UPLOAD + PREVIEW + SAVE TO DB
+(compressImage được dùng từ imageDB.js để tránh trùng lặp)
 ========================= */
 
 async function initImageUpload() {
@@ -20,16 +21,24 @@ async function initImageUpload() {
         }
 
         try {
-            // 🔹 Preview ngay
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.classList.remove("hidden");
+            // 🔹 Preview ngay bằng Object URL (không dùng FileReader để nhanh hơn)
+            const objectUrl = URL.createObjectURL(file);
+            preview.src = objectUrl;
+            preview.classList.remove("hidden");
+            // Revoke sau khi render xong, không revoke trong onload
+            preview.onload = () => {
+                // Chờ thêm một tick để đảm bảo render xong
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
             };
-            reader.readAsDataURL(file);
 
-            // 🔹 Lưu vào IndexedDB
-            if (!window.imageDB) await initImageDB(); // gọi DB init từ imageDB.js
+            // 🔹 Lưu vào IndexedDB (dùng compressImage từ imageDB.js)
+            if (!window.imageDB) await initImageDB();
+
+            // compressImage được định nghĩa trong imageDB.js
+            if (typeof compressImage !== "function") {
+                console.warn("⚠️ compressImage chưa được nạp từ imageDB.js");
+                return;
+            }
 
             const compressedBlob = await compressImage(file, 800, 0.7);
             const id = input.dataset.charId || "char"; // nếu có ID nhân vật
@@ -105,49 +114,6 @@ async function renderImages() {
     request.onerror = (e) => {
         console.error("❌ Lỗi renderImages:", e.target.error);
     };
-}
-
-/* =========================
-HELPER: Compress IMAGE
-========================= */
-function compressImage(file, maxWidth = 800, quality = 0.7) {
-    return new Promise((resolve, reject) => {
-        if (!file.type.startsWith("image/")) return reject("File không phải ảnh.");
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-
-            img.onload = () => {
-                let { width, height } = img;
-
-                if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                }
-
-                const canvas = document.createElement("canvas");
-                canvas.width = width;
-                canvas.height = height;
-
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob(
-                    (blob) => resolve(blob),
-                    "image/webp",
-                    quality
-                );
-            };
-
-            img.onerror = (err) => reject("Lỗi tải ảnh: " + err);
-        };
-
-        reader.onerror = (err) => reject("Lỗi đọc file: " + err);
-    });
 }
 
 /* =========================

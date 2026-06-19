@@ -1,18 +1,21 @@
-function showToast(msg) {
-    let toast = document.createElement("div");
-    toast.className = "toast";
-    
-    // GM: Sửa innerText thành innerHTML để trình duyệt hiểu được các icon/thẻ HTML
-    toast.innerHTML = msg; 
+// toast.js - Chỉ định nghĩa showToast nếu chưa tồn tại (tránh conflict với effects.js)
+if (typeof showToast !== "function") {
+    window.showToast = function showToast(msg, type = "info") {
+        let toast = document.createElement("div");
+        toast.className = "toast " + type;
 
-    document.body.appendChild(toast);
+        // Dùng innerHTML để hỗ trợ icon/emoji trong msg
+        toast.innerHTML = msg;
 
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 10);
+        document.body.appendChild(toast);
 
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+        setTimeout(() => {
+            toast.classList.add("show");
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    };
 }

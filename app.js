@@ -6,6 +6,122 @@ window.locations = window.locations || [];
 let editingId = null;
 let editingRace = -1;
 let refreshTimeout;
+if (!window.charPagination) {
+    window.charPagination = {
+        currentPage: 1,
+        itemsPerPage: 30
+    };
+}
+window.exportCharacterToTXT = async function(charId) {
+    const char = window.characters.find(c => String(c.id) === String(charId));
+    if (!char) {
+        if (typeof showToast === "function") showToast("❌ Không tìm thấy dữ liệu nhân vật!");
+        return;
+    }
+
+    const race = window.races?.find(r => String(r.id) === String(char.race))?.name || char.race || "Không rõ";
+    const kingdom = window.kingdoms?.find(k => String(k.id) === String(char.kingdom))?.name || "Tự do";
+    const faction = window.factions?.find(f => String(f.id) === String(char.faction))?.name || "Không có";
+    const location = window.locations?.find(l => String(l.id) === String(char.location))?.name || "Chưa xác định";
+
+    let content = `==========================================\n`;
+    content += `        HỒ SƠ NHÂN VẬT: ${char.name.toUpperCase()}\n`;
+    content += `==========================================\n\n`;
+
+    content += `[THÔNG TIN CƠ BẢN]\n`;
+    content += `- Chủng tộc: ${race}\n`;
+    content += `- Đế chế/Vương quốc: ${kingdom}\n`;
+    content += `- Phe phái: ${faction}\n`;
+    content += `- Quê quán: ${location}\n`;
+    content += `- Giới tính: ${char.gender || "-"}\n`;
+    content += `- Tuổi / Ngày sinh: ${char.age || "0"} / ${char.birth || "-"}\n`;
+    content += `- Nghề nghiệp: ${char.job || "-"}\n`;
+    content += `- Trạng thái: ${char.status || "Bình thường"}\n\n`;
+
+    content += `[ĐẶC ĐIỂM & TỐ CHẤT]\n`;
+    content += `- Ngoại hình: ${char.appearance?.replace(/<br>/g, '\n') || "Chưa rõ"}\n`;
+    content += `- Tính cách: ${char.personality?.replace(/<br>/g, '\n') || "Chưa rõ"}\n`;
+    if (char.stats?.hidden || char.hidden) {
+        const hidden = char.stats?.hidden || char.hidden;
+        content += `- Tài năng: ${hidden.talent || 0} | Tiềm năng: ${hidden.potential || 0} | Số mệnh: ${hidden.fate || 0}\n`;
+    }
+    content += `\n`;
+    content += `[CHỈ SỐ CHI TIẾT]\n`;
+    content += `- Lực chiến (Power Level): ${(char.pl || 0).toLocaleString()}\n\n`;
+
+    if (char.stats) {
+        const DANH_SACH_CHI_SO = [
+            {
+                nhom: "⚡ CHỈ SỐ CƠ BẢN", moTa: "Nền tảng sức mạnh của nhân vật", groupKey: "core",
+                items: [
+                    { key: "str", ten: "Sức mạnh (STR)" }, { key: "agi", ten: "Nhanh nhẹn (AGI)" },
+                    { key: "int", ten: "Trí tuệ (INT)" }, { key: "vit", ten: "Thể lực (VIT)" },
+                    { key: "spi", ten: "Tinh thần (SPI)" }, { key: "luk", ten: "May mắn (LUK)" }
+                ]
+            },
+            {
+                nhom: "❤️ CHỈ SỐ SINH TỒN", moTa: "Khả năng duy trì chiến đấu", groupKey: "vital",
+                items: [
+                    { key: "hp", ten: "HP (Máu)" }, { key: "mp", ten: "MP (Mana)" },
+                    { key: "stamina", ten: "Thể lực (Stamina)" }, { key: "shield", ten: "Khiên (Shield)" }
+                ]
+            },
+            {
+                nhom: "⚔️ CHỈ SỐ TẤN CÔNG", moTa: "Khả năng gây sát thương", groupKey: "offense",
+                items: [
+                    { key: "atk", ten: "Vật lý (ATK)" }, { key: "matk", ten: "Phép (MATK)" },
+                    { key: "critRate", ten: "Tỷ lệ chí mạng (%)" }, { key: "critDmg", ten: "Sát thương chí mạng" },
+                    { key: "pen", ten: "Xuyên giáp" }, { key: "atkSpeed", ten: "Tốc độ đánh" }
+                ]
+            },
+            {
+                nhom: "🛡️ CHỈ SỐ PHÒNG THỦ", moTa: "Khả năng giảm chịu đựng", groupKey: "defense",
+                items: [
+                    { key: "def", ten: "Giáp (DEF)" }, { key: "mdef", ten: "Kháng phép (MDEF)" },
+                    { key: "evasion", ten: "Né tránh" }, { key: "block", ten: "Đỡ đòn" },
+                    { key: "resist", ten: "Kháng hiệu ứng" }
+                ]
+            }
+        ];
+
+        DANH_SACH_CHI_SO.forEach(group => {
+            content += `${group.nhom} (${group.moTa}):\n`;
+            const statsGroup = char.stats[group.groupKey] || {};
+            group.items.forEach(item => {
+                const val = statsGroup[item.key] || 0;
+                content += `  + ${item.ten}: ${val}\n`;
+            });
+            content += `\n`;
+        });
+    } else {
+        content += `- Chưa có dữ liệu chỉ số chi tiết.\n\n`;
+    }
+    // --- KẾT THÚC PHẦN CHỈ SỐ ---
+
+    content += `[TRANG BỊ]\n`;
+    content += `- Vũ khí: ${char.weapon || "Chưa trang bị"}\n`;
+    content += `- Giáp trụ: ${char.armor || "Chưa trang bị"}\n`;
+    content += `- Phụ kiện: ${char.accessory || "Chưa trang bị"}\n\n`;
+
+    content += `[TIỂU SỬ & THÔNG TIN THÊM]\n`;
+    content += `${char.desc?.replace(/<br>/g, '\n') || "Chưa có tiểu sử."}\n\n`;
+
+    content += `------------------------------------------\n`;
+    content += `Xuất từ: Fantasy Codex Pro - ${new Date().toLocaleString()}\n`;
+
+    // --- SỬA LỖI FONT TIẾNG VIỆT TẠI ĐÂY (Thêm '\ufeff') ---
+    const blob = new Blob(['\ufeff', content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Profile_${char.name.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    if (typeof showToast === "function") showToast(`✨ Đã xuất TXT: ${char.name}!`, "success");
+};
 function renderMarkdown(text) {
     if (!text) return "<i>Chưa có thông tin...</i>";
     let html = text
@@ -15,9 +131,20 @@ function renderMarkdown(text) {
         .replace(/\[\[(.*?)\]\]/g, (match, name) => {
             return `<span class="char-link-wiki" onclick="openCharacterByName('${name.trim()}')">${name}</span>`;
         });
-    html = html.replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, (match) => `<ul>${match}</ul>`);
-
+    // Sửa: dùng replace với callback thay vì flag /s để tương thích cross-browser
+    const listItemsRegex = /^\s*-\s+(.*)$/gm;
+    const liItems = [];
+    html = html.replace(listItemsRegex, (match, content) => {
+        liItems.push(content);
+        return `<li>${content}</li>`;
+    });
+    if (liItems.length > 0) {
+        html = html.replace(/(<li>.*?<\/li>)/g, (match) => {
+            // Chỉ bao lần đầu tiên đưa vào ul
+            if (!html.includes('<ul>')) return `<ul>${match}</ul>`;
+            return match;
+        });
+    }
     return html.replace(/\n/g, '<br>');
 }
 async function openCharacterByName(name) {
@@ -220,14 +347,23 @@ function openModal() {
     }
 }
 function closeCharacterModal(){
-    document.getElementById("characterModal").classList.remove("active");
-    document.getElementById("charForm").reset();
+    const charForm = document.getElementById("charForm");
+    if (charForm) charForm.reset();
+    
+    const modal = document.getElementById("characterModal");
+    if (modal) modal.classList.remove("active");
+    
     const preview = document.getElementById("previewImg");
-    preview.src="";
-    preview.classList.add("hidden");
-    editingId=null;
-    document.getElementById("modalTitle").innerText="Thiết lập nhân vật";
-    document.getElementById("relationContainer").innerHTML = "";
+    if (preview) {
+        preview.src = "";
+        preview.classList.add("hidden");
+    }
+    
+    editingId = null;
+    const modalTitle = document.getElementById("modalTitle");
+    if (modalTitle) modalTitle.innerText = "Thiết lập nhân vật";
+    const relContainer = document.getElementById("relationContainer");
+    if (relContainer) relContainer.innerHTML = "";
 }
 function convertBase64(file){
     return new Promise(resolve=>{
@@ -242,6 +378,7 @@ function previewCharacterImage(event) {
     
     if (!preview) return;
     if (!file) {
+        // Revoke URL blob cũ nếu có trước khi xóa
         if (preview.src.startsWith('blob:')) {
             URL.revokeObjectURL(preview.src);
         }
@@ -253,16 +390,16 @@ function previewCharacterImage(event) {
         showToast("⚠️ Vui lòng chỉ chọn file hình ảnh!");
         return;
     }
+    // Revoke URL blob cũ trước khi tạo mới
     if (preview.src.startsWith('blob:')) {
         URL.revokeObjectURL(preview.src);
     }
     const objectUrl = URL.createObjectURL(file);
     preview.src = objectUrl;
     preview.classList.remove("hidden");
+    // Revoke sau khi load xong (không revoke ngay trong onload)
     preview.onload = () => {
-        if (preview.src.startsWith('blob:')) {
-            URL.revokeObjectURL(preview.src);
-        }
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
     };
 }
 async function saveCharacter() {
@@ -599,6 +736,10 @@ async function openProfile(id) {
             .btn-del-p:hover { background: #ef4444; color: white; }
             .btn-vortex-p { background: rgba(168, 85, 247, 0.1); color: #a855f7; border-color: #a855f7; }
             .btn-vortex-p:hover { background: #a855f7; color: white; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+            
+            /* CSS Nút Export TXT */
+            .btn-export-p { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
+            .btn-export-p:hover { background: #10b981; color: white; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
 
             .stats-mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
             .stat-mini-item { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
@@ -613,6 +754,9 @@ async function openProfile(id) {
                     <i class="fa-solid fa-chevron-left"></i> Quay lại
                 </button>
                 <div class="profile-controls">
+                    <button class="btn-profile-ctrl btn-export-p" onclick="window.exportCharacterToTXT('${c.id}')">
+                        <i class="fa-solid fa-file-export"></i> TXT
+                    </button>
                     <button class="btn-profile-ctrl btn-vortex-p" onclick="SkillTreeVortex.open('${c.id}')">
                         <i class="fa-solid fa-hurricane"></i> Kỹ năng
                     </button>
@@ -820,8 +964,24 @@ function render(data = window.characters) {
 function resetCharacterList(data) {
     const list = document.getElementById("characterList");
     if (!list) return;
-
-    list.innerHTML = data.map(c => {
+    if (!data || data.length === 0) {
+        list.innerHTML = `
+        <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-dim); opacity: 0.6;">
+            <i class="fa-solid fa-ghost" style="font-size: 3rem; margin-bottom: 15px; display: block; color: var(--gold);"></i>
+            <p>Không tìm thấy anh hùng nào khớp với bộ lọc sử thư...</p>
+        </div>`;
+        const oldPagination = document.getElementById("characterPaginationBar");
+        if (oldPagination) oldPagination.innerHTML = ""; 
+        return;
+    }
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / window.charPagination.itemsPerPage);
+        if (window.charPagination.currentPage > totalPages) window.charPagination.currentPage = totalPages;
+    if (window.charPagination.currentPage < 1) window.charPagination.currentPage = 1;
+    const startIndex = (window.charPagination.currentPage - 1) * window.charPagination.itemsPerPage;
+    const endIndex = startIndex + window.charPagination.itemsPerPage;
+    const paginatedData = data.slice(startIndex, endIndex);
+    list.innerHTML = paginatedData.map(c => {
         const kname = window.kingdoms?.find(k => String(k.id) === String(c.kingdom))?.name || "Tự do";
         const pl = c.pl || 0;
         const plDisplay = pl.toLocaleString();
@@ -833,8 +993,14 @@ function resetCharacterList(data) {
         else if (pl >= 10000) tierClass = "tier-rare";
         return `
         <div class="char-card animate-card ${tierClass}" id="card-${c.id}" onclick="openProfile('${c.id}')">
+            
             <button class="fav-btn ${c.favorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${c.id}')">
                 <i class="fa-${c.favorite ? 'solid' : 'regular'} fa-heart"></i>
+            </button>
+
+            <button class="export-btn" onclick="event.stopPropagation(); window.exportCharacterToTXT('${c.id}')" 
+                    style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất file TXT">
+                <i class="fa-solid fa-file-export"></i>
             </button>
 
             <div class="card-image-container">
@@ -864,42 +1030,48 @@ function resetCharacterList(data) {
         </div>
         `;
     }).join("");
-    initLazyLoading();
+    if (typeof initLazyLoading === "function") initLazyLoading();
+    if (typeof renderCharacterPagination === "function") {
+        renderCharacterPagination(totalPages, data);
+    }
 }
 let globalCharObserver;
 function initLazyLoading() {
-    if (!globalCharObserver) {
-        globalCharObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(async (entry) => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const charId = img.dataset.id;
-                    if (img.dataset.loaded === "true") {
-                        observer.unobserve(img);
-                        return;
-                    }
-
-                    const char = window.characters.find(c => String(c.id) === String(charId));
-                    let src = "https://i.imgur.com/6X8FQyA.png";
-
-                    if (char && char.img) {
-                        if (char.img.startsWith("http") || char.img.startsWith("data:")) {
-                            src = char.img;
-                        } else if (typeof getImage === "function") {
-                            src = (await getImage(char.img).catch(() => null)) || src;
-                        }
-                    }
-                    img.src = src;
-                    img.onload = () => {
-                        img.style.opacity = "1";
-                        img.dataset.loaded = "true";
-                    };
-                    
-                    observer.unobserve(img);
-                }
-            });
-        }, { rootMargin: "150px" });
+    // Disconnect observer cũ trước khi tạo mới để tránh memory leak
+    if (globalCharObserver) {
+        globalCharObserver.disconnect();
+        globalCharObserver = null;
     }
+    globalCharObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(async (entry) => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const charId = img.dataset.id;
+                if (img.dataset.loaded === "true") {
+                    observer.unobserve(img);
+                    return;
+                }
+
+                const char = window.characters.find(c => String(c.id) === String(charId));
+                let src = "https://i.imgur.com/6X8FQyA.png";
+
+                if (char && char.img) {
+                    if (char.img.startsWith("http") || char.img.startsWith("data:")) {
+                        src = char.img;
+                    } else if (typeof getImage === "function") {
+                        src = (await getImage(char.img).catch(() => null)) || src;
+                    }
+                }
+                img.src = src;
+                img.onload = () => {
+                    img.style.opacity = "1";
+                    img.dataset.loaded = "true";
+                };
+                
+                observer.unobserve(img);
+            }
+        });
+    }, { rootMargin: "150px" });
     document.querySelectorAll('.lazy-load-img:not([data-loaded="true"])').forEach(img => {
         globalCharObserver.observe(img);
     });
@@ -910,7 +1082,6 @@ function applyFilters() {
         const term = (document.getElementById("codexSearch")?.value || "").toLowerCase().trim();
         const race = document.getElementById("raceFilter")?.value;
         const statusFilter = document.getElementById("filterStatus")?.value || "";
-
         const filtered = window.characters.filter(c => {
             const matchName = !term || 
                 (c.name || "").toLowerCase().includes(term) || 
@@ -920,10 +1091,81 @@ function applyFilters() {
             const matchStatus = !statusFilter || c.status === statusFilter;
             return matchName && matchRace && matchStatus;
         });
+        window.charPagination.currentPage = 1;
 
-        if (typeof render === "function") render(filtered);
+        if (typeof render === "function") {
+            render(filtered);
+        } else {
+            resetCharacterList(filtered);
+        }
     }, 200); 
 }
+function renderCharacterPagination(totalPages, originalData) {
+    const listContainer = document.getElementById("characters");
+    if (!listContainer) return;
+
+    // Lưu data vào cache để changeCharPage() dùng — tránh nhúng JSON vào onclick
+    window._paginationData = originalData;
+
+    let paginationBar = document.getElementById("characterPaginationBar");
+    if (!paginationBar) {
+        paginationBar = document.createElement("div");
+        paginationBar.id = "characterPaginationBar";
+        const charListEl = document.getElementById("characterList");
+        if (charListEl && charListEl.parentNode) {
+            charListEl.parentNode.insertBefore(paginationBar, charListEl.nextSibling);
+        }
+    }
+
+    if (totalPages <= 1) {
+        paginationBar.innerHTML = "";
+        return;
+    }
+
+    const current = window.charPagination.currentPage;
+    let barHTML = `<div class="pagination-wrapper" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin: 30px 0; padding: 10px;">`;
+    barHTML += `
+        <button class="pag-btn prev-btn" 
+                ${current === 1 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''} 
+                onclick="changeCharPage(${current - 1})">
+            <i class="fa-solid fa-angle-left"></i> Trước
+        </button>
+    `;
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= current - 2 && i <= current + 2)) {
+            const isActive = i === current;
+            barHTML += `
+                <button class="pag-btn num-btn ${isActive ? 'active' : ''}" 
+                        onclick="changeCharPage(${i})">
+                    ${i}
+                </button>
+            `;
+        } else if (i === current - 3 || i === current + 3) {
+            barHTML += `<span style="color: var(--text-dim, #94a3b8); padding: 0 4px;">...</span>`;
+        }
+    }
+    barHTML += `
+        <button class="pag-btn next-btn" 
+                ${current === totalPages ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''} 
+                onclick="changeCharPage(${current + 1})">
+            Tiếp <i class="fa-solid fa-angle-right"></i>
+        </button>
+    `;
+
+    barHTML += `</div>`;
+    paginationBar.innerHTML = barHTML;
+}
+
+// Lưu cache data cho pagination để tránh truyền qua onclick attribute
+window._paginationData = null;
+window.changeCharPage = function(pageNumber) {
+    const data = window._paginationData;
+    if (!data) return;
+    window.charPagination.currentPage = pageNumber;
+    resetCharacterList(data);
+    const targetElement = document.querySelector(".page-header-v2") || document.getElementById("characterList");
+    if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
+};
 function renderJSONView() {
     const box = document.getElementById("codexContent");
     if (!box) return;
@@ -1026,7 +1268,6 @@ const calculatePL = (nv) => {
     });
     return nv.pl || total; 
 };
-
 const DANH_SACH_CHI_SO = [
     {
         nhom: "⚡ Chỉ số cơ bản",

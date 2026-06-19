@@ -28,8 +28,13 @@ async function initBattleData() {
         // 2. Nạp nhân vật từ IndexedDB
         characters = await dbGetAll("characters") || [];
         
-        // 3. Nạp lịch sử đấu từ IndexedDB (Thay thế localStorage)
-        battleHistory = await dbGetAll("battle_history") || [];
+        // 3. Nạp lịch sử đấu từ IndexedDB (có xử lý lỗi nếu store chưa tồn tại)
+        try {
+            battleHistory = await dbGetAll("battle_history") || [];
+        } catch (e) {
+            console.warn("⚠️ Battle history store chưa sẵn sàng, sử dụng mảng trống.");
+            battleHistory = [];
+        }
         
         console.log(`⚔️ GM: Hệ thống sẵn sàng. Nhân vật: ${characters.length}, Lịch sử: ${battleHistory.length}`);
 
@@ -154,7 +159,7 @@ async function startBattle() {
     // Cập nhật giao diện kết quả
     renderResult(teamA, teamB, simA, simB, winRateA, winnerText);
 
-    // GM: Lưu lịch sử vào IndexedDB (Thay thế hoàn toàn LocalStorage)
+    // GM: Lưu lịch sử vào IndexedDB — mỗi entry là một record riêng lẻ
     const historyEntry = {
         id: "battle_" + Date.now(),
         date: new Date().toLocaleString(),
@@ -166,8 +171,13 @@ async function startBattle() {
     };
 
     if (typeof dbSave === "function") {
-        await dbSave("battle_history", [...battleHistory, historyEntry]);
-        battleHistory.push(historyEntry);
+        try {
+            // Lưu từng entry riêng lẻ, không ghi đè toàn bộ mảng
+            await dbSave("battle_history", historyEntry);
+            battleHistory.push(historyEntry);
+        } catch (e) {
+            console.warn("⚠️ Không thể lưu lịch sử chiến đấu:", e);
+        }
     }
 }
 

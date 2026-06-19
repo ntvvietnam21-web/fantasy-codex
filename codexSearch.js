@@ -94,7 +94,35 @@ async function searchCodex() {
             }
         }
 
-        // Tương tự cho Faction và Race... (Code lặp lại tương tự nhưng dùng dữ liệu tương ứng)
+        // Tương tự cho Faction và Race...
+
+        /* 3. PHE PHÁI */
+        for (const f of dataFactions) {
+            if (total >= LIMIT) break;
+            if ((f.name || "").toLowerCase().includes(term)) {
+                await pushResult("Phe phái", f.name, f.type ? `Loại: ${f.type}` : "", f.img || null, () => {
+                    if (typeof openFactionPage === "function") {
+                        const idx = dataFactions.indexOf(f);
+                        openFactionPage(idx);
+                    }
+                });
+                total++;
+            }
+        }
+
+        /* 4. CHỦNG TỘC */
+        for (const r of dataRaces) {
+            if (total >= LIMIT) break;
+            if ((r.name || "").toLowerCase().includes(term)) {
+                await pushResult("Chủng tộc", r.name, r.environment ? `Môi trường: ${r.environment}` : "", null, () => {
+                    if (typeof openRacePage === "function") {
+                        const idx = dataRaces.indexOf(r);
+                        openRacePage(idx);
+                    }
+                });
+                total++;
+            }
+        }
 
         if (total === 0) {
             resultBox.innerHTML = `
