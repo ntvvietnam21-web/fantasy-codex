@@ -1,299 +1,308 @@
-/* ============================================================
-   GM: FANTASY TIMELINE PRO STYLESHEET
-   ============================================================ */
-
 :root {
-    --bg-dark: #0f172a;
-    --card-bg: #1e293b;
-    --gold: #ffd700;
-    --green: #22c55e;
-    --war: #ef4444;
-    --magic: #a855f7;
-    --discovery: #3b82f6;
-    --text-main: #f8fafc;
+    --gold: #fbbf24;
+    --dark-bg: #0f172a;
+    --parchment: #fdf6e3;
+    --text-dark: #333;
+    --transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
-/* ===== GLOBAL ===== */
 body {
+    background-color: var(--dark-bg);
+    color: #fff;
     font-family: 'Plus Jakarta Sans', sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    padding: 20px;
     margin: 0;
-    line-height: 1.6;
-}
-
-h1 {
-    text-align: center;
-    font-family: 'Cinzel', serif; /* Nếu bạn có font này từ index.html */
-    color: var(--gold);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 30px;
-}
-
-/* ===== CONTAINER & CONTROLS ===== */
-.timeline-container {
-    max-width: 1200px;
-    margin: auto;
-}
-
-.timeline-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.timeline-controls button {
-    background: var(--card-bg);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.timeline-controls button:hover {
-    background: #334155;
-    border-color: var(--gold);
-    transform: scale(1.1);
-}
-
-/* ===== FORM NHẬP LIỆU ===== */
-.timeline-form {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 12px;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 40px;
-    border: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-
-.timeline-form input, 
-.timeline-form select, 
-.timeline-form textarea {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: white;
-    font-size: 14px;
-    outline: none;
-}
-
-.timeline-form input:focus, .timeline-form textarea:focus {
-    border-color: var(--green);
-}
-
-.timeline-form button {
-    padding: 12px;
-    background: var(--green);
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.timeline-form button:hover {
-    filter: brightness(1.2);
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
-}
-
-/* ===== TIMELINE WRAPPER (TRỤC THỜI GIAN) ===== */
-.timeline-wrapper {
-    position: relative;
-    padding: 80px 0; /* Tạo không gian cho card trồi lên/xuống */
-    overflow-x: auto;
-    overflow-y: hidden;
-    cursor: grab;
-    background: rgba(255,255,255,0.02);
-    border-radius: 16px;
-    /* Đường kẻ trục chính */
-    background-image: linear-gradient(to right, transparent 0%, var(--green) 50%, transparent 100%);
-    background-size: 100% 2px;
-    background-repeat: no-repeat;
-    background-position: center 85px; /* Khớp với vị trí dot-marker */
-}
-
-.timeline-wrapper:active { cursor: grabbing; }
-
-/* Scrollbar Custom */
-.timeline-wrapper::-webkit-scrollbar { height: 6px; }
-.timeline-wrapper::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 10px;
-}
-.timeline-wrapper::-webkit-scrollbar-thumb:hover { background: var(--green); }
-
-/* ===== TIMELINE LIST ===== */
-.timeline-horizontal {
-    display: flex;
-    align-items: flex-start;
-    padding: 0 50px;
-    min-height: 250px;
-}
-
-/* ===== TIMELINE ITEM (CARD) ===== */
-.timeline-item {
-    position: relative;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.timeline-item:hover {
-    transform: translateY(-10px);
-}
-
-/* Marker Dot trên trục */
-.dot-marker {
-    width: 16px;
-    height: 16px;
-    background: var(--bg-dark);
-    border: 3px solid var(--green);
-    border-radius: 50%;
-    z-index: 5;
-    margin-bottom: 20px; /* Khoảng cách từ trục đến card */
-    box-shadow: 0 0 10px var(--green);
-}
-
-/* Card Content */
-.item-card {
-    background: var(--card-bg);
-    width: 220px;
-    padding: 15px;
-    border-radius: 10px;
-    border-top: 4px solid var(--green);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-    position: relative;
-}
-
-/* Màu sắc theo Type */
-.type-war .item-card { border-top-color: var(--war); }
-.type-war .dot-marker { border-color: var(--war); box-shadow: 0 0 10px var(--war); }
-
-.type-magic .item-card { border-top-color: var(--magic); }
-.type-magic .dot-marker { border-color: var(--magic); box-shadow: 0 0 10px var(--magic); }
-
-.type-discovery .item-card { border-top-color: var(--discovery); }
-.type-discovery .dot-marker { border-color: var(--discovery); box-shadow: 0 0 10px var(--discovery); }
-
-/* Text trong Card */
-.year-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--green);
-    margin-bottom: 5px;
-}
-
-.type-war .year-label { color: var(--war); }
-.type-magic .year-label { color: var(--magic); }
-
-.item-title {
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: white;
-}
-
-.item-desc {
-    font-size: 12px;
-    opacity: 0.7;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    height: 100vh;
     overflow: hidden;
 }
 
-/* Nút xóa trong card */
-.del-btn {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--war);
-    color: white;
-    border: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: none; /* Hiện khi hover card */
-    font-size: 10px;
-    align-items: center;
-    justify-content: center;
+h1 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    text-align: center;
+    margin: 15px 0 5px;
+    font-size: 2rem;
 }
 
-.timeline-item:hover .del-btn { display: flex; }
+.header-section {
+    text-align: center;
+    padding: 10px;
+    z-index: 100;
+}
 
-/* ===== MODAL ===== */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(5px);
+.toolbar {
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 1000;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.btn-home, .btn-add {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    transition: all 0.3s ease;
+}
+.btn-add { background: var(--gold); color: #000; font-weight: bold; }
+.btn-home:hover { background: rgba(255,255,255,0.2); }
+.btn-add:hover { box-shadow: 0 0 10px var(--gold); transform: translateY(-2px); }
+
+/* --- BOOK 3D UI --- */
+.book-viewport {
+    flex: 1;
+    perspective: 2000px;
+    position: relative;
+    padding-bottom: 30px;
+}
+
+.flip-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: var(--gold);
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    z-index: 200;
     transition: 0.3s;
 }
+.flip-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); }
+.prev-btn { left: 10%; }
+.next-btn { right: 10%; }
 
+.book {
+    position: absolute;
+    left: 50%;
+    top: 5%;
+    width: 450px;
+    height: 85%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+    /* Spine is exactly at center (50%) */
+}
+
+/* On mobile, we might just show 1 page and scale it, or rotate book slightly */
+@media (max-width: 1000px) {
+    .book { width: 350px; height: 500px; }
+    .prev-btn { left: 2%; }
+    .next-btn { right: 2%; }
+}
+@media (max-width: 800px) {
+    .book { width: 300px; height: 450px; }
+    .book-viewport { perspective: 1200px; }
+}
+@media (max-width: 600px) {
+    .book { 
+        width: 100%; 
+        height: 80vh; 
+        max-width: 350px;
+        transform: translateX(50%); /* Slide right so we only see the active page */
+    }
+    .book.mobile-flipped {
+        transform: translateX(-50%); /* Slide left to see flipped page */
+    }
+    .prev-btn { left: 5px; top: unset; bottom: 10px; z-index: 300;}
+    .next-btn { right: 5px; top: unset; bottom: 10px; z-index: 300;}
+}
+
+.page {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: var(--transition);
+    border-radius: 2px 10px 10px 2px;
+}
+
+.page.flipped {
+    transform: rotateY(-180deg);
+}
+
+.front, .back {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    background-color: var(--parchment);
+    background-image: url('https://www.transparenttextures.com/patterns/old-wall.png');
+    border-radius: 2px 10px 10px 2px;
+    box-shadow: inset 5px 0 20px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.5);
+    color: var(--text-dark);
+    padding: 30px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Customize scrollbar for parchment */
+.front::-webkit-scrollbar, .back::-webkit-scrollbar { width: 6px; }
+.front::-webkit-scrollbar-track, .back::-webkit-scrollbar-track { background: transparent; }
+.front::-webkit-scrollbar-thumb, .back::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+
+.back {
+    transform: rotateY(180deg);
+    border-radius: 10px 2px 2px 10px;
+    box-shadow: inset -5px 0 20px rgba(0,0,0,0.2), -2px 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Event Content Styles inside Book */
+.page-number {
+    position: absolute;
+    bottom: 15px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+.front .page-number { right: 20px; }
+.back .page-number { left: 20px; }
+
+.event-block {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.event-year {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: #8b0000;
+    border-bottom: 2px solid #8b0000;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.event-era {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #555;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.event-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #111;
+}
+
+.event-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid #555;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    filter: sepia(0.3) contrast(1.1);
+}
+
+.event-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #222;
+}
+
+.event-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+.event-actions button {
+    background: rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.3);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #333;
+}
+.event-actions button:hover { background: rgba(0,0,0,0.2); }
+
+/* Icons based on type */
+.icon-war { color: #c0392b; }
+.icon-magic { color: #8e44ad; }
+.icon-discovery { color: #2980b9; }
+.icon-disaster { color: #d35400; }
+.icon-birth { color: #27ae60; }
+.icon-death { color: #2c3e50; }
+.icon-general { color: #7f8c8d; }
+
+/* MODAL FORM */
+.modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
 .modal.hidden { display: none; }
 
 .modal-content {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    width: 450px;
-    max-width: 90%;
+    background: var(--dark-bg);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 600px;
     position: relative;
-    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
 }
 
 .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    opacity: 0.5;
+    position: absolute; top: 10px; right: 15px;
+    font-size: 1.5rem; color: #aaa; cursor: pointer;
 }
-.close-btn:hover { opacity: 1; }
+.close-btn:hover { color: #fff; }
 
-.event-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    background: #334155;
+.form-grid {
+    display: flex; flex-direction: column; gap: 15px;
+}
+.form-grid input, .form-grid select, .form-grid textarea {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(251,191,36,0.3);
+    color: #fff; padding: 10px; border-radius: 6px;
+    font-family: inherit; font-size: 0.95rem;
+}
+.form-grid input:focus, .form-grid textarea:focus {
+    border-color: var(--gold); outline: none; box-shadow: 0 0 8px rgba(251,191,36,0.3);
 }
 
-.badge-war { background: var(--war); }
-.badge-magic { background: var(--magic); }
-
-.year-text { color: var(--gold); font-weight: bold; }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .timeline-form { padding: 15px; }
-    .item-card { width: 180px; }
-    .timeline-horizontal { padding: 0 20px; }
+.btn-save {
+    background: var(--gold);
+    color: #000; font-weight: bold; font-size: 1.1rem;
+    padding: 12px; border-radius: 6px;
+    text-transform: uppercase; margin-top: 10px;
 }
+.btn-save:hover { box-shadow: 0 0 15px var(--gold); }
+
+/* Bìa sách */
+.book-cover {
+    background-color: #3e2723;
+    background-image: url('https://www.transparenttextures.com/patterns/leather.png');
+    color: var(--gold);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: inset 5px 0 20px rgba(0,0,0,0.5);
+}
+.book-cover h1 {
+    font-size: 2.5rem; margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+}
+.book-cover i { font-size: 4rem; margin-bottom: 20px; }

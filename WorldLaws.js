@@ -73,7 +73,7 @@ async function deleteCategory(name) {
 
     const transaction = WorldLawModule.db.transaction([WorldLawModule.STORE_CATEGORIES], "readwrite");
     const store = transaction.objectStore(WorldLawModule.STORE_CATEGORIES);
-    await store.delete(name);
+    store.delete(name);
 
     transaction.oncomplete = async () => {
         const categories = await getAllCategories();
@@ -202,7 +202,8 @@ function openLawModal() {
     if (form) form.reset();
     
     document.getElementById('modalTitle').innerText = "Triệu Hồi Điều Luật";
-    document.getElementById('lawCategory').value = WorldLawModule.currentTab;
+    const lawCatEl = document.getElementById('lawCategory');
+    if (lawCatEl) lawCatEl.value = WorldLawModule.currentTab;
     document.getElementById('lawImportant').checked = false;
     document.getElementById('lawModal').style.display = 'flex';
 }

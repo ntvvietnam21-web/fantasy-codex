@@ -9,6 +9,9 @@ async function initImageUpload() {
     const container = document.getElementById("imageContainer");
 
     if (!input || !preview || !container) return;
+    // Guard: tránh gán listener nhiều lần (memory leak)
+    if (input.dataset.uploadBound === "true") return;
+    input.dataset.uploadBound = "true";
 
     input.addEventListener("change", async function () {
         const file = this.files[0];
@@ -32,7 +35,7 @@ async function initImageUpload() {
             };
 
             // 🔹 Lưu vào IndexedDB (dùng compressImage từ imageDB.js)
-            if (!window.imageDB) await initImageDB();
+            if (!imageDB) await initImageDB();
 
             // compressImage được định nghĩa trong imageDB.js
             if (typeof compressImage !== "function") {
@@ -79,7 +82,7 @@ async function renderImages() {
 
     container.innerHTML = "";
 
-    if (!window.imageDB) await initImageDB();
+    if (!imageDB) await initImageDB();
 
     const tx = imageDB.transaction("images", "readonly");
     const store = tx.objectStore("images");

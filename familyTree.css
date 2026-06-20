@@ -1,0 +1,306 @@
+/* familyTree.css - ROYAL FAMILY TREE (V2 Multi-Tabs & CRUD) */
+
+/* ── TABS ── */
+.family-tabs-container {
+    padding: 10px 40px;
+    background: rgba(15, 23, 42, 0.4);
+    border-bottom: 1px solid rgba(212,175,55,0.2);
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.family-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.family-tab {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.family-tab:hover {
+    background: rgba(212,175,55,0.1);
+    color: #cbd5e1;
+}
+
+.family-tab.active {
+    background: rgba(212,175,55,0.2);
+    border-color: var(--gold, #d4af37);
+    color: var(--gold, #d4af37);
+    box-shadow: 0 0 10px rgba(212,175,55,0.2);
+}
+
+.btn-del-tab {
+    color: #ef4444;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-size: 0.8rem;
+}
+
+.btn-del-tab:hover {
+    opacity: 1;
+}
+
+/* ── CONTAINER & PAN/ZOOM ── */
+.family-tree-container {
+    width: 100%;
+    height: calc(100vh - 200px); /* Điều chỉnh cho vừa vặn */
+    overflow: hidden; /* Ẩn cuộn để dùng drag/pan */
+    background: radial-gradient(circle at center, rgba(15,15,25,0.9), #050508);
+    position: relative;
+    cursor: grab;
+}
+
+.family-tree-container:active {
+    cursor: grabbing;
+}
+
+.tree-wrapper {
+    position: absolute;
+    transform-origin: 0 0;
+    will-change: transform;
+    /* Dành cho JS set transform: translate(x, y) scale(z) */
+}
+
+.empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #94a3b8;
+    text-align: center;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+.empty-state i {
+    font-size: 3rem;
+    color: var(--gold, #d4af37);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* ── TREE LAYOUT ── */
+.tree {
+    white-space: nowrap;
+    margin: 0;
+    text-align: center;
+    padding: 60px;
+    display: inline-block; /* Tự co giãn theo nội dung */
+}
+
+.tree ul {
+    padding-top: 30px;
+    position: relative;
+    transition: all 0.5s;
+    display: flex;
+    justify-content: center;
+}
+
+.tree li {
+    float: left; text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 30px 15px 0 15px;
+    transition: all 0.5s;
+}
+
+/* Kẻ đường ngang và dọc cho cây */
+.tree li::before, .tree li::after {
+    content: '';
+    position: absolute; top: 0; right: 50%;
+    border-top: 2px solid rgba(212,175,55,0.4);
+    width: 50%; height: 30px;
+}
+.tree li::after {
+    right: auto; left: 50%;
+    border-left: 2px solid rgba(212,175,55,0.4);
+}
+.tree li:only-child::after, .tree li:only-child::before {
+    display: none;
+}
+.tree li:only-child { padding-top: 0; }
+.tree li:first-child::before, .tree li:last-child::after {
+    border: 0 none;
+}
+.tree li:last-child::before {
+    border-right: 2px solid rgba(212,175,55,0.4);
+    border-radius: 0 5px 0 0;
+}
+.tree li:first-child::after {
+    border-radius: 5px 0 0 0;
+}
+.tree ul ul::before {
+    content: '';
+    position: absolute; top: 0; left: 50%;
+    border-left: 2px solid rgba(212,175,55,0.4);
+    width: 0; height: 30px;
+    transform: translateX(-50%);
+}
+
+/* ── TREE NODE ── */
+.tree-node-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.tree-node {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #cbd5e1;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 12px;
+    padding: 12px;
+    min-width: 100px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+.tree-node:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold, #d4af37);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 15px rgba(212,175,55,0.3);
+}
+
+.ft-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--gold, #d4af37);
+    object-fit: cover;
+    margin-bottom: 8px;
+    pointer-events: none;
+}
+
+.ft-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* ── SPOUSE (Vợ/Chồng) ── */
+.spouse-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 30px; /* Khoảng cách để vẽ đường nối */
+    position: relative;
+}
+
+.spouse-connector {
+    position: absolute;
+    top: 50%;
+    left: 100px; /* Từ tâm node chính */
+    right: 100px; /* Tới tâm node phụ */
+    height: 2px;
+    background: rgba(236, 72, 153, 0.5); /* Hồng nhạt */
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spouse-connector i {
+    color: #ec4899;
+    font-size: 0.9rem;
+    background: rgba(15,15,25,1);
+    padding: 0 4px;
+}
+
+.tree-node.spouse {
+    border-color: rgba(236, 72, 153, 0.4);
+}
+.tree-node.spouse .ft-avatar {
+    border-color: rgba(236, 72, 153, 0.7);
+}
+
+/* ── MINI MENU ── */
+.ft-mini-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: rgba(15,23,42,0.95);
+    border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    margin-top: 10px;
+}
+
+.ft-mini-menu::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent rgba(212,175,55,0.4) transparent;
+}
+
+.tree-node-wrapper:hover .ft-mini-menu,
+.ft-mini-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+}
+
+.menu-item {
+    background: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.menu-item:hover {
+    background: rgba(212,175,55,0.2);
+    color: var(--gold, #d4af37);
+}
+
+.menu-item.delete:hover {
+    background: rgba(239,68,68,0.2);
+    color: #ef4444;
+}
+
+.menu-item.spouse-btn:hover {
+    background: rgba(236,72,153,0.2);
+    color: #ec4899;
+}

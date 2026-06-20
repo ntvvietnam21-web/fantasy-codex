@@ -167,12 +167,23 @@ function renderMap() {
         const marker = document.createElement("div");
         marker.className = "marker pulsing";
         const color = getDynamicColor(loc.type);
-        marker.style.backgroundColor = color;
         marker.style.left = loc.x + "%";
         marker.style.top = loc.y + "%";
+
+        let iconClass = "fa-solid fa-location-dot";
+        const typeLower = (loc.type || "").toLowerCase();
+        if (typeLower.includes("vương quốc") || typeLower.includes("thành phố")) iconClass = "fa-solid fa-chess-rook";
+        else if (typeLower.includes("hầm ngục") || typeLower.includes("tàn tích")) iconClass = "fa-solid fa-skull";
+        else if (typeLower.includes("rừng")) iconClass = "fa-brands fa-pagelines";
+        else if (typeLower.includes("núi")) iconClass = "fa-solid fa-mountain";
+
+        marker.innerHTML = `
+            <div class="pin-icon" style="color: ${color}; border-color: ${color};"><i class="${iconClass}"></i></div>
+            <div class="pin-label">${loc.name}</div>
+        `;
         
         if ((currentLocation && currentLocation.id === loc.id) || routePoints.some(p => p.id === loc.id)) {
-            marker.style.boxShadow = `0 0 15px 5px ${color}`;
+            marker.querySelector('.pin-icon').style.boxShadow = `0 0 20px 5px ${color}`;
             marker.style.transform = "translate(-50%, -50%) scale(1.3)";
             marker.classList.add("selected-marker");
         }
@@ -269,6 +280,22 @@ async function saveNewLocation() {
         highlight: false
     });
 
+    // Đồng bộ ngược lại hệ thống chính
+    if (window.parent && window.parent.locations) {
+        const exist = window.parent.locations.find(l => String(l.name).trim().toLowerCase() === name.toLowerCase());
+        if (!exist) {
+            window.parent.locations.push({
+                id: crypto.randomUUID(),
+                name: name,
+                type: type,
+                desc: desc
+            });
+            if (typeof window.parent.dbSave === "function") {
+                await window.parent.dbSave("locations", window.parent.locations);
+            }
+        }
+    }
+
     closeCreatePopup();
     await syncDB();
     renderMap();
@@ -361,6 +388,41 @@ function openPopup(loc) {
     const tag = document.getElementById("popupTag");
     tag.innerText = loc.type;
     tag.style.color = getDynamicColor(loc.type);
+
+    const charBox = document.getElementById("popupCharacters");
+    if (charBox) {
+        charBox.innerHTML = "";
+        let foundChars = [];
+        if (window.parent && window.parent.characters) {
+            foundChars = window.parent.characters.filter(c => String(c.location || "").trim() === loc.name.trim());
+        }
+        
+        if (foundChars.length > 0) {
+            foundChars.forEach(c => {
+                let imgSrc = c.img || "https://i.imgur.com/6X8FQyA.png";
+                if (!imgSrc.startsWith("http") && !imgSrc.startsWith("data:") && typeof window.parent.getImage === "function") {
+                    imgSrc = "https://i.imgur.com/6X8FQyA.png";
+                }
+                charBox.innerHTML += `<img src="${imgSrc}" class="present-char-avatar" title="${c.name}" onclick="if(window.parent && window.parent.openProfile) window.parent.openProfile('${c.id}')">`;
+            });
+            
+            foundChars.forEach(async c => {
+                if (c.img && !c.img.startsWith("http") && !c.img.startsWith("data:") && typeof window.parent.getImage === "function") {
+                    try {
+                        let url = await window.parent.getImage(c.img);
+                        if(url) {
+                            const imgs = charBox.querySelectorAll('img');
+                            const targetImg = Array.from(imgs).find(i => i.title === c.name);
+                            if(targetImg) targetImg.src = url;
+                        }
+                    } catch(e){}
+                }
+            });
+        } else {
+            charBox.innerHTML = `<div class="empty-chars-msg">Không có ai ở đây</div>`;
+        }
+    }
+
     document.getElementById("mapPopup").classList.remove("hidden");
     renderMap();
 }

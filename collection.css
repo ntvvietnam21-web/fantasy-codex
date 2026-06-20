@@ -164,13 +164,42 @@ body {
     border-radius: 18px;
     overflow: hidden;
     border: 1px solid var(--glass-border);
-    transition: var(--transition);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
     position: relative;
+    /* 3D Tilt Effect Base */
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: perspective(1000px) scale(1.02);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* RARITY BORDERS & GLOWS */
+.card.rarity-Common { border-bottom: 3px solid #cbd5e1; }
+.card.rarity-Rare { border-bottom: 3px solid #3b82f6; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2); }
+.card.rarity-Epic { border-bottom: 3px solid #a855f7; box-shadow: 0 5px 20px rgba(168, 85, 247, 0.3); }
+.card.rarity-Legendary { 
+    border-bottom: 3px solid #f59e0b; 
+    box-shadow: 0 5px 25px rgba(245, 158, 11, 0.4); 
+    animation: legendaryGlow 2s infinite alternate;
+}
+.card.rarity-Mythic { 
+    border-bottom: 3px solid #ef4444; 
+    box-shadow: 0 5px 30px rgba(239, 68, 68, 0.5); 
+    animation: mythicGlow 1.5s infinite alternate;
+}
+
+@keyframes legendaryGlow {
+    from { box-shadow: 0 5px 20px rgba(245, 158, 11, 0.4); }
+    to { box-shadow: 0 10px 30px rgba(245, 158, 11, 0.8); }
+}
+
+@keyframes mythicGlow {
+    from { box-shadow: 0 5px 20px rgba(239, 68, 68, 0.5); }
+    to { box-shadow: 0 15px 40px rgba(239, 68, 68, 1); }
 }
 
 .card img {
@@ -178,9 +207,22 @@ body {
     height: 160px;
     object-fit: cover;
     transition: 0.5s;
+    border-bottom: 1px solid var(--glass-border);
 }
 
-.card:hover img { transform: scale(1.05); }
+.card:hover img { transform: scale(1.05) translateZ(10px); }
+
+.card-owner-link {
+    font-size: 0.8rem;
+    color: #f59e0b;
+    margin-top: 5px;
+    display: inline-block;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgba(245,158,11,0.5);
+}
+.card-owner-link:hover { color: #fbbf24; text-decoration-color: #fbbf24; }
+
 
 /* Card Border Colors */
 #weapons .card:hover { border-color: var(--clr-weapon); }

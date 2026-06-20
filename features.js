@@ -258,8 +258,12 @@ window.openAddChronicleModal = function(charId) {
         char.chronology.push({ date, type, event, createdAt: Date.now() });
 
         // Lưu vào IndexedDB
-        if (typeof dbSave === 'function') {
-            await dbSave('characters', char);
+        if (typeof dbSave === 'function' && typeof dbGetAll === 'function') {
+            const allChars = await dbGetAll('characters') || [];
+            const idx = allChars.findIndex(c => String(c.id) === String(charId));
+            if (idx >= 0) allChars[idx] = char;
+            else allChars.push(char);
+            await dbSave('characters', allChars);
         }
 
         modal.remove();
@@ -602,6 +606,17 @@ const RACE_COLORS = [
 window.renderWorldDashboard = async function(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    if (typeof dbGetAll === 'function') {
+        window.characters = await dbGetAll('characters') || [];
+        window.kingdoms = await dbGetAll('kingdoms') || [];
+        window.factions = await dbGetAll('factions') || [];
+        window.races = await dbGetAll('races') || [];
+        
+        if (typeof showToast === 'function') {
+            showToast('✅ Đã cập nhật dữ liệu mới nhất!', 'success');
+        }
+    }
 
     const chars = window.characters || [];
     const kingdoms = window.kingdoms || [];

@@ -8,16 +8,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="familyTree.css">
 <link rel="stylesheet" href="factions.css">
 <link rel="stylesheet" href="GiaoDien.css">
 <link rel="stylesheet" href="WorldLaws.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
 <link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="SkillTreeVortex.css">
+<link rel="stylesheet" href="premium_fantasy.css">
 </head>
 <body class="dark-mode">
-  <link rel="stylesheet" href="SkillTreeVortex.css">
-<script src="SkillTreeVortex.js"></script>
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-left">
@@ -67,74 +68,129 @@ padding:5px;">
   </div>
 
   <div class="sidebar-menu">
-    <div class="nav-item active" onclick="showPage('home')" id="nav-home">
-      <i class="fa fa-home"></i><span data-ui="nav_home">Trang chủ</span>
-    </div>
-    <div class="nav-item" onclick="showPage('characters')" id="nav-characters">
-      <i class="fa fa-users"></i><span data-ui="nav_chars">Nhân vật</span>
-    </div>
-    <div class="nav-item" onclick="showPage('tournamentPage')" id="nav-tournamentPage">
-      <i class="fa fa-trophy"></i><span data-ui="nav_tournament">Giải đấu</span>
-    </div>
-    <div class="nav-item" onclick="showPage('dashboardPage')" id="nav-dashboardPage">
-      <i class="fa fa-chart-pie"></i><span data-ui="nav_dashboard">Thống kê Thế giới</span>
-    </div>
-    <div class="nav-item" id="nav-relationshipPage" onclick="showPage('relationshipPage')">
-      <i class="fa-solid fa-circle-nodes"></i><span data-ui="nav_rel">Phả hệ & Quan hệ</span>
-    </div>
-    <div class="nav-item" onclick="window.location.href='creatures.html'">
-      <i class="fa fa-paw"></i><span data-ui="nav_creatures">Sinh vật</span>
-    </div>
-    <div class="nav-item" onclick="showPage('races')" id="nav-races">
-      <i class="fa fa-dna"></i><span data-ui="nav_races">Chủng tộc</span>
-    </div>
-    <div class="nav-item" onclick="showPage('kingdoms')" id="nav-kingdoms">
-      <i class="fa fa-chess-king"></i><span data-ui="nav_kingdoms">Đế chế</span>
-    </div>
-    <div class="nav-item" onclick="showPage('factions')" id="nav-factions">
-      <i class="fa fa-flag"></i><span data-ui="nav_factions">Phe phái</span>
-    </div>
-    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-relations')">
-    <i class="fa-solid fa-circle-nodes"></i>
-    <span>Mạng lưới Bang giao</span>
-    <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
-</div>
-<div id="submenu-relations" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
-    <div class="nav-item" onclick="showPage('diplomacy-kingdoms'); renderDiplomacyNetwork('kingdom', 'kingdomNetworkCanvas');">
-        <i class="fa-solid fa-crown"></i> <span>Vương quốc</span>
-    </div>
-    <div class="nav-item" onclick="showPage('diplomacy-factions'); renderDiplomacyNetwork('faction', 'factionNetworkCanvas');">
-        <i class="fa-solid fa-shield-halved"></i> <span>Phe phái</span>
-    </div>
-</div>
-
-
-
-    <div class="nav-item" onclick="window.location.href='locations.html'">
-      <i class="fa fa-location-dot"></i><span data-ui="nav_locations">Địa điểm</span>
-    </div>
-    <div class="nav-item" onclick="showPage('mapPage')" id="nav-map">
-      <i class="fa fa-map"></i><span data-ui="nav_map">Bản đồ</span>
-    </div>
-    <div class="nav-item" onclick="showPage('compare')" id="nav-compare">
-      <i class="fa fa-scale-balanced"></i><span data-ui="nav_compare">So sánh</span>
-    </div>
-    <div class="nav-item" onclick="showPage('battle')" id="nav-battle">
-      <i class="fa fa-crosshairs"></i><span data-ui="nav_battle">Chiến đấu</span>
-    </div>
-    <div class="nav-item" onclick="showPage('codex')" id="nav-codex">
-      <i class="fa fa-database"></i><span data-ui="nav_codex">Dữ liệu</span>
-    </div>
-    <div class="nav-item" onclick="showPage('timeline')" id="nav-timeline">
-      <i class="fa fa-scroll"></i><span data-ui="nav_timeline">Timeline</span>
-    </div>
-    <div class="nav-item" onclick="window.location.href='collection.html'">
-      <i class="fa fa-box"></i><span data-ui="nav_total">Tổng hợp</span>
-    </div>
     
-          <div class="menu-item" onclick="showPage('worldLawsPage')">
-    <i class="fa-solid fa-scroll-old"></i> <span>Luật Thế Giới</span>
-</div>
+    <!-- 1. TRUNG TÂM ĐIỀU HÀNH -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-core')">
+        <i class="fa-solid fa-house-chimney-crack"></i>
+        <span>Trung Tâm Điều Hành</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-core" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item active" onclick="showPage('home')" id="nav-home">
+            <i class="fa fa-home"></i><span data-ui="nav_home">Trang chủ</span>
+        </div>
+        <div class="nav-item" onclick="showPage('dashboardPage')" id="nav-dashboardPage">
+            <i class="fa fa-chart-pie"></i><span data-ui="nav_dashboard">Thống kê Thế giới</span>
+        </div>
+        <div class="nav-item" onclick="showPage('codex')" id="nav-codex">
+            <i class="fa fa-database"></i><span data-ui="nav_codex">Dữ liệu thô</span>
+        </div>
+        <div class="nav-item" onclick="showPage('worldLawsPage')">
+            <i class="fa-solid fa-scroll-old"></i> <span>Luật Thế Giới</span>
+        </div>
+    </div>
+
+    <!-- 2. NHÂN SINH & HUYẾT THỐNG -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-people')">
+        <i class="fa-solid fa-skull"></i>
+        <span>Nhân Sinh & Phả Hệ</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-people" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item" onclick="showPage('characters')" id="nav-characters">
+            <i class="fa fa-users"></i><span data-ui="nav_chars">Nhân vật</span>
+        </div>
+        <div class="nav-item" onclick="showPage('races')" id="nav-races">
+            <i class="fa fa-dna"></i><span data-ui="nav_races">Chủng tộc</span>
+        </div>
+        <div class="nav-item" onclick="showPage('familyTreePage')" id="nav-family">
+            <i class="fa-solid fa-sitemap"></i><span data-ui="nav_family">Gia Phả</span>
+        </div>
+        <div class="nav-item" id="nav-relationshipPage" onclick="showPage('relationshipPage')">
+            <i class="fa-solid fa-circle-nodes"></i><span data-ui="nav_rel">Lưới Quan hệ</span>
+        </div>
+    </div>
+
+    <!-- 3. THẾ LỰC & CHÍNH TRỊ -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-politics')">
+        <i class="fa-solid fa-chess-knight"></i>
+        <span>Thế Lực & Chính Trị</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-politics" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item" onclick="showPage('kingdoms')" id="nav-kingdoms">
+            <i class="fa fa-chess-king"></i><span data-ui="nav_kingdoms">Đế chế</span>
+        </div>
+        <div class="nav-item" onclick="showPage('factions')" id="nav-factions">
+            <i class="fa fa-flag"></i><span data-ui="nav_factions">Phe phái</span>
+        </div>
+        <div class="nav-item" onclick="showPage('diplomacy-kingdoms'); renderDiplomacyNetwork('kingdom', 'kingdomNetworkCanvas');">
+            <i class="fa-solid fa-crown"></i> <span>Bang giao Vương quốc</span>
+        </div>
+        <div class="nav-item" onclick="showPage('diplomacy-factions'); renderDiplomacyNetwork('faction', 'factionNetworkCanvas');">
+            <i class="fa-solid fa-shield-halved"></i> <span>Bang giao Phe phái</span>
+        </div>
+    </div>
+
+    <!-- 4. KHÔNG GIAN & THỜI GIAN -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-world')">
+        <i class="fa-solid fa-globe"></i>
+        <span>Không Gian & Thời Gian</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-world" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item" onclick="showPage('mapPage')" id="nav-map">
+            <i class="fa fa-map"></i><span data-ui="nav_map">Bản đồ</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='locations.html'">
+            <i class="fa fa-location-dot"></i><span data-ui="nav_locations">Địa điểm</span>
+        </div>
+        <div class="nav-item" onclick="showPage('timeline')" id="nav-timeline">
+            <i class="fa fa-scroll"></i><span data-ui="nav_timeline">Timeline</span>
+        </div>
+        <div class="nav-item" onclick="alert('Đang phát triển: Bảng điều tra các lời tiên tri và sự kiện lịch sử ẩn.')">
+            <i class="fa-solid fa-eye"></i> <span>Bảng Tiên Tri</span>
+        </div>
+    </div>
+
+    <!-- 5. CHIẾN TRANH & QUYỀN LỰC -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-warfare')">
+        <i class="fa-solid fa-khanda"></i>
+        <span>Chiến Tranh & Quyền Lực</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-warfare" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item" onclick="showPage('battle')" id="nav-battle">
+            <i class="fa fa-crosshairs"></i><span data-ui="nav_battle">Chiến đấu</span>
+        </div>
+        <div class="nav-item" onclick="showPage('tournamentPage')" id="nav-tournamentPage">
+            <i class="fa fa-trophy"></i><span data-ui="nav_tournament">Giải đấu</span>
+        </div>
+        <div class="nav-item" onclick="showPage('compare')" id="nav-compare">
+            <i class="fa fa-scale-balanced"></i><span data-ui="nav_compare">So sánh</span>
+        </div>
+    </div>
+
+    <!-- 6. BÁCH KHOA HẮC ÁM -->
+    <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-encyclopedia')">
+        <i class="fa-solid fa-book-skull"></i>
+        <span>Bách Khoa Hắc Ám</span>
+        <i class="fa-solid fa-chevron-down arrow-icon" style="margin-left: auto; font-size: 10px;"></i>
+    </div>
+    <div id="submenu-encyclopedia" class="submenu-container hidden" style="padding-left: 20px; background: rgba(0,0,0,0.2);">
+        <div class="nav-item" onclick="window.location.href='creatures.html'">
+            <i class="fa fa-paw"></i><span data-ui="nav_creatures">Quái Vật Chí</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='collection.html'">
+            <i class="fa fa-box"></i><span data-ui="nav_total">Lò Rèn Thần Khí</span>
+        </div>
+        <div class="nav-item" onclick="alert('Đang phát triển: Hệ thống lai tạo độc dược và thực vật ma thuật.')">
+            <i class="fa-solid fa-flask"></i> <span>Giả Kim Thuật</span>
+        </div>
+        <div class="nav-item" onclick="alert('Đang phát triển: Nơi lưu trữ, sao lưu và đồng bộ vũ trụ của bạn lên đám mây.')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> <span>Tàng Kinh Các</span>
+        </div>
+    </div>
   </div>
 
   <div class="sidebar-footer">
@@ -209,9 +265,14 @@ padding:5px;">
         <h2><i class="fa-solid fa-users-viewfinder"></i> Thư viện Anh Hùng</h2>
         <span class="count-badge"><span id="charCount">0</span> Nhân vật</span>
       </div>
-      <button class="btn-add-hero pulse" onclick="openModal()">
-        <i class="fa-solid fa-plus"></i> <span>Tạo nhân vật</span>
-      </button>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary ripple" onclick="importCharacterFromJSON()" style="padding: 10px 15px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
+          <i class="fa-solid fa-file-import"></i> <span>Nhập JSON</span>
+        </button>
+        <button class="btn-add-hero pulse" onclick="openModal()">
+          <i class="fa-solid fa-plus"></i> <span>Tạo nhân vật</span>
+        </button>
+      </div>
     </div>
 
     <div class="filter-toolbar">
@@ -235,6 +296,14 @@ padding:5px;">
           <option>Nữ</option>
           <option>Khác</option>
         </select>
+        
+        <select id="filterSort" onchange="applyFilters()" class="styled-select" style="background-color: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.4);">
+          <option value="">Sắp xếp: Mới nhất</option>
+          <option value="pl_desc">Sức mạnh (Cao ➔ Thấp)</option>
+          <option value="pl_asc">Sức mạnh (Thấp ➔ Cao)</option>
+          <option value="age_desc">Tuổi (Cao ➔ Thấp)</option>
+          <option value="age_asc">Tuổi (Thấp ➔ Cao)</option>
+        </select>
       </div>
     </div>
   </div>
@@ -246,7 +315,16 @@ padding:5px;">
 <section id="tournamentPage" class="page hidden">
     <div class="page-header">
         <h2><i class="fa-solid fa-trophy"></i> Giải đấu Vô địch</h2>
-        <button class="btn-primary" onclick="if(window.characters) window.startTournament(window.characters)"><i class="fa-solid fa-play"></i> Bắt đầu giải đấu mới</button>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <select id="tourneySize" style="background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; outline: none;">
+                <option value="4">4 Võ Sĩ</option>
+                <option value="8">8 Võ Sĩ</option>
+                <option value="16" selected>16 Võ Sĩ</option>
+                <option value="32">32 Võ Sĩ</option>
+            </select>
+            <button class="btn-primary" onclick="if(typeof startRandomTournament === 'function') startRandomTournament()"><i class="fa-solid fa-dice"></i> Giải đấu ngẫu nhiên</button>
+            <button class="btn-secondary" onclick="if(typeof openTournamentSetup === 'function') openTournamentSetup()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);"><i class="fa-solid fa-khanda"></i> Tự chọn võ sĩ</button>
+        </div>
     </div>
     <div id="tournamentBracket"></div>
     <div style="margin-top:40px;">
@@ -471,6 +549,25 @@ padding:5px;">
             <i class="fa fa-broom"></i> Dọn kho ảnh
         </button>
     </div>
+
+    <!-- KHU VỰC MASTER BACKUP (MỚI) -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed rgba(255,255,255,0.2);">
+        <h3 style="color: #fcd34d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-earth-americas"></i> ĐỒNG BỘ ĐA NỀN TẢNG (MASTER BACKUP)
+        </h3>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Tính năng này giúp bạn nén toàn bộ thế giới vào 1 file duy nhất để mang sang máy tính/trình duyệt khác mà không lo mất dữ liệu.</p>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="exportMasterBackup()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; font-weight: bold; padding: 12px 20px;">
+                <i class="fa-solid fa-box-archive"></i> Tạo Bản Sao Lưu Đầy Đủ
+            </button>
+            
+            <input type="file" id="importMasterFileInput" hidden accept=".json" onchange="window.handleMasterImport(event)">
+            <button class="btn-danger pulse" onclick="document.getElementById('importMasterFileInput').click();" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-color: #dc2626; font-weight: bold; padding: 12px 20px;" title="Cảnh báo: Sẽ ghi đè thế giới hiện tại!">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Phục Hồi Dữ Liệu Đầy Đủ
+            </button>
+        </div>
+    </div>
   </div>
 
   <div id="imageContainer" class="grid-container" style="margin-top:20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;"></div>
@@ -633,10 +730,63 @@ padding:5px;">
 <section id="mapPage" class="page hidden">
   <iframe src="map.html" loading="lazy"></iframe>
 </section>
+
+<!-- TRANG GIA PHẢ (FAMILY TREE) -->
+<section id="familyTreePage" class="page hidden">
+    <div class="content-header">
+        <h2><i class="fa-solid fa-sitemap highlight-gold"></i> Huyết Thống Hoàng Gia</h2>
+        <div class="header-actions">
+            <button class="btn-primary" onclick="FamilyTree.showAddFamilyModal()">
+                <i class="fa-solid fa-plus"></i> Tạo Gia Phả
+            </button>
+        </div>
+    </div>
+    
+    <!-- Thanh Tabs Gia Phả -->
+    <div class="family-tabs-container">
+        <div class="family-tabs" id="familyTabs">
+            <!-- Tabs sẽ được render bằng JS -->
+        </div>
+    </div>
+
+    <div id="familyTreeContainer" class="family-tree-container">
+        <!-- Cây gia phả sẽ được vẽ bằng JS vào đây -->
+        <div class="empty-state">
+            <i class="fa-solid fa-seedling"></i>
+            <p>Chưa có Gia Phả nào. Hãy tạo mới!</p>
+        </div>
+    </div>
+</section>
+
+<!-- Modal Thêm/Sửa Gia Phả -->
+<div id="familyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-crown highlight-gold"></i> <span id="familyModalTitle">Tạo Gia Tộc Mới</span></h3>
+            <span class="close-modal" onclick="FamilyTree.closeFamilyModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Tên Gia Tộc (Ví dụ: Nhà Targaryen)</label>
+                <input type="text" id="familyInpName" class="input-fantasy" placeholder="Nhập tên gia tộc...">
+            </div>
+            <div class="form-group">
+                <label>Thủy Tổ (Người đứng đầu)</label>
+                <select id="familyInpRoot" class="select-fantasy">
+                    <!-- Danh sách nhân vật -->
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="FamilyTree.closeFamilyModal()">Hủy</button>
+            <button class="btn-primary" onclick="FamilyTree.saveFamily()">Lưu Gia Tộc</button>
+        </div>
+    </div>
+</div>
 </main>
 </div>
-<!-- MODAL -->
 
+<!-- MODALS -->
 <div id="characterModal" class="modal">
     <div class="modal-content advanced-modal">
         <div class="modal-header">
@@ -774,7 +924,23 @@ padding:5px;">
                     </section>
 
                     <section class="section-wrapper" id="sec-relation">
-                        <div class="section-header-mini">Mối liên kết & Biến hình</div>
+                        <div class="section-header-mini">Huyết thống & Biến hình</div>
+                        
+                        <div class="form-grid-2" style="margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-mars"></i> Phụ Thân (Cha)</label>
+                                <select id="charFather" class="select-fantasy">
+                                    <option value="">Không rõ / Ẩn danh</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-venus"></i> Mẫu Thân (Mẹ)</label>
+                                <select id="charMother" class="select-fantasy">
+                                    <option value="">Không rõ / Ẩn danh</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="dynamic-group">
                             <label>Liên kết xã hội</label>
                             <div id="relationContainer" class="dynamic-list-v2"></div>
@@ -1201,7 +1367,7 @@ padding:5px;">
 <script src="diplomacy.js"></script>
 <script src="kingdoms.js"></script>
 <script src="factions.js"></script>
-<script src="skills.js"></script>
+
 <script src="codexSearch.js"></script>
 <script src="infiniteScroll.js"></script>
 <script src="WorldLaws.js"></script>
@@ -1210,11 +1376,11 @@ padding:5px;">
 <script src="sort.js"></script>
 <script src="app.js"></script>
 <!-- Scripts mới -->
-<script src="features.js"></script>
-<script src="tournament.js"></script>
 <script src="weather.js"></script>
-<script src="commandPalette.js"></script>
-
+<script src="tournament.js"></script>
+<script src="features.js"></script>
+<script src="SkillTreeVortex.js"></script>
+<script src="familyTree.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 

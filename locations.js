@@ -20,12 +20,28 @@ window.renderLocations = async function() {
         );
     }
 
+    // Chỉ nhóm các địa điểm GỐC (không có parentId) trên trang chủ
+    const rootLocations = filteredLocations.filter(loc => !loc.parentId);
+
+    if (rootLocations.length === 0 && !searchQuery) {
+        container.innerHTML = `
+        <div class="empty-state" style="text-align:center; padding: 60px 20px; opacity: 0.9; background: rgba(15,23,42,0.5); border: 1px dashed rgba(251,191,36,0.3); border-radius: 15px; margin-top: 20px;">
+            <i class="fa-solid fa-map-location-dot fa-4x" style="color: var(--gold); margin-bottom: 20px; filter: drop-shadow(0 0 15px rgba(251,191,36,0.5));"></i>
+            <h3 style="font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.8rem; text-shadow: 0 0 10px rgba(0,0,0,0.8);">VÙNG ĐẤT CHƯA ĐƯỢC KHÁM PHÁ</h3>
+            <p style="color: #aaa; margin-top: 10px; font-size:1.1rem;">Bạn chưa tạo bất kỳ địa điểm nào trong Bách khoa thư.</p>
+            <p style="font-size: 0.95rem; margin-top: 15px; color:#fff;">Hãy ấn nút <b style="color:var(--gold);">+ Thêm mới</b> góc trên để bắt đầu kiến tạo thế giới.</p>
+        </div>`;
+        const countEl = document.getElementById("locationCount");
+        if (countEl) countEl.innerText = 0;
+        return;
+    }
+
     const kingdoms = window.kingdoms || [];
     const factions = window.factions || []; // GM: Lấy thêm factions để hiển thị tên
     const grouped = {};
 
     // --- GM: Logic nhóm mới (Ưu tiên Empire, sau đó đến Faction) ---
-    filteredLocations.forEach(loc => {
+    rootLocations.forEach(loc => {
         let key = "unknown";
         if (loc.empire && loc.empire !== "") {
             key = loc.empire;
@@ -123,8 +139,13 @@ window.saveLocation = async function() {
         faction: faction,
         era: getVal("locationEra"),
         description: getVal("locationDescription"),
-        condition: getVal("locationCondition"),
-        features: getVal("locationFeatures")
+        condition: getVal("locationCurses"),
+        features: getVal("locationResources"),
+        danger: getVal("locationDanger") || "An toàn",
+        climate: getVal("locationClimate"),
+        mana: getVal("locationMana"),
+        bgm: getVal("locationBGM"),
+        parentId: getVal("locationParentId")
     };
     if (empire) {
         window.currentOpeningEmpireId = empire;
@@ -219,15 +240,87 @@ window.showDetail = function(id) {
 
     // 4. Cập nhật nội dung chi tiết (Markdown/Xuống dòng)
     setHTML("detailDescription", loc.description); // ID mới trong HTML div
-    setHTML("detailFeatures", loc.features);
-    setHTML("detailCondition", loc.condition);
+    setHTML("detailCurses", loc.condition);
+    setHTML("detailResources", loc.features);
+
+    // Cập nhật các trường mới
+    setText("detailClimate", loc.climate);
+    setText("detailMana", loc.mana);
+    setText("detailCoordinates", loc.location);
+
+    // Danger badge
+    const badgeEl = document.getElementById("detailDangerBadge");
+    if (badgeEl) {
+        let color = "#10b981"; // An toàn
+        const d = loc.danger || "An toàn";
+        if (d === "S" || d === "SS" || d === "SSS") color = "#ef4444";
+        else if (d === "A" || d === "B") color = "#f97316";
+        else if (d === "C" || d === "D") color = "#fbbf24";
+        badgeEl.innerHTML = `<span style="background:${color}; padding: 4px 10px; border-radius: 6px; font-weight:bold; color:#000; box-shadow: 0 0 10px ${color};">${d}</span>`;
+    }
+
+    // BGM
+    const bgmEl = document.getElementById("detailBGM");
+    if (bgmEl) {
+        if (loc.bgm && loc.bgm.includes("http")) {
+            bgmEl.innerHTML = `<a href="${loc.bgm}" target="_blank" style="color:var(--gold); text-decoration:none;"><i class="fa-brands fa-youtube"></i> Nhấn để nghe nhạc nền khu vực này</a>`;
+        } else {
+            bgmEl.innerHTML = `<span style="opacity:0.5;">Không có âm thanh</span>`;
+        }
+    }
+
+    // Parent badge
+    const parentBadge = document.getElementById("detailParentBadge");
+    if (parentBadge) {
+        if (loc.parentId) {
+            const parentLoc = window.locations.find(l => l.id === loc.parentId);
+            if (parentLoc) {
+                parentBadge.innerHTML = `<i class="fa fa-level-up-alt"></i> Thuộc: ${parentLoc.name}`;
+                parentBadge.style.display = "inline-block";
+            } else {
+                parentBadge.style.display = "none";
+            }
+        } else {
+            parentBadge.style.display = "none";
+        }
+    }
+
+    // Sub-locations list
+    const subContainer = document.getElementById("subLocationsList");
+    if (subContainer) {
+        subContainer.innerHTML = "";
+        const subLocs = (window.locations || []).filter(l => l.parentId === loc.id);
+        if (subLocs.length === 0) {
+            subContainer.innerHTML = `<div style="grid-column: 1/-1; opacity:0.5; font-size:0.85rem; padding: 10px;">Chưa có khu vực trực thuộc nào.</div>`;
+        } else {
+            subLocs.forEach(sub => {
+                const card = document.createElement("div");
+                card.className = "small-card";
+                card.innerHTML = `
+                    <img src="https://i.imgur.com/6X8FQyA.png" id="img-sub-${sub.id}">
+                    <h4>${sub.name}</h4>
+                    <div style="font-size:0.65rem; color:var(--gold); text-align:center; margin-top:2px; font-weight:bold;">Hạng: ${sub.danger || "An toàn"}</div>
+                `;
+                card.onclick = () => showDetail(sub.id);
+                if (typeof getImage === "function") {
+                    getImage(sub.id).then(url => { if (url) {
+                        const el = document.getElementById(`img-sub-${sub.id}`);
+                        if(el) el.src = url;
+                    }});
+                }
+                subContainer.appendChild(card);
+            });
+        }
+    }
 
     // 5. Xử lý hiển thị Tên Đế chế & Phe phái
     const empire = (window.kingdoms || []).find(k => String(k.id) === String(loc.empire));
     const faction = (window.factions || []).find(f => String(f.id) === String(loc.faction));
     
-    setText("detailEmpire", empire ? empire.name : "Tự do");
-    setText("detailFaction", faction ? faction.name : "Không có");
+    let efText = [];
+    if (empire) efText.push("Đế chế: " + empire.name);
+    if (faction) efText.push("Phe phái: " + faction.name);
+    setText("detailEmpireFaction", efText.length > 0 ? efText.join(" | ") : "Tự do");
 
     // 6. Xử lý hình ảnh Banner
     const imgEl = document.getElementById("detailImage");
@@ -250,9 +343,45 @@ window.showDetail = function(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+window.goUpToParent = function() {
+    const loc = window.locations.find(l => l.id === currentDetailId);
+    if (loc && loc.parentId) {
+        showDetail(loc.parentId);
+    }
+};
+
+window.openFormWithParent = function(parentId) {
+    openForm();
+    if (parentId) {
+        const p = window.locations.find(x => x.id === parentId);
+        if (p) {
+            document.getElementById("locationParentId").value = parentId;
+            document.getElementById("parentInfoDisplay").style.display = "block";
+            document.getElementById("parentNameDisplay").innerText = p.name;
+            
+            // Auto-fill empire and faction from parent
+            document.getElementById("locationEmpire").value = p.empire || "";
+            document.getElementById("locationFaction").value = p.faction || "";
+        }
+    }
+};
+
 window.backToList = function() {
     document.getElementById("locationDetail").style.display = "none";
     document.getElementById("locationListPage").style.display = "block";
+};
+
+window.editCurrentLocation = function() {
+    if (currentDetailId) {
+        openForm(currentDetailId);
+    }
+};
+
+window.deleteCurrentLocation = async function() {
+    if (currentDetailId) {
+        await deleteLocation(currentDetailId);
+        backToList();
+    }
 };
 window.currentOpeningEmpireId = null; 
 window.toggleTab = function(el, empireId) {
@@ -275,6 +404,9 @@ window.openForm = function(id = null) {
 
     document.getElementById("formTitle").innerText = id ? "Sửa địa điểm" : "Thêm địa điểm";
 
+    document.getElementById("locationParentId").value = "";
+    document.getElementById("parentInfoDisplay").style.display = "none";
+
     if (id) {
         editingId = id;
         const loc = (window.locations || []).find(l => l.id === id);
@@ -286,8 +418,21 @@ window.openForm = function(id = null) {
             document.getElementById("locationFaction").value = loc.faction || "";
             document.getElementById("locationEra").value = loc.era || "";
             document.getElementById("locationDescription").value = loc.description || "";
-            document.getElementById("locationCondition").value = loc.condition || "";
-            document.getElementById("locationFeatures").value = loc.features || "";
+            document.getElementById("locationCurses").value = loc.condition || "";
+            document.getElementById("locationResources").value = loc.features || "";
+            document.getElementById("locationDanger").value = loc.danger || "An toàn";
+            document.getElementById("locationClimate").value = loc.climate || "";
+            document.getElementById("locationMana").value = loc.mana || "";
+            document.getElementById("locationBGM").value = loc.bgm || "";
+            
+            if (loc.parentId) {
+                document.getElementById("locationParentId").value = loc.parentId;
+                const p = window.locations.find(x => x.id === loc.parentId);
+                if (p) {
+                    document.getElementById("parentInfoDisplay").style.display = "block";
+                    document.getElementById("parentNameDisplay").innerText = p.name;
+                }
+            }
         }
     } else if (window.currentOpeningEmpireId && window.currentOpeningEmpireId !== "unknown") {
         // GM: Tự động điền theo Tab đang mở

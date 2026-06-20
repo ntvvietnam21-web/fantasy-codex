@@ -1,55 +1,66 @@
-const DB_NAME = "CreatureCodexDB";
-const DB_VERSION = 1;
-const STORE_CREATURES = "creatures";
-const STORE_IMAGES = "images";
-let db;
 let currentPage = 1;
 const perPage = 12;
 let editCreatureId = null;
-// Khởi tạo Database
-const initDB = () => {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+let allCreaturesList = []; // Để dùng cho dropdown Tiến hóa
 
-        request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(STORE_CREATURES)) {
-                db.createObjectStore(STORE_CREATURES, { keyPath: "id" });
-            }
-            if (!db.objectStoreNames.contains(STORE_IMAGES)) {
-                db.createObjectStore(STORE_IMAGES, { keyPath: "id" });
-            }
-        };
-
-        request.onsuccess = (e) => {
-            db = e.target.result;
-            resolve(db);
-        };
-        request.onerror = (e) => reject("Lỗi kết nối IndexedDB");
-    });
-};
-async function getAllCreatures() {
+async function migrateOldCreatures() {
     return new Promise((resolve) => {
-        const tx = db.transaction(STORE_CREATURES, "readonly");
-        const store = tx.objectStore(STORE_CREATURES);
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
+        const req = indexedDB.open("CreatureCodexDB", 1);
+        req.onsuccess = async (e) => {
+            const oldDb = e.target.result;
+            if (!oldDb.objectStoreNames.contains("creatures")) {
+                return resolve(true);
+            }
+            const storeNames = ["creatures"];
+            if (oldDb.objectStoreNames.contains("images")) storeNames.push("images");
+            const tx = oldDb.transaction(storeNames, "readonly");
+            const creaturesReq = tx.objectStore("creatures").getAll();
+            const imagesReq = storeNames.includes("images") ? tx.objectStore("images").getAll() : null;
+            
+            creaturesReq.onsuccess = async () => {
+                const oldCreatures = creaturesReq.result || [];
+                if (oldCreatures.length === 0) return resolve(true);
+                
+                const oldImages = (imagesReq && imagesReq.result) || [];
+                const imgMap = {};
+                oldImages.forEach(img => imgMap[img.id] = img.blob);
+                
+                console.log("Di tản", oldCreatures.length, "quái vật cũ...");
+                
+                for (let c of oldCreatures) {
+                    // Cứu ảnh cũ
+                    if (c.imgId && imgMap[c.imgId]) {
+                        const file = new File([imgMap[c.imgId]], "old_img.png", {type: imgMap[c.imgId].type});
+                        await saveImage(c.imgId, file);
+                    }
+                    // Cấp phát stats ngẫu nhiên nếu chưa có
+                    c.hp = c.hp || 100; c.atk = c.atk || 50; c.def = c.def || 50; c.spd = c.spd || 50;
+                    c.skill = c.skill || "";
+                    c.tameable = c.tameable || "false";
+                    c.evolution = c.evolution || "";
+                }
+                
+                try {
+                    await dbSave("creatures", oldCreatures);
+                    console.log("Di tản thành công", oldCreatures.length, "quái vật.");
+                    indexedDB.deleteDatabase("CreatureCodexDB");
+                } catch (e) {
+                    console.error("Lỗi khi di tản quái vật:", e);
+                }
+                resolve(true);
+            };
+        };
+        req.onerror = () => resolve(true);
     });
 }
+
+async function getAllCreatures() {
+    return await dbGetAll("creatures") || [];
+}
+
 async function getCreatureImage(imgId) {
     if (!imgId) return "";
-    return new Promise((resolve) => {
-        const tx = db.transaction(STORE_IMAGES, "readonly");
-        const store = tx.objectStore(STORE_IMAGES);
-        const req = store.get(imgId);
-        req.onsuccess = () => {
-            if (req.result && req.result.blob) {
-                resolve(URL.createObjectURL(req.result.blob));
-            }
-            resolve("");
-        };
-        req.onerror = () => resolve("");
-    });
+    return await getImage(imgId) || "";
 }
 async function showCreatures(page = 1) {
     currentPage = page;
@@ -60,6 +71,17 @@ async function showCreatures(page = 1) {
     creatureList.innerHTML = `<div class="loading-spinner">Đang triệu hồi...</div>`;
 
     let all = await getAllCreatures();
+    allCreaturesList = all; // Lưu vào cache
+    
+    // Cập nhật dropdown Tiến Hóa
+    const evoSelect = document.getElementById("creatureEvolution");
+    if (evoSelect) {
+        let evoHtml = '<option value="">-- Không có --</option>';
+        all.forEach(c => {
+            evoHtml += `<option value="${c.id}">${c.name}</option>`;
+        });
+        evoSelect.innerHTML = evoHtml;
+    }
     
     if (searchVal) {
         all = all.filter(c => 
@@ -119,42 +141,55 @@ async function saveCreature() {
     const type = document.getElementById("creatureType").value;
     const rank = document.getElementById("creatureRank").value;
     const desc = document.getElementById("creatureDesc").value;
-    const fileInput = document.getElementById("creatureImg").files[0];
+    const habitat = document.getElementById("creatureHabitat") ? document.getElementById("creatureHabitat").value : "";
+    const weakness = document.getElementById("creatureWeakness") ? document.getElementById("creatureWeakness").value : "";
+    const drops = document.getElementById("creatureDrops") ? document.getElementById("creatureDrops").value : "";
+    const hp = document.getElementById("statHP") ? parseInt(document.getElementById("statHP").value) : 100;
+    const atk = document.getElementById("statATK") ? parseInt(document.getElementById("statATK").value) : 50;
+    const def = document.getElementById("statDEF") ? parseInt(document.getElementById("statDEF").value) : 50;
+    const spd = document.getElementById("statSPD") ? parseInt(document.getElementById("statSPD").value) : 50;
+    const skill = document.getElementById("creatureSkill") ? document.getElementById("creatureSkill").value : "";
+    const tameable = document.getElementById("creatureTameable") ? document.getElementById("creatureTameable").value : "false";
+    const evolution = document.getElementById("creatureEvolution") ? document.getElementById("creatureEvolution").value : "";
+    
+    const fileInput = document.getElementById("creatureImg")?.files?.[0];
 
-    const id = editCreatureId || Date.now().toString();
+    const id = editCreatureId || "creature_" + Date.now();
     let imgId = editCreatureId ? (await getCreatureData(editCreatureId))?.imgId : null;
 
-    // Xử lý ảnh nếu có file mới
     if (fileInput) {
-        imgId = "img_" + Date.now();
-        const txImg = db.transaction(STORE_IMAGES, "readwrite");
-        txImg.objectStore(STORE_IMAGES).put({ id: imgId, blob: fileInput });
+        imgId = "img_creature_" + Date.now();
+        await saveImage(imgId, fileInput);
     }
 
-    const creatureData = { id, name, type, rank, desc, imgId, updatedAt: Date.now() };
+    const creatureData = { id, name, type, rank, desc, habitat, weakness, drops, hp, atk, def, spd, skill, tameable, evolution, imgId, updatedAt: Date.now() };
     
-    const tx = db.transaction(STORE_CREATURES, "readwrite");
-    tx.objectStore(STORE_CREATURES).put(creatureData);
+    // Lấy DB hiện tại, add/update và lưu lại
+    let all = await dbGetAll("creatures");
+    let existingIndex = all.findIndex(c => c.id === id);
+    if(existingIndex >= 0) all[existingIndex] = creatureData;
+    else all.push(creatureData);
+    
+    await dbSave("creatures", all);
 
-    tx.oncomplete = () => {
-        showToast(editCreatureId ? "Đã cập nhật sinh vật!" : "Đã thêm sinh vật mới!");
-        closeCreatureModal();
-        showCreatures(currentPage);
-    };
+    showToast(editCreatureId ? "Đã cập nhật sinh vật!" : "Đã thêm sinh vật mới!");
+    closeCreatureModal();
+    showCreatures(currentPage);
 }
 async function deleteCreature(id) {
     if (!confirm("Xóa sinh vật này khỏi sử sách?")) return;
 
     const data = await getCreatureData(id);
-    const tx = db.transaction([STORE_CREATURES, STORE_IMAGES], "readwrite");
+    if (!data) return;
     
-    tx.objectStore(STORE_CREATURES).delete(id);
-    if (data.imgId) tx.objectStore(STORE_IMAGES).delete(data.imgId);
+    let all = await dbGetAll("creatures");
+    all = all.filter(c => c.id !== id);
+    await dbSave("creatures", all);
+    
+    if (data.imgId) await deleteImage(data.imgId);
 
-    tx.oncomplete = () => {
-        showToast("Đã xóa sinh vật.");
-        showCreatures(currentPage);
-    };
+    showToast("Đã xóa sinh vật.");
+    showCreatures(currentPage);
 }
 async function editCreature(id) {
     const c = await getCreatureData(id);
@@ -166,6 +201,18 @@ async function editCreature(id) {
     document.getElementById("creatureType").value = c.type || "";
     document.getElementById("creatureRank").value = c.rank || "C";
     document.getElementById("creatureDesc").value = c.desc || "";
+    
+    if (document.getElementById("creatureHabitat")) document.getElementById("creatureHabitat").value = c.habitat || "";
+    if (document.getElementById("creatureWeakness")) document.getElementById("creatureWeakness").value = c.weakness || "";
+    if (document.getElementById("creatureDrops")) document.getElementById("creatureDrops").value = c.drops || "";
+    
+    if (document.getElementById("statHP")) document.getElementById("statHP").value = c.hp || 100;
+    if (document.getElementById("statATK")) document.getElementById("statATK").value = c.atk || 50;
+    if (document.getElementById("statDEF")) document.getElementById("statDEF").value = c.def || 50;
+    if (document.getElementById("statSPD")) document.getElementById("statSPD").value = c.spd || 50;
+    if (document.getElementById("creatureSkill")) document.getElementById("creatureSkill").value = c.skill || "";
+    if (document.getElementById("creatureTameable")) document.getElementById("creatureTameable").value = c.tameable || "false";
+    if (document.getElementById("creatureEvolution")) document.getElementById("creatureEvolution").value = c.evolution || "";
     
     const imgPreview = document.getElementById("creaturePreview");
     const currentImg = await getCreatureImage(c.imgId);
@@ -183,24 +230,79 @@ async function openCreatureDetail(id) {
     document.getElementById("detailRank").innerText = "RANK " + (c.rank || "C");
     document.getElementById("detailCreatureDesc").innerText = c.desc || "Không có dữ liệu mô tả về sinh vật này.";
     
+    if (document.getElementById("detailHabitat")) document.getElementById("detailHabitat").innerText = c.habitat || "Không rõ";
+    if (document.getElementById("detailWeakness")) document.getElementById("detailWeakness").innerText = c.weakness || "Không rõ";
+    if (document.getElementById("detailDrops")) document.getElementById("detailDrops").innerText = c.drops || "Không có";
+    
     const header = document.getElementById("detailHeader");
     const imgUrl = await getCreatureImage(c.imgId);
     header.style.backgroundImage = `url('${imgUrl || 'https://i.imgur.com/6X8FQyA.png'}')`;
+    
+    // Nạp Stats & Animations
+    if (document.getElementById("dtHPVal")) {
+        const hp = c.hp || 100, atk = c.atk || 50, def = c.def || 50, spd = c.spd || 50;
+        document.getElementById("dtHPVal").innerText = hp;
+        document.getElementById("dtATKVal").innerText = atk;
+        document.getElementById("dtDEFVal").innerText = def;
+        document.getElementById("dtSPDVal").innerText = spd;
+        
+        setTimeout(() => {
+            document.getElementById("dtHPBar").style.width = Math.min((hp/500)*100, 100) + "%";
+            document.getElementById("dtATKBar").style.width = Math.min((atk/300)*100, 100) + "%";
+            document.getElementById("dtDEFBar").style.width = Math.min((def/300)*100, 100) + "%";
+            document.getElementById("dtSPDBar").style.width = Math.min((spd/300)*100, 100) + "%";
+        }, 100);
+    }
+    
+    if (document.getElementById("detailSkill")) {
+        document.getElementById("detailSkill").innerText = c.skill || "Không có";
+    }
+    
+    if (document.getElementById("detailTameable")) {
+        const t = document.getElementById("detailTameable");
+        if(c.tameable === "true") {
+            t.innerText = "Có thể thuần hóa (Tameable)";
+            t.style.background = "rgba(16,185,129,0.2)";
+            t.style.color = "#10b981";
+        } else {
+            t.innerText = "Không thể thuần hóa (Wild)";
+            t.style.background = "rgba(239,68,68,0.2)";
+            t.style.color = "#ef4444";
+        }
+    }
+    
+    if (document.getElementById("detailEvolution")) {
+        const evoDiv = document.getElementById("detailEvolution");
+        if (c.evolution && allCreaturesList.length > 0) {
+            const evoObj = allCreaturesList.find(x => x.id === c.evolution);
+            if (evoObj) {
+                evoDiv.innerText = "Tiến hóa thành: " + evoObj.name;
+                evoDiv.onclick = () => {
+                    closeCreatureDetailModal();
+                    setTimeout(() => openCreatureDetail(evoObj.id), 300);
+                };
+            } else {
+                evoDiv.innerText = "Không có dạng kế tiếp";
+                evoDiv.onclick = null;
+            }
+        } else {
+            evoDiv.innerText = "Không có dạng kế tiếp";
+            evoDiv.onclick = null;
+        }
+    }
 
     document.getElementById("creatureDetailModal").style.display = "flex";
 }
 async function getCreatureData(id) {
-    return new Promise(resolve => {
-        const tx = db.transaction(STORE_CREATURES, "readonly");
-        const req = tx.objectStore(STORE_CREATURES).get(id);
-        req.onsuccess = () => resolve(req.result);
-    });
+    const all = await dbGetAll("creatures");
+    return all.find(c => c.id === id);
 }
 function showToast(msg) {
     console.log("GM Codex:", msg);
 }
 window.addEventListener("DOMContentLoaded", async () => {
-    await initDB();
+    await initImageDB(); // Khởi tạo DB chung
+    await migrateOldCreatures(); // Di tản quái vật cũ nếu có
     showCreatures();
 
     // Lắng nghe tìm kiếm

@@ -462,3 +462,165 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
+// ==========================================
+// MASTER BACKUP & RESTORE
+// ==========================================
+window.exportMasterBackup = async function() {
+    if (typeof showToast === 'function') showToast("📦 Đang thu thập dữ liệu toàn thế giới...", "info");
+    
+    const masterData = {
+        FantasyCodexProMasterBackup: true,
+        timestamp: new Date().toISOString(),
+        data: {}
+    };
+
+    const coreKeys = ["characters", "stats", "races", "kingdoms", "factions", "weapons_data", "skills_data", "items_data", "mapLocations", "timeline", "locations", "world_maps_v2", "families"];
+    
+    // 1. Fetch Core DB
+    try {
+        const coreData = await new Promise((resolve) => {
+            const req = indexedDB.open("FantasyCodexDB", 1);
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = () => resolve(null);
+        });
+        if (coreData) {
+            for (let k of coreKeys) {
+                if (!coreData.objectStoreNames.contains(k)) continue;
+                try {
+                    const tx = coreData.transaction(k, "readonly");
+                    const res = await new Promise(res => {
+                        const r = tx.objectStore(k).getAll();
+                        r.onsuccess = () => res(r.result);
+                        r.onerror = () => res([]);
+                    });
+                    masterData.data[k] = res || [];
+                } catch(e) { console.warn("Skip key", k); }
+            }
+        }
+    } catch(e) {}
+
+    // 2. Fetch Creatures
+    try {
+        const creatureData = await new Promise((resolve) => {
+            const req = indexedDB.open("CreatureCodexDB", 1);
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = () => resolve(null);
+        });
+        if (creatureData && creatureData.objectStoreNames.contains("creatures")) {
+            const tx = creatureData.transaction("creatures", "readonly");
+            const res = await new Promise(res => {
+                const r = tx.objectStore("creatures").getAll();
+                r.onsuccess = () => res(r.result);
+                r.onerror = () => res([]);
+            });
+            masterData.data["creatures"] = res || [];
+        }
+    } catch(e) {}
+
+    // 3. Fetch Laws
+    try {
+        const lawData = await new Promise((resolve) => {
+            const req = indexedDB.open("WorldLawsDB", 2);
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = () => resolve(null);
+        });
+        if (lawData) {
+            if (lawData.objectStoreNames.contains("laws")) {
+                const tx1 = lawData.transaction("laws", "readonly");
+                const res1 = await new Promise(res => {
+                    const r = tx1.objectStore("laws").getAll();
+                    r.onsuccess = () => res(r.result);
+                    r.onerror = () => res([]);
+                });
+                masterData.data["laws"] = res1 || [];
+            }
+
+            if (lawData.objectStoreNames.contains("categories")) {
+                const tx2 = lawData.transaction("categories", "readonly");
+                const res2 = await new Promise(res => {
+                    const r = tx2.objectStore("categories").getAll();
+                    r.onsuccess = () => res(r.result);
+                    r.onerror = () => res([]);
+                });
+                masterData.data["law_categories"] = res2 || [];
+            }
+        }
+    } catch(e) {}
+
+    downloadJSON(masterData, `FantasyCodexPro_MasterBackup_${new Date().toISOString().slice(0, 10)}.json`);
+    if (typeof showToast === 'function') showToast("✅ Master Backup hoàn tất!", "success");
+};
+
+// Hàm lắng nghe file import Master
+window.handleMasterImport = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async event => {
+        try {
+            const masterData = JSON.parse(event.target.result);
+            if (!masterData.FantasyCodexProMasterBackup) {
+                if (typeof showToast === 'function') showToast("❌ File không phải là bản Master Backup hợp lệ!", "error");
+                return;
+            }
+            
+            if (typeof showToast === 'function') showToast("⏳ Đang phục hồi toàn bộ thế giới...", "info");
+            
+            // Xóa hết rồi Import
+            const coreKeys = ["characters", "stats", "races", "kingdoms", "factions", "weapons_data", "skills_data", "items_data", "mapLocations", "timeline", "locations", "world_maps_v2", "families"];
+            
+            for (let k in masterData.data) {
+                const dataArray = masterData.data[k];
+                if (!Array.isArray(dataArray)) continue;
+
+                if (k === "creatures") {
+                    await new Promise((resolve) => {
+                        const req = indexedDB.open("CreatureCodexDB", 1);
+                        req.onsuccess = (e) => {
+                            const db = e.target.result;
+                            const tx = db.transaction("creatures", "readwrite");
+                            const store = tx.objectStore("creatures");
+                            store.clear().onsuccess = () => {
+                                dataArray.forEach(item => store.put(item));
+                                tx.oncomplete = () => resolve();
+                            };
+                        };
+                    });
+                } else if (k === "laws" || k === "law_categories") {
+                    const storeName = k === "laws" ? "laws" : "categories";
+                    await new Promise((resolve) => {
+                        const req = indexedDB.open("WorldLawsDB", 2);
+                        req.onsuccess = (e) => {
+                            const db = e.target.result;
+                            const tx = db.transaction(storeName, "readwrite");
+                            const store = tx.objectStore(storeName);
+                            store.clear().onsuccess = () => {
+                                dataArray.forEach(item => store.put(item));
+                                tx.oncomplete = () => resolve();
+                            };
+                        };
+                    });
+                } else if (coreKeys.includes(k)) {
+                    if (typeof dbSave === 'function') {
+                        try {
+                            await dbSave(k, dataArray);
+                        } catch(err) { console.warn("Could not save", k, err); }
+                    }
+                }
+            }
+            
+            if (typeof showToast === 'function') showToast("🎉 Phục hồi thành công! Hệ thống sẽ tải lại sau 2 giây...", "success");
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+            
+        } catch (err) {
+            console.error(err);
+            if (typeof showToast === 'function') showToast("❌ Lỗi khi đọc file Backup!", "error");
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = null; // reset
+};

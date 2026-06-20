@@ -3,7 +3,7 @@ let imageDB = null;
 const DB_NAME = "FantasyCodexImages";
 const STORE_NAME = "images";
 let DB_VERSION = 26;
-const CURRENT_SCHEMA_VERSION = 6;
+const CURRENT_SCHEMA_VERSION = 8; // Tăng version để thêm store families
 // Mutex: tránh race condition khi nhiều lời gọi initImageDB() đồng thời
 let _initPromise = null;
 
@@ -38,7 +38,7 @@ function initImageDB(forceReset = false) {
                 }
 
                 // Thêm battle_history store để battle.js lưu lịch sử chiến đấu
-                const stores = ["characters", "races", "kingdoms", "factions", "locations", "map_routes", "world_maps_v2", "timeline", "battle_history"];
+                const stores = ["characters", "races", "kingdoms", "factions", "locations", "map_routes", "world_maps_v2", "timeline", "battle_history", "creatures", "families"];
                 stores.forEach(s => {
                     if (!db.objectStoreNames.contains(s)) {
                         const key = (s === "races") ? "name" : "id";
@@ -90,14 +90,18 @@ function initImageDB(forceReset = false) {
 }
 
 async function dbGet(storeName) {
-    if (!imageDB) await initImageDB();
-    return new Promise((resolve) => {
-        const tx = imageDB.transaction(storeName, "readonly");
-        const store = tx.objectStore(storeName);
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => resolve([]);
-    });
+    try {
+        if (!imageDB) await initImageDB();
+        return new Promise((resolve) => {
+            const tx = imageDB.transaction(storeName, "readonly");
+            const store = tx.objectStore(storeName);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => resolve([]);
+        });
+    } catch (e) {
+        return [];
+    }
 }
 
 async function dbGetAll(storeName) {
@@ -143,14 +147,18 @@ async function dbSave(storeName, data) {
 }
 
 async function dbDelete(storeName, id) {
-    if (!imageDB) await initImageDB();
-    return new Promise((resolve, reject) => {
-        const tx = imageDB.transaction(storeName, "readwrite");
-        const store = tx.objectStore(storeName);
-        const request = store.delete(id);
-        request.onsuccess = () => resolve(true);
-        request.onerror = (e) => reject(e.target.error);
-    });
+    try {
+        if (!imageDB) await initImageDB();
+        return new Promise((resolve, reject) => {
+            const tx = imageDB.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve(true);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        return false;
+    }
 }
 
 async function saveImage(id, file) {
@@ -177,21 +185,25 @@ async function saveImage(id, file) {
 }
 
 async function getImage(id) {
-    if (!imageDB) await initImageDB();
-    return new Promise((resolve) => {
-        const tx = imageDB.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
-        const index = store.index("id");
-        const request = index.getAll(id);
+    try {
+        if (!imageDB) await initImageDB();
+        return new Promise((resolve) => {
+            const tx = imageDB.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const index = store.index("id");
+            const request = index.getAll(id);
 
-        request.onsuccess = () => {
-            const results = request.result;
-            if (!results || !results.length) return resolve(null);
-            const latest = results.sort((a, b) => b.timestamp - a.timestamp)[0];
-            resolve(URL.createObjectURL(latest.data));
-        };
-        request.onerror = () => resolve(null);
-    });
+            request.onsuccess = () => {
+                const results = request.result;
+                if (!results || !results.length) return resolve(null);
+                const latest = results.sort((a, b) => b.timestamp - a.timestamp)[0];
+                resolve(URL.createObjectURL(latest.data));
+            };
+            request.onerror = () => resolve(null);
+        });
+    } catch (e) {
+        return null;
+    }
 }
 
 async function deleteImage(id) {

@@ -6,6 +6,7 @@
     <title>Battle Simulator Pro | GM Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="SkillTreeVortex.css">
     <link rel="stylesheet" href="battle.css">
     <style>
         :root { --pA: 50%; }
@@ -17,7 +18,7 @@
         .bar-b { flex: 1; background: linear-gradient(90deg, #60a5fa, #3b82f6); transition: 0.5s ease; }
         .battle-history-mini {
             margin-top: 30px; padding: 15px; background: rgba(15, 23, 42, 0.6);
-            border-radius: 12px; border: 1px border dashed #334155;
+            border-radius: 12px; border: 1px dashed #334155;
         }
         .history-item { font-size: 12px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding: 5px 0; }
         .glow-text { font-family: 'Cinzel', serif; letter-spacing: 2px; }
@@ -34,6 +35,18 @@
         <button class="icon-btn" onclick="AudioManager.toggleBackground()">
             <i class="fa-solid fa-volume-high"></i>
         </button>
+    </div>
+
+    <div class="terrain-selector">
+        <label for="battleTerrain"><i class="fa-solid fa-mountain-sun"></i> Môi Trường Chiến Đấu:</label>
+        <select id="battleTerrain" onchange="updateTotalPowerDisplay()">
+            <option value="none">Đấu Trường Chuẩn (Không ảnh hưởng)</option>
+            <option value="volcano">Núi Lửa Rực Lửa (Buff: Lửa, Nerf: Cỏ/Băng)</option>
+            <option value="ocean">Đại Dương Sâu Thẳm (Buff: Nước, Nerf: Lửa)</option>
+            <option value="forest">Rừng Rậm Nguyên Sinh (Buff: Cỏ, Nerf: Đất)</option>
+            <option value="holy">Đền Thờ Thiêng (Buff: Ánh Sáng, Nerf: Bóng Tối)</option>
+            <option value="abyss">Vực Thẳm Tăm Tối (Buff: Bóng Tối, Nerf: Ánh Sáng)</option>
+        </select>
     </div>
 
     <div class="prediction-label" style="text-align: center; color: #94a3b8; font-size: 13px;">
@@ -55,7 +68,7 @@
             </div>
             <div id="teamA" class="slot-container"></div>
             <button class="add-slot-btn" onclick="addSlot('teamA'); AudioManager.playClick()">
-                <i class="fa-solid fa-plus-circle"></i> Triệu hồi
+                <i class="fa-solid fa-plus-circle"></i> Chiêu mộ Chiến binh
             </button>
         </div>
 
@@ -73,7 +86,7 @@
             </div>
             <div id="teamB" class="slot-container"></div>
             <button class="add-slot-btn" onclick="addSlot('teamB'); AudioManager.playClick()">
-                <i class="fa-solid fa-plus-circle"></i> Triệu hồi
+                <i class="fa-solid fa-plus-circle"></i> Chiêu mộ Chiến binh
             </button>
         </div>
     </div>
@@ -103,6 +116,7 @@
 
 <script src="audio.js"></script>
 <script src="imageDB.js"></script>
+<script src="SkillTreeVortex.js"></script>
 <script src="battle.js"></script>
 
 <script>

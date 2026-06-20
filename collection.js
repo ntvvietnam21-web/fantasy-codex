@@ -30,10 +30,25 @@ window.addEventListener("load", async () => {
 });
 
 // 2. TẢI DỮ LIỆU
+window.allCharacters = [];
 async function loadAllDataFromDB() {
     dbData.weapons = await dbGetCustom("weapons_data") || [];
     dbData.skills = await dbGetCustom("skills_data") || [];
     dbData.items = await dbGetCustom("items_data") || [];
+    
+    // Tải danh sách nhân vật cho trường Owner
+    if (typeof dbGet === "function") {
+        window.allCharacters = await dbGet("characters") || [];
+        const ownerSelect = document.getElementById("inpOwner");
+        if (ownerSelect) {
+            let html = '<option value="">-- Không có --</option>';
+            window.allCharacters.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => {
+                html += `<option value="${c.id}">${c.name}</option>`;
+            });
+            ownerSelect.innerHTML = html;
+        }
+    }
+
     renderAll();
 }
 
@@ -78,12 +93,17 @@ async function saveDataEntry() {
         }
     }
 
+    const rarity = document.getElementById("inpRarity") ? document.getElementById("inpRarity").value : "Common";
+    const owner = document.getElementById("inpOwner") ? document.getElementById("inpOwner").value : "";
+
     const newItem = {
         id: id,
         name: name,
         desc: desc,
         image: imgId,
         power: extra,
+        rarity: rarity,
+        owner: owner,
         updatedAt: Date.now()
     };
 
@@ -114,15 +134,24 @@ function renderList(type, containerId) {
 
     dbData[type].forEach((item) => {
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = `card rarity-${item.rarity || 'Common'}`;
         const domImgId = `img-render-${item.id}`;
         
+        let ownerHtml = "";
+        if (item.owner && window.allCharacters) {
+            const ownerObj = window.allCharacters.find(c => c.id === item.owner);
+            if (ownerObj) {
+                ownerHtml = `<span class="card-owner-link" onclick="event.stopPropagation(); window.localStorage.setItem('forceOpenProfile', '${item.owner}'); window.location.href='index.html';">Chủ nhân: ${ownerObj.name}</span>`;
+            }
+        }
+
         card.innerHTML = `
             <img id="${domImgId}" src="https://via.placeholder.com/200?text=Loading..." 
                  onclick="showDetail('${type}', '${item.id}')" style="cursor:pointer">
             <div class="card-info" style="padding: 10px;">
                 <h3 style="margin:0; font-size:14px; color:#ffd700;">${item.name}</h3>
                 ${item.power ? `<p style="margin:5px 0 0; font-size:11px; opacity:0.7;">⚔️ ${item.power}</p>` : ''}
+                ${ownerHtml}
             </div>
             <div class="card-actions" style="display:flex; gap:5px; padding:0 10px 10px;">
                 <button onclick="event.stopPropagation(); prepareEdit('${type}', '${item.id}')" style="flex:1; cursor:pointer;">✏️ Sửa</button>
@@ -193,6 +222,13 @@ function prepareEdit(type, id) {
     document.getElementById("inpName").value = item.name;
     document.getElementById("inpDesc").value = item.desc;
     document.getElementById("inpExtra").value = item.power || "";
+    
+    if (document.getElementById("inpRarity")) {
+        document.getElementById("inpRarity").value = item.rarity || "Common";
+    }
+    if (document.getElementById("inpOwner")) {
+        document.getElementById("inpOwner").value = item.owner || "";
+    }
     
     document.getElementById("modalTitle").innerText = "Chỉnh sửa Codex";
     document.getElementById("inpExtra").parentElement.style.display = (type === 'skills') ? "none" : "block";

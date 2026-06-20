@@ -80,6 +80,25 @@
                     <label>Tên gọi <span style="color:var(--clr-weapon)">*</span></label>
                     <input id="inpName" type="text" placeholder="Nhập tên...">
                 </div>
+
+                <div class="input-group" id="groupRarity">
+                    <label>Phẩm chất (Độ hiếm)</label>
+                    <select id="inpRarity" class="rarity-select">
+                        <option value="Common" style="color: #cbd5e1;">Common (Thường)</option>
+                        <option value="Rare" style="color: #3b82f6;">Rare (Hiếm)</option>
+                        <option value="Epic" style="color: #a855f7;">Epic (Sử thi)</option>
+                        <option value="Legendary" style="color: #f59e0b;">Legendary (Huyền thoại)</option>
+                        <option value="Mythic" style="color: #ef4444;">Mythic (Thần thoại)</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="groupOwner">
+                    <label>Chủ sở hữu hiện tại</label>
+                    <select id="inpOwner">
+                        <option value="">-- Không có --</option>
+                        <!-- Danh sách nhân vật nạp bằng JS -->
+                    </select>
+                </div>
                 
                 <div class="input-group" id="groupExtra">
                     <label id="labelExtra">Thông số</label>

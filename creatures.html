@@ -94,6 +94,65 @@
                 <textarea id="creatureDesc" rows="4" placeholder="Viết về tập tính, kỹ năng..."></textarea>
             </div>
 
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div class="form-group">
+                    <label>Vùng sinh sống</label>
+                    <input type="text" id="creatureHabitat" placeholder="Vực thẳm, Rừng sương mù...">
+                </div>
+                <div class="form-group">
+                    <label>Nhược điểm</label>
+                    <input type="text" id="creatureWeakness" placeholder="Sợ lửa, Mắt trái...">
+                </div>
+                <div class="form-group">
+                    <label>Vật phẩm rơi (Drops)</label>
+                    <input type="text" id="creatureDrops" placeholder="Vảy rồng, Nanh quỷ...">
+                </div>
+            </div>
+
+            <!-- HỆ THỐNG MỚI -->
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2);">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label><i class="fa-solid fa-fire"></i> Kỹ năng Độc Tôn</label>
+                    <input type="text" id="creatureSkill" placeholder="VD: Hơi Thở Rồng Lửa, Lời Nguyền Hóa Đá...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-horse-head"></i> Khả năng Thuần hóa</label>
+                    <select id="creatureTameable">
+                        <option value="false">Không thể (Wild)</option>
+                        <option value="true">Có thể (Tameable)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-dna"></i> Dạng Tiến Hóa Kế Tiếp</label>
+                    <select id="creatureEvolution">
+                        <option value="">-- Không có --</option>
+                        <!-- Options sẽ được load từ DB -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,0,0,0.2);">
+                <label style="color: #ef4444; margin-bottom: 10px; display: block;"><i class="fa-solid fa-chart-simple"></i> Chỉ Số Chiến Đấu (Stats)</label>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <div>
+                        <label style="font-size: 0.75rem; color:#f87171;">HP (Máu)</label>
+                        <input type="number" id="statHP" value="100" min="1" style="border-color:#f87171;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color:#fb923c;">ATK (Tấn công)</label>
+                        <input type="number" id="statATK" value="50" min="1" style="border-color:#fb923c;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color:#60a5fa;">DEF (Phòng thủ)</label>
+                        <input type="number" id="statDEF" value="50" min="1" style="border-color:#60a5fa;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color:#34d399;">SPD (Tốc độ)</label>
+                        <input type="number" id="statSPD" value="50" min="1" style="border-color:#34d399;">
+                    </div>
+                </div>
+            </div>
+
             <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="btn-secondary" onclick="closeCreatureModal()">Hủy</button>
                 <button type="submit" class="btn-primary" style="background: var(--gold); color: #000; border:none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;">Lưu thông tin</button>
@@ -110,13 +169,71 @@
         </div>
         <div style="padding: 30px; position: relative; margin-top: -60px;">
             <div id="detailRank" style="display: inline-block; padding: 5px 15px; background: var(--gold); color: black; border-radius: 20px; font-weight: 800; margin-bottom: 10px;">RANK S</div>
-            <h2 id="detailCreatureName" class="cinzel-font" style="font-size: 2.5rem; color: var(--text-main);"></h2>
+            <h2 id="detailCreatureName" class="cinzel-font" style="font-size: 2.5rem; color: var(--text-main); margin-bottom: 5px;"></h2>
             <div id="detailType" style="color: var(--gold); margin-bottom: 20px; font-weight: 600;"></div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,0,0,0.2); border-radius: 10px;">
+                <div style="text-align: center;">
+                    <i class="fa-solid fa-mountain-sun" style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <div style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Nơi sống</div>
+                    <div id="detailHabitat" style="font-size: 0.9rem; color: #fff;"></div>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fa-solid fa-skull-crossbones" style="color: #ef4444; font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <div style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Điểm yếu</div>
+                    <div id="detailWeakness" style="font-size: 0.9rem; color: #fff;"></div>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fa-solid fa-gem" style="color: #3b82f6; font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <div style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Vật phẩm</div>
+                    <div id="detailDrops" style="font-size: 0.9rem; color: #fff;"></div>
+                </div>
+            </div>
+
+            <!-- CHỈ SỐ & ĐẶC TÍNH MỚI TRONG DETAIL -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <div>
+                    <div style="color: var(--gold); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px;"><i class="fa-solid fa-chart-bar"></i> Chỉ Số Chiến Đấu</div>
+                    
+                    <div class="stat-row" style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:2px;"><span style="color:#f87171;">HP</span><span id="dtHPVal">0</span></div>
+                        <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;"><div id="dtHPBar" style="height:100%; background:#ef4444; width:0%; transition: width 1s;"></div></div>
+                    </div>
+                    <div class="stat-row" style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:2px;"><span style="color:#fb923c;">ATK</span><span id="dtATKVal">0</span></div>
+                        <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;"><div id="dtATKBar" style="height:100%; background:#f97316; width:0%; transition: width 1s;"></div></div>
+                    </div>
+                    <div class="stat-row" style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:2px;"><span style="color:#60a5fa;">DEF</span><span id="dtDEFVal">0</span></div>
+                        <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;"><div id="dtDEFBar" style="height:100%; background:#3b82f6; width:0%; transition: width 1s;"></div></div>
+                    </div>
+                    <div class="stat-row" style="margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:2px;"><span style="color:#34d399;">SPD</span><span id="dtSPDVal">0</span></div>
+                        <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;"><div id="dtSPDBar" style="height:100%; background:#10b981; width:0%; transition: width 1s;"></div></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="color: var(--gold); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px;"><i class="fa-solid fa-fire-flame-curved"></i> Đặc Tính</div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-size: 0.7rem; color: #94a3b8;">Kỹ năng Độc Tôn:</div>
+                        <div id="detailSkill" style="color: #f1f5f9; font-weight: 600; font-size: 0.85rem;">Không có</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-size: 0.7rem; color: #94a3b8;">Tiến Hóa:</div>
+                        <div id="detailEvolution" style="color: #d4af37; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Không có dạng kế tiếp</div>
+                    </div>
+                    <div id="detailTameable" style="display: inline-block; padding: 4px 10px; background: rgba(16,185,129,0.2); color: #10b981; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                        Có thể thuần hóa
+                    </div>
+                </div>
+            </div>
+
             <div id="detailCreatureDesc" style="line-height: 1.8; color: var(--text-dim); text-align: justify; border-top: 1px solid var(--border); padding-top: 20px;"></div>
         </div>
     </div>
 </div>
 
+<script src="imageDB.js"></script>
 <script src="creatures.js"></script>
 </body>
 </html>

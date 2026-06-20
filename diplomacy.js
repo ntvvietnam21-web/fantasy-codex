@@ -132,6 +132,7 @@ async function renderDiplomacyNetwork(type, containerId) {
 
     const elements = [];
     const addedNodes = new Set();
+    const nodesToLoadImage = []; // For asynchronous image loading
 
     dataList.forEach(item => {
         item.diplomacy?.forEach(rel => {
@@ -141,15 +142,19 @@ async function renderDiplomacyNetwork(type, containerId) {
             if (!addedNodes.has(item.id)) {
                 elements.push({ data: { id: item.id, label: item.name.toUpperCase() } });
                 addedNodes.add(item.id);
+                const imgKey = item.img || item.icon;
+                if (imgKey) nodesToLoadImage.push({ id: item.id, imgKey });
             }
             if (!addedNodes.has(target.id)) {
                 elements.push({ data: { id: target.id, label: target.name.toUpperCase() } });
                 addedNodes.add(target.id);
+                const imgKey = target.img || target.icon;
+                if (imgKey) nodesToLoadImage.push({ id: target.id, imgKey });
             }
 
             let relType = "neutral";
             const l = rel.label.toLowerCase();
-            if (/(minh|bạn|hòa)/.test(l)) relType = "ally";
+            if (/(minh|bạn|hòa|thuận)/.test(l)) relType = "ally";
             if (/(thù|chiến|địch)/.test(l)) relType = "enemy";
 
             elements.push({
@@ -170,6 +175,10 @@ async function renderDiplomacyNetwork(type, containerId) {
     }
 
     container.innerHTML = `<div id="${containerId}-cyto" class="cyto-map"></div>`;
+    
+    // Add custom CSS for the map container so it displays properly
+    document.getElementById(`${containerId}-cyto`).style.height = "450px";
+    document.getElementById(`${containerId}-cyto`).style.width = "100%";
 
     const cy = cytoscape({
         container: document.getElementById(`${containerId}-cyto`),
@@ -178,22 +187,27 @@ async function renderDiplomacyNetwork(type, containerId) {
             {
                 selector: 'node',
                 style: {
-                    'width': 50,
-                    'height': 50,
-                    'background-color': '#0f0f1a',
-                    'border-width': 2,
+                    'width': 60,
+                    'height': 60,
+                    'background-color': '#0f172a',
+                    'border-width': 3,
                     'border-color': '#d4af37',
+                    'background-fit': 'cover',
                     'label': 'data(label)',
                     'color': '#fff',
-                    'font-size': '10px',
+                    'font-size': '11px',
                     'font-family': 'Cinzel, serif',
                     'text-valign': 'bottom',
-                    'text-margin-y': 8,
-                    'text-max-width': '80px',
+                    'text-margin-y': 10,
+                    'text-max-width': '100px',
                     'text-wrap': 'wrap',
                     'font-weight': 'bold',
                     'text-outline-width': 2,
-                    'text-outline-color': '#0f0f1a'
+                    'text-outline-color': '#0f172a',
+                    'text-background-opacity': 0.8,
+                    'text-background-color': '#000',
+                    'text-background-padding': '4px',
+                    'text-background-shape': 'roundrectangle'
                 }
             },
             {
@@ -203,16 +217,20 @@ async function renderDiplomacyNetwork(type, containerId) {
                     'width': 2,
                     'line-color': '#444',
                     'target-arrow-color': '#444',
-                    'target-arrow-shape': 'vee',
-                    'arrow-scale': 1.2,
+                    'target-arrow-shape': 'triangle',
+                    'arrow-scale': 1.5,
                     'label': 'data(label)',
-                    'font-size': '9px',
-                    'color': '#aaa',
+                    'font-size': '10px',
+                    'color': '#fff',
                     'text-rotation': 'autorotate',
                     'text-background-opacity': 1,
-                    'text-background-color': '#0f0f1a',
-                    'text-background-padding': '3px',
-                    'opacity': 0.8
+                    'text-background-color': '#1e293b',
+                    'text-background-padding': '4px',
+                    'text-background-shape': 'roundrectangle',
+                    'text-border-color': '#334155',
+                    'text-border-width': 1,
+                    'text-border-opacity': 1,
+                    'opacity': 0.9
                 }
             },
             {
@@ -220,6 +238,7 @@ async function renderDiplomacyNetwork(type, containerId) {
                 style: {
                     'line-color': '#10b981',
                     'target-arrow-color': '#10b981',
+                    'text-border-color': '#10b981',
                     'width': 3,
                     'line-style': 'dashed'
                 }
@@ -229,17 +248,21 @@ async function renderDiplomacyNetwork(type, containerId) {
                 style: {
                     'line-color': '#ef4444',
                     'target-arrow-color': '#ef4444',
+                    'text-border-color': '#ef4444',
                     'width': 3
                 }
             },
             {
                 selector: 'edge[type="neutral"]',
-                style: { 'line-color': '#fbbf24', 'target-arrow-color': '#fbbf24' }
+                style: { 
+                    'line-color': '#fbbf24', 
+                    'target-arrow-color': '#fbbf24',
+                    'text-border-color': '#fbbf24'
+                }
             },
-            // Hiệu ứng khi nhấn vào node
             {
-                selector: 'node:active',
-                style: { 'border-color': '#fff', 'border-width': 4 }
+                selector: 'node:active, node:selected',
+                style: { 'border-color': '#fff', 'border-width': 5, 'overlay-opacity': 0.2, 'overlay-color': '#d4af37' }
             }
         ],
         layout: {
@@ -249,22 +272,47 @@ async function renderDiplomacyNetwork(type, containerId) {
             fit: true,
             padding: 50,
             nodeOverlap: 20,
-            nodeRepulsion: 10000
+            nodeRepulsion: 15000,
+            idealEdgeLength: 100,
+            edgeElasticity: 100
         }
     });
 
-    // Sự kiện tương tác chuyên nghiệp
+    // Load images asynchronously
+    nodesToLoadImage.forEach(async (item) => {
+        if (typeof getImage === "function") {
+            try {
+                const src = await getImage(item.imgKey);
+                if (src) {
+                    cy.getElementById(item.id).style({
+                        'background-image': src
+                    });
+                }
+            } catch (err) {
+                console.warn('Could not load image for node', item.id);
+            }
+        }
+    });
+
+    // Interactivity
     cy.on('mouseover', 'node', (e) => {
         container.style.cursor = 'pointer';
         e.target.connectedEdges().animate({ style: { 'width': 5, 'opacity': 1 } }, { duration: 200 });
+        e.target.animate({ style: { 'border-width': 5 } }, { duration: 200 });
     });
 
     cy.on('mouseout', 'node', (e) => {
         container.style.cursor = 'default';
-        e.target.connectedEdges().animate({ style: { 'width': 2, 'opacity': 0.8 } }, { duration: 200 });
+        e.target.connectedEdges().forEach(edge => {
+            const w = edge.data('type') === 'ally' || edge.data('type') === 'enemy' ? 3 : 2;
+            edge.animate({ style: { 'width': w, 'opacity': 0.9 } }, { duration: 200 });
+        });
+        e.target.animate({ style: { 'border-width': 3 } }, { duration: 200 });
     });
 
-    cy.on('tap', 'node', (evt) => quickViewEntity(evt.target.id()));
+    cy.on('tap', 'node', (evt) => {
+        quickViewEntity(evt.target.id());
+    });
 
     window.cyInstance = cy;
 }

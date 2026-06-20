@@ -398,6 +398,7 @@ window.openTournamentSetup = function() {
             <div style="display:flex;gap:10px;margin-bottom:16px;">
                 <button onclick="selectAllTournamentChars()" style="padding:6px 12px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;font-size:0.8rem;">Chọn Tất Cả</button>
                 <button onclick="deselectAllTournamentChars()" style="padding:6px 12px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;cursor:pointer;font-size:0.8rem;">Bỏ Chọn Tất Cả</button>
+                <button onclick="autoFillTournamentChars()" style="padding:6px 12px;border-radius:6px;background:rgba(168, 85, 247, 0.15);border:1px solid rgba(168, 85, 247, 0.3);color:#c084fc;cursor:pointer;font-size:0.8rem;margin-left:auto;"><i class="fa-solid fa-wand-magic-sparkles"></i> Lấp Đầy Ngẫu Nhiên</button>
             </div>
 
             <div class="tournament-player-grid" style="overflow-y:auto;flex:1;padding-right:8px;align-content:start;" id="tsGrid">
@@ -465,7 +466,94 @@ window.startCustomTournament = function() {
         return;
     }
     
-    const participants = (window.characters || []).filter(c => window.tournamentSelectedChars.includes(String(c.id)));
+    // Lấy size giới hạn nếu người dùng đã chọn
+    let limitSize = window.tournamentSelectedChars.length;
+    const sizeSelect = document.getElementById('tourneySize');
+    if (sizeSelect) {
+        limitSize = parseInt(sizeSelect.value, 10);
+        if (window.tournamentSelectedChars.length > limitSize) {
+            if(typeof showToast === 'function') showToast(`⚠️ Bạn đã chọn dư. Sẽ lấy ngẫu nhiên ${limitSize} người từ danh sách đã chọn.`, 'warning');
+        }
+    }
+    
+    // Thuật toán Fisher-Yates để trộn các nhân vật được chọn
+    let chosenIds = [...window.tournamentSelectedChars];
+    for (let i = chosenIds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chosenIds[i], chosenIds[j]] = [chosenIds[j], chosenIds[i]];
+    }
+    
+    // Cắt mảng vừa đủ số lượng
+    chosenIds = chosenIds.slice(0, limitSize);
+    
+    const participants = (window.characters || []).filter(c => chosenIds.includes(String(c.id)));
     document.getElementById('tournamentSetupModal').style.display = 'none';
     window.startTournament(participants);
+};
+
+// Hàm tự động lấp đầy (Auto-fill) các ô trống trong Manual Mode
+window.autoFillTournamentChars = function() {
+    let targetSize = 16;
+    const sizeSelect = document.getElementById('tourneySize');
+    if (sizeSelect) {
+        targetSize = parseInt(sizeSelect.value, 10);
+    }
+    
+    const chars = window.characters || [];
+    let currentSelected = window.tournamentSelectedChars.length;
+    
+    if (currentSelected >= targetSize) {
+        if(typeof showToast === 'function') showToast('✅ Đã đủ hoặc dư số lượng!', 'info');
+        return;
+    }
+    
+    let needed = targetSize - currentSelected;
+    let availableIds = chars.map(c => String(c.id)).filter(id => !window.tournamentSelectedChars.includes(id));
+    
+    // Trộn ngẫu nhiên danh sách còn lại
+    for (let i = availableIds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableIds[i], availableIds[j]] = [availableIds[j], availableIds[i]];
+    }
+    
+    let filled = availableIds.slice(0, needed);
+    filled.forEach(id => {
+        window.tournamentSelectedChars.push(id);
+        const card = document.querySelector(`.tournament-player-card[data-charid="${id}"]`);
+        if (card) card.classList.add('selected');
+    });
+    
+    document.getElementById('tsCount').innerText = window.tournamentSelectedChars.length;
+    document.getElementById('tsBtnCount').innerText = window.tournamentSelectedChars.length;
+    if(typeof showToast === 'function') showToast(`🎲 Đã lấp đầy thêm ${filled.length} nhân vật ngẫu nhiên!`, 'success');
+};
+
+// ============================================================
+// CHẾ ĐỘ GIẢI ĐẤU NGẪU NHIÊN TOÀN HỆ THỐNG
+// ============================================================
+window.startRandomTournament = function() {
+    const chars = window.characters || [];
+    if (chars.length < 2) {
+        if(typeof showToast === 'function') showToast('⚠️ Không đủ nhân vật trong hệ thống!', 'warning');
+        return;
+    }
+    
+    let targetSize = 16;
+    const sizeSelect = document.getElementById('tourneySize');
+    if (sizeSelect) {
+        targetSize = parseInt(sizeSelect.value, 10);
+    }
+    
+    // Trộn ngẫu nhiên toàn bộ danh sách (Fisher-Yates)
+    let shuffled = [...chars];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Lấy đúng số lượng
+    const participants = shuffled.slice(0, targetSize);
+    
+    window.startTournament(participants);
+    if(typeof showToast === 'function') showToast(`🎲 Đã tạo giải đấu ngẫu nhiên ${participants.length} người!`, 'success');
 };

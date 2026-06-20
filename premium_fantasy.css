@@ -1,0 +1,241 @@
+/* ============================================================
+   PREMIUM DARK FANTASY OVERHAUL (v3.0)
+   - Deep Obsidian Theme
+   - Advanced Glassmorphism
+   - Hardware Accelerated Animations
+   - Responsive Grid Blueprints
+   ============================================================ */
+
+/* ── ROOT VARIABLES ── */
+:root {
+  --obsidian-bg: #08090c;
+  --dark-night: #0b0f19;
+  --twilight-purple: #120e1f;
+  --neon-gold: #d4af37;
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+}
+
+/* ── THEME & BACKGROUND ── */
+body {
+  background: radial-gradient(circle at 50% 0%, var(--twilight-purple), var(--obsidian-bg) 60%, var(--dark-night)) !important;
+  background-attachment: fixed !important;
+  color: #e2e8f0;
+}
+
+/* Glassmorphism cho các khung/bảng */
+.char-card, .sidebar, .modal-content, .command-palette-box, .bracket-round, .battle-log-container {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
+
+/* Nâng cấp .particle-bg */
+.particle-bg {
+  z-index: 0;
+  pointer-events: none;
+}
+.particle {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.8), transparent) !important;
+  animation: pulseFloat linear infinite !important;
+  will-change: transform, opacity;
+}
+@keyframes pulseFloat {
+  0% { transform: translate3d(0, 100vh, 0) scale(0); opacity: 0; }
+  25% { opacity: 1; transform: translate3d(10px, 75vh, 0) scale(1.2); }
+  50% { opacity: 0.5; transform: translate3d(-15px, 50vh, 0) scale(0.8); }
+  75% { opacity: 1; transform: translate3d(20px, 25vh, 0) scale(1.5); }
+  100% { transform: translate3d(-10px, -20px, 0) scale(0); opacity: 0; }
+}
+
+/* ── TYPOGRAPHY & METALLIC SHINE ── */
+h1, h2, h3, .shine-text, .champion-name {
+  background: linear-gradient(105deg, #f1f5f9 20%, #d4af37 50%, #f1f5f9 80%) !important;
+  background-size: 200% auto !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: metallicShine 4s linear infinite !important;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  will-change: background-position;
+}
+@keyframes metallicShine {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* Hyperlink Cổ Thuật */
+.char-link-wiki {
+  color: #94a3b8;
+  border-bottom: 1px dashed rgba(212,175,55,0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none;
+}
+.char-link-wiki:hover {
+  color: #d4af37;
+  border-bottom-color: #d4af37;
+  text-shadow: 0 0 8px rgba(212,175,55,0.6);
+  transform: scale(1.05);
+  display: inline-block;
+}
+
+/* ── THẺ BÀI NGHỆ THUẬT 3D ── */
+/* Chỉ kích hoạt 3D hover trên PC */
+@media (hover: hover) and (pointer: fine) {
+  .card-3d-tilt {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  .card-3d-tilt:hover {
+    transform: translate3d(0, -10px, 0) scale(1.02) !important;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.8), 0 0 25px rgba(212,175,55,0.2) !important;
+  }
+  .card-3d-tilt:hover img {
+    transform: translateZ(40px) scale(1.05) !important;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  }
+  /* Vệt sáng thẻ bài */
+  .card-3d-tilt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    transform: translate3d(-100%, -100%, 0);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .card-3d-tilt:hover::before {
+    transform: translate3d(100%, 100%, 0);
+  }
+}
+
+/* Viền Glow Đa Tầng */
+.tier-legendary, .rank-glow-sss {
+  position: relative;
+  border: 1px solid transparent !important;
+  background-clip: padding-box;
+}
+.tier-legendary::after, .rank-glow-sss::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d4af37, #fef08a, #d4af37, #b45309, #d4af37) !important;
+  background-size: 200% 200% !important;
+  animation: animatedGradient 3s linear infinite !important;
+  z-index: -1;
+}
+@keyframes animatedGradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.tier-epic, .rank-glow-ss {
+  box-shadow: 0 0 10px rgba(6,182,212,0.5), 0 0 20px rgba(6,182,212,0.3), inset 0 0 10px rgba(6,182,212,0.2) !important;
+}
+.tier-rare, .rank-glow-s {
+  box-shadow: 0 0 8px rgba(168,85,247,0.5), 0 0 15px rgba(168,85,247,0.3), inset 0 0 8px rgba(168,85,247,0.2) !important;
+}
+
+/* ── RESPONSIVE BLUEPRINT ── */
+/* PC & UltraWide */
+@media (min-width: 1200px) {
+  .grid-container-v2, .tournament-player-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  }
+  .sidebar { width: 280px !important; }
+  .main-content { margin-left: 280px !important; }
+}
+
+/* Tablet & iPad */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .grid-container-v2, .tournament-player-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 16px !important;
+  }
+  .sidebar { width: 80px !important; overflow: hidden !important; }
+  .sidebar .nav-item span { display: none !important; }
+  .sidebar .sidebar-header span { display: none !important; }
+  .main-content { margin-left: 80px !important; }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .grid-container-v2, .tournament-player-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .sidebar {
+    transform: translate3d(-100%, 0, 0) !important;
+    width: 260px !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .sidebar.open { transform: translate3d(0, 0, 0) !important; }
+  .main-content { margin-left: 0 !important; padding: 10px !important; }
+  
+  /* Vô hiệu hóa 3D trên Mobile */
+  .card-3d-tilt {
+    transform: none !important;
+    perspective: none !important;
+    transform-style: flat !important;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5) !important;
+  }
+  .card-3d-tilt:active {
+    transform: scale(1.02) !important;
+  }
+  
+  /* Bảng dữ liệu có thanh cuộn ngang */
+  .table-responsive, .battle-log-container, .bracket-round {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Touch Targets 44px */
+  button, .btn-primary, .btn-secondary, .nav-item {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+}
+
+/* Thanh cuộn mờ (Custom Scrollbar) cho container */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.4); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.8); }
+
+/* ── COMMAND PALETTE & TOURNAMENT UX ── */
+#commandPaletteOverlay {
+  background: rgba(8, 9, 12, 0.85) !important; /* Deep Obsidian mờ */
+}
+.command-palette-box {
+  background: linear-gradient(180deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95)) !important;
+  border-top: 2px solid rgba(212,175,55,0.5) !important;
+}
+#cpInput:focus {
+  box-shadow: inset 0 0 20px rgba(212,175,55,0.1) !important;
+  animation: breathingGlow 2s infinite alternate !important;
+}
+@keyframes breathingGlow {
+  0% { box-shadow: inset 0 0 10px rgba(212,175,55,0.05) !important; }
+  100% { box-shadow: inset 0 0 20px rgba(212,175,55,0.2) !important; }
+}
+
+/* Sơ đồ Tournament - Nối kết quả */
+.bracket-connector {
+  background: rgba(212,175,55,0.2) !important;
+  box-shadow: 0 0 5px rgba(212,175,55,0.1) !important;
+  transition: all 0.3s ease !important;
+}
+.bracket-connector.winner-path {
+  background: #d4af37 !important;
+  box-shadow: 0 0 15px #d4af37 !important;
+}
+.tournament-player-card.winner {
+  box-shadow: 0 0 20px rgba(212,175,55,0.6) !important;
+  border-color: #d4af37 !important;
+}

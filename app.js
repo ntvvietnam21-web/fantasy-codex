@@ -3,6 +3,7 @@ window.races = window.races || [];
 window.kingdoms = window.kingdoms || [];
 window.factions = window.factions || [];
 window.locations = window.locations || [];
+window.families = window.families || [];
 let editingId = null;
 let editingRace = -1;
 let refreshTimeout;
@@ -122,6 +123,76 @@ window.exportCharacterToTXT = async function(charId) {
     
     if (typeof showToast === "function") showToast(`✨ Đã xuất TXT: ${char.name}!`, "success");
 };
+
+// ==========================================
+// TÍNH NĂNG MỚI: XUẤT/NHẬP JSON & NHÂN BẢN
+// ==========================================
+window.exportCharacterToJSON = function(charId) {
+    const char = window.characters.find(c => String(c.id) === String(charId));
+    if (!char) {
+        if (typeof showToast === "function") showToast("❌ Không tìm thấy dữ liệu nhân vật!", "error");
+        return;
+    }
+    const blob = new Blob([JSON.stringify(char, null, 4)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Char_${char.name.replace(/\s+/g, '_')}_Backup.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    if (typeof showToast === "function") showToast(`📦 Đã xuất JSON: ${char.name}!`, "success");
+};
+
+window.importCharacterFromJSON = function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async event => {
+            try {
+                const importedChar = JSON.parse(event.target.result);
+                if (!importedChar.name || !importedChar.id) throw new Error("Dữ liệu không hợp lệ");
+                
+                // Đảm bảo ID không trùng lặp
+                importedChar.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                importedChar.name = importedChar.name + " (Imported)";
+                
+                window.characters.push(importedChar);
+                if (typeof dbSave === 'function') await dbSave("characters", window.characters);
+                
+                if (typeof showToast === "function") showToast(`✅ Đã nhập thành công: ${importedChar.name}!`, "success");
+                render(); // Cập nhật lại UI
+            } catch (err) {
+                if (typeof showToast === "function") showToast("❌ File JSON không hợp lệ!", "error");
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+};
+
+window.duplicateCharacter = async function(charId) {
+    const char = window.characters.find(c => String(c.id) === String(charId));
+    if (!char) return;
+    
+    // Deep copy
+    const clonedChar = JSON.parse(JSON.stringify(char));
+    clonedChar.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    clonedChar.name = clonedChar.name + " (Bản sao)";
+    
+    window.characters.push(clonedChar);
+    if (typeof dbSave === 'function') await dbSave("characters", window.characters);
+    
+    if (typeof showToast === "function") showToast(`✨ Đã nhân bản: ${char.name}!`, "success");
+    render();
+    if (typeof closeCharacterModal === 'function') closeCharacterModal();
+};
 function renderMarkdown(text) {
     if (!text) return "<i>Chưa có thông tin...</i>";
     let html = text
@@ -136,7 +207,6 @@ function renderMarkdown(text) {
             return `<span class="char-link-wiki" onclick="openCharacterByName('${name.trim()}')">${name}</span>`;
         });
     }
-    // Sửa: dùng replace với callback thay vì flag /s để tương thích cross-browser
     const listItemsRegex = /^\s*-\s+(.*)$/gm;
     const liItems = [];
     html = html.replace(listItemsRegex, (match, content) => {
@@ -144,11 +214,8 @@ function renderMarkdown(text) {
         return `<li>${content}</li>`;
     });
     if (liItems.length > 0) {
-        html = html.replace(/(<li>.*?<\/li>)/g, (match) => {
-            // Chỉ bao lần đầu tiên đưa vào ul
-            if (!html.includes('<ul>')) return `<ul>${match}</ul>`;
-            return match;
-        });
+        // Bao tất cả các <li> liên tiếp vào trong 1 thẻ <ul>
+        html = html.replace(/(<li>.*?<\/li>)+/gs, (match) => `<ul>${match}</ul>`);
     }
     return html.replace(/\n/g, '<br>');
 }
@@ -168,7 +235,8 @@ async function saveAndRefresh() {
             dbSave("races", window.races),
             dbSave("kingdoms", window.kingdoms),
             dbSave("factions", window.factions),
-            dbSave("locations", window.locations)
+            dbSave("locations", window.locations),
+            dbSave("families", window.families)
         ];
         await Promise.all(saveTasks);
         if (typeof sortAll === "function") {
@@ -193,7 +261,7 @@ async function saveAndRefresh() {
     }
 }
 async function reloadAllData() {
-    const stores = ["characters", "races", "kingdoms", "factions", "locations"];
+    const stores = ["characters", "races", "kingdoms", "factions", "locations", "families"];
     try {
         if (typeof initImageDB === "function") {
             await initImageDB().catch(e => console.warn("🎨 GM: DB Init Warning:", e));
@@ -204,7 +272,7 @@ async function reloadAllData() {
                 return [];
             }))
         );
-        [window.characters, window.races, window.kingdoms, window.factions, window.locations] = 
+        [window.characters, window.races, window.kingdoms, window.factions, window.locations, window.families] = 
             results.map(data => Array.isArray(data) ? data : []);
 
         console.log("✅ GM: Hệ thống dữ liệu đã sẵn sàng.");
@@ -228,6 +296,7 @@ async function reloadAllData() {
         console.error("❌ reloadAllData Critical Error:", err);
         window.characters = window.characters || [];
         window.races = window.races || [];
+        window.families = window.families || [];
         if (typeof showToast === "function") showToast("❌ Lỗi nạp dữ liệu hệ thống!");
     }
 }
@@ -305,6 +374,7 @@ function openModal() {
     if (typeof updateKingdomOptions === "function") updateKingdomOptions();
     if (typeof updateCharacterLocationOptions === "function") updateCharacterLocationOptions();
     if (typeof updateFactionOptions === "function") updateFactionOptions();
+    if (typeof populateFamilyDropdowns === "function") populateFamilyDropdowns();
 
     const modal = document.getElementById("characterModal");
     if (modal) {
@@ -484,6 +554,8 @@ async function saveCharacter() {
             appearance: getVal("charAppearance"), 
             personality: getVal("charPersonality"), 
             desc: getVal("charDesc"),
+            fatherId: getVal("charFather"),
+            motherId: getVal("charMother"),
             weapon: getVal("equipWeapon", "Chưa trang bị"),
             armor: getVal("equipArmor", "Chưa trang bị"),
             accessory: getVal("equipAccessory", "Chưa trang bị"),
@@ -562,6 +634,8 @@ async function editCharacter(id) {
         charAppearance: 'appearance', 
         charPersonality: 'personality', 
         charDesc: 'desc', 
+        charFather: 'fatherId',
+        charMother: 'motherId',
         equipWeapon: 'weapon', 
         equipArmor: 'armor', 
         equipAccessory: 'accessory'
@@ -759,8 +833,14 @@ async function openProfile(id) {
                     <i class="fa-solid fa-chevron-left"></i> Quay lại
                 </button>
                 <div class="profile-controls">
-                    <button class="btn-profile-ctrl btn-export-p" onclick="window.exportCharacterToTXT('${c.id}')">
-                        <i class="fa-solid fa-file-export"></i> TXT
+                    <button class="btn-profile-ctrl btn-export-p" onclick="window.exportCharacterToTXT('${c.id}')" title="Xuất TXT">
+                        <i class="fa-solid fa-file-lines"></i> TXT
+                    </button>
+                    <button class="btn-profile-ctrl btn-export-p" onclick="window.exportCharacterToJSON('${c.id}')" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.4);" title="Xuất JSON">
+                        <i class="fa-solid fa-file-code"></i> JSON
+                    </button>
+                    <button class="btn-profile-ctrl btn-export-p" onclick="window.duplicateCharacter('${c.id}')" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" title="Nhân bản">
+                        <i class="fa-solid fa-clone"></i> Copy
                     </button>
                     <button class="btn-profile-ctrl btn-vortex-p" onclick="SkillTreeVortex.open('${c.id}')">
                         <i class="fa-solid fa-hurricane"></i> Kỹ năng
@@ -913,7 +993,7 @@ function renderRelationsHTML(c) {
         return `<i style="color: var(--text-dim); opacity: 0.6;">Chưa có dữ liệu quan hệ...</i>`;
     }
     return c.relations.map(rel => {
-        const target = allChars.find(x => x.id === rel.targetId);
+        const target = allChars.find(x => String(x.id) === String(rel.targetId));
         if (!target) return "";
         return `
             <div class="rel-badge" 
@@ -1005,8 +1085,13 @@ function resetCharacterList(data) {
 
             <!-- Nút xuất TXT -->
             <button class="export-btn" onclick="event.stopPropagation(); window.exportCharacterToTXT('${c.id}')" 
-                    style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất file TXT">
-                <i class="fa-solid fa-file-export"></i>
+                    style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất file TXT">
+                <i class="fa-solid fa-file-lines"></i>
+            </button>
+            <!-- Nút xuất JSON -->
+            <button class="export-btn" onclick="event.stopPropagation(); window.exportCharacterToJSON('${c.id}')" 
+                    style="position: absolute; top: 10px; left: 45px; z-index: 10; background: rgba(0,0,0,0.6); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 8px; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: 0.3s;" title="Xuất file JSON">
+                <i class="fa-solid fa-file-code"></i>
             </button>
             
             <!-- Nút xuất Ảnh Thẻ (Character Card) -->
@@ -1092,18 +1177,34 @@ function initLazyLoading() {
 function applyFilters() {
     clearTimeout(window.filterTimeout);
     window.filterTimeout = setTimeout(() => {
-        const term = (document.getElementById("codexSearch")?.value || "").toLowerCase().trim();
-        const race = document.getElementById("raceFilter")?.value;
+        const term = (document.getElementById("charSearchInput")?.value || "").toLowerCase().trim();
         const statusFilter = document.getElementById("filterStatus")?.value || "";
-        const filtered = window.characters.filter(c => {
+        const genderFilter = document.getElementById("filterGender")?.value || "";
+        
+        const sortBy = document.getElementById("filterSort")?.value || "";
+        
+        let filtered = window.characters.filter(c => {
             const matchName = !term || 
                 (c.name || "").toLowerCase().includes(term) || 
                 (c.faction || "").toLowerCase().includes(term) ||
                 (c.job || "").toLowerCase().includes(term);
-            const matchRace = !race || c.race === race;
             const matchStatus = !statusFilter || c.status === statusFilter;
-            return matchName && matchRace && matchStatus;
+            const matchGender = !genderFilter || c.gender === genderFilter;
+            
+            return matchName && matchStatus && matchGender;
         });
+        
+        // --- XỬ LÝ SẮP XẾP ---
+        if (sortBy === "pl_desc") {
+            filtered.sort((a, b) => (Number(b.pl) || 0) - (Number(a.pl) || 0));
+        } else if (sortBy === "pl_asc") {
+            filtered.sort((a, b) => (Number(a.pl) || 0) - (Number(b.pl) || 0));
+        } else if (sortBy === "age_desc") {
+            filtered.sort((a, b) => (Number(b.age) || 0) - (Number(a.age) || 0));
+        } else if (sortBy === "age_asc") {
+            filtered.sort((a, b) => (Number(a.age) || 0) - (Number(b.age) || 0));
+        }
+
         window.charPagination.currentPage = 1;
 
         if (typeof render === "function") {
@@ -1111,7 +1212,7 @@ function applyFilters() {
         } else {
             resetCharacterList(filtered);
         }
-    }, 200); 
+    }, 300); // Tăng Debounce lên 300ms để mượt hơn 
 }
 function renderCharacterPagination(totalPages, originalData) {
     const listContainer = document.getElementById("characters");
@@ -1579,6 +1680,24 @@ async function renderRaces(data = window.races) {
 
     container.appendChild(fragment);
 }
+
+function searchRaces() {
+    clearTimeout(window.raceSearchTimeout);
+    window.raceSearchTimeout = setTimeout(() => {
+        const term = (document.getElementById("raceSearchInput")?.value || "").toLowerCase().trim();
+        if (!term) {
+            renderRaces(window.races);
+            return;
+        }
+        const filtered = window.races.filter(r => 
+            (r.name || "").toLowerCase().includes(term) ||
+            (r.appearance || "").toLowerCase().includes(term) ||
+            (r.kingdom || "").toLowerCase().includes(term) ||
+            (r.environment || "").toLowerCase().includes(term)
+        );
+        renderRaces(filtered);
+    }, 200);
+}
 function editRace(i) {
     const r = window.races[i];
     if (!r) return;
@@ -2036,6 +2155,7 @@ function openFormModal(name, imgSrc, desc) {
 }
 function closeFormModal(){
     const modal = document.getElementById("formModal");
+    if (!modal) return;
     modal.style.display = "none";
 }
 function updateCharacterLocationOptions() {
@@ -2241,3 +2361,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("❌ Lỗi khởi động ứng dụng (app.js):", err);
     }
 });
+
+// Family Dropdowns Populate
+function populateFamilyDropdowns() {
+    const fatherSelect = document.getElementById("charFather");
+    const motherSelect = document.getElementById("charMother");
+    const familyRootSelect = document.getElementById("familyRootSelect");
+    
+    if (!fatherSelect || !motherSelect) return;
+    
+    // Giữ lại option mặc định
+    let html = '<option value="">Không rõ / Ẩn danh</option>';
+    let rootHtml = '<option value="">-- Chọn Thủy Tổ / Người đứng đầu --</option>';
+    
+    // Sort characters by name alphabetically
+    const sortedChars = [...window.characters].sort((a,b) => a.name.localeCompare(b.name));
+    
+    sortedChars.forEach(c => {
+        // Không cho phép tự chọn bản thân làm cha mẹ
+        if (typeof editingId !== 'undefined' && c.id === editingId) return;
+        html += `<option value="${c.id}">${c.name}</option>`;
+    });
+    
+    fatherSelect.innerHTML = html;
+    motherSelect.innerHTML = html;
+    
+    // Đổ dữ liệu cho trang Gia Phả luôn
+    if (familyRootSelect) {
+        sortedChars.forEach(c => {
+            rootHtml += `<option value="${c.id}">${c.name}</option>`;
+        });
+        familyRootSelect.innerHTML = rootHtml;
+    }
+}

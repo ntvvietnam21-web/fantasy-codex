@@ -188,30 +188,56 @@
     </div>
 
     <div class="detail-content">
-      <div class="detail-main-info">
-        <h2 id="detailName" class="cinzel-font" style="font-size: 2.5rem; text-align: center; color: var(--gold, #fbbf24);"></h2>
+      <div class="detail-main-info" style="position: relative;">
+        <div id="detailDangerBadge" class="danger-badge" style="position: absolute; top: 10px; right: 10px;"></div>
+        <h2 id="detailName" class="cinzel-font" style="font-size: 2.5rem; text-align: center; color: var(--gold, #fbbf24); margin-bottom: 5px;"></h2>
+        <div style="text-align:center; margin-bottom: 20px;">
+            <span id="detailParentBadge" style="display:inline-block; font-size:0.8rem; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; color:#aaa; cursor:pointer;" onclick="goUpToParent()"></span>
+        </div>
         <div class="detail-image-wrapper">
             <img id="detailImage" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:100%; object-fit:cover;">
         </div>
       </div>
 
       <div class="detail-grid">
-        <div class="info-item"><b>Loại:</b> <span id="detailType"></span></div>
-        <div class="info-item"><b>Địa chỉ:</b> <span id="detailAddress"></span></div>
-        <div class="info-item"><b>Đế chế:</b> <span id="detailEmpire"></span></div>
-        <div class="info-item"><b>Phe phái:</b> <span id="detailFaction"></span></div>
+        <div class="info-item"><b>Loại địa điểm:</b> <span id="detailType"></span></div>
+        <div class="info-item"><b>Đế chế / Phe phái:</b> <span id="detailEmpireFaction"></span></div>
+        <div class="info-item"><b>Tọa độ (X, Y):</b> <span id="detailCoordinates"></span></div>
+        <div class="info-item"><b>Khí hậu:</b> <span id="detailClimate"></span></div>
+        <div class="info-item"><b>Linh khí / Ma lực:</b> <span id="detailMana"></span></div>
         <div class="info-item"><b>Niên đại:</b> <span id="detailEra"></span></div>
-        <div class="info-item"><b>Tình trạng:</b> <span id="detailCondition"></span></div>
       </div>
 
       <div class="detail-full-width">
         <div class="info-block">
-          <h4><i class="fa fa-scroll"></i> Mô tả</h4>
+          <h4><i class="fa fa-scroll"></i> Mô tả & Truyền thuyết</h4>
           <div id="detailDescription" class="markdown-body"></div>
         </div>
+        
+        <div class="two-cols" style="margin-top:25px;">
+            <div class="info-block" style="flex:1;">
+              <h4><i class="fa fa-gem"></i> Tài nguyên & Sinh vật</h4>
+              <div id="detailResources" class="markdown-body" style="font-size: 0.9rem;"></div>
+            </div>
+            <div class="info-block" style="flex:1;">
+              <h4><i class="fa fa-skull"></i> Cạm bẫy & Lời nguyền</h4>
+              <div id="detailCurses" class="markdown-body" style="font-size: 0.9rem;"></div>
+            </div>
+        </div>
+
         <div class="info-block" style="margin-top: 25px;">
-          <h4><i class="fa fa-sparkles"></i> Nét đặc trưng</h4>
-          <div id="detailFeatures" class="markdown-body"></div>
+          <h4><i class="fa fa-music"></i> Nhạc nền (BGM)</h4>
+          <div id="detailBGM" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:8px;"></div>
+        </div>
+
+        <div class="info-block" style="margin-top: 30px; border-top: 2px dashed rgba(251, 191, 36, 0.3); padding-top: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h4><i class="fa fa-sitemap"></i> Khu vực trực thuộc</h4>
+              <button onclick="openFormWithParent(currentDetailId)" class="btn-add" style="padding: 5px 15px; font-size:0.8rem;">+ Thêm địa điểm nhỏ</button>
+          </div>
+          <div id="subLocationsList" class="child-container" style="display:grid; margin-top:15px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; opacity:1;">
+              <!-- Sub-locations appear here -->
+          </div>
         </div>
       </div>
     </div>
@@ -224,7 +250,12 @@
           <span class="close" onclick="closeForm()">&times;</span>
       </div>
       <form id="locationForm" onsubmit="event.preventDefault(); saveLocation();" class="fantasy-form">
+        <input type="hidden" id="locationParentId" value="">
         <div class="form-scroll-area">
+            <div id="parentInfoDisplay" style="display:none; margin-bottom:15px; padding:10px; background:rgba(251,191,36,0.1); border:1px solid var(--gold); border-radius:6px; color:var(--gold); font-size:0.85rem;">
+                <i class="fa fa-level-up-alt"></i> Thuộc khu vực: <strong id="parentNameDisplay"></strong>
+            </div>
+
             <div class="two-cols">
                 <div class="form-group">
                     <label><i class="fa fa-map-marker-alt"></i> Tên địa điểm *</label>
@@ -239,17 +270,33 @@
             <div class="two-cols">
                 <div class="form-group">
                     <label><i class="fa fa-tag"></i> Loại địa điểm</label>
-                    <input type="text" id="locationType" placeholder="VD: Thánh đường, Hang động...">
+                    <input type="text" id="locationType" placeholder="VD: Thánh đường, Thành phố...">
                 </div>
                 <div class="form-group">
-                    <label><i class="fa fa-hourglass-half"></i> Niên đại</label>
-                    <input type="text" id="locationEra" placeholder="Niên đại kỷ nguyên...">
+                    <label><i class="fa fa-skull"></i> Mức độ nguy hiểm</label>
+                    <select id="locationDanger">
+                        <option value="An toàn">An toàn (Bình yên)</option>
+                        <option value="F">Hạng F (Ít đe dọa)</option>
+                        <option value="D">Hạng D (Thường)</option>
+                        <option value="C">Hạng C (Nguy hiểm nhẹ)</option>
+                        <option value="B">Hạng B (Rủi ro cao)</option>
+                        <option value="A">Hạng A (Chết chóc)</option>
+                        <option value="S">Hạng S (Thảm họa)</option>
+                        <option value="SS">Hạng SS (Cấm địa)</option>
+                        <option value="SSS">Hạng SSS (Hủy diệt)</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label><i class="fa fa-compass"></i> Vị trí / Địa chỉ</label>
-                <input type="text" id="locationAddress" placeholder="Vị trí trên bản đồ...">
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-compass"></i> Tọa độ (X, Y) hoặc Vị trí</label>
+                    <input type="text" id="locationAddress" placeholder="VD: X: 152, Y: -84">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-cloud-sun"></i> Khí hậu</label>
+                    <input type="text" id="locationClimate" placeholder="VD: Khắc nghiệt, Ẩm ướt...">
+                </div>
             </div>
 
             <div class="two-cols">
@@ -263,20 +310,36 @@
                 </div>
             </div>
             
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-gem"></i> Tài nguyên / Khoáng sản</label>
+                    <textarea id="locationResources" rows="2" placeholder="Vàng, quặng quý, tinh thể..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-star-half-stroke"></i> Nồng độ Ma lực / Linh khí</label>
+                    <input type="text" id="locationMana" placeholder="Yếu, Dày đặc, Hỗn loạn...">
+                </div>
+            </div>
+
             <div class="form-group">
-                <label><i class="fa fa-scroll"></i> Mô tả chi tiết (Markdown)</label>
+                <label><i class="fa fa-scroll"></i> Mô tả & Truyền thuyết (Markdown)</label>
                 <textarea id="locationDescription" rows="4" placeholder="Viết nên sử thi về nơi này..."></textarea>
             </div>
 
             <div class="two-cols">
                 <div class="form-group">
-                    <label><i class="fa fa-heart-pulse"></i> Tình trạng</label>
-                    <textarea id="locationCondition" rows="2" placeholder="Hiện trạng nơi này..."></textarea>
+                    <label><i class="fa fa-ghost"></i> Lời nguyền / Trạng thái</label>
+                    <textarea id="locationCurses" rows="2" placeholder="Hiệu ứng xấu khi bước vào..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa fa-sparkles"></i> Đặc trưng</label>
-                    <textarea id="locationFeatures" rows="2" placeholder="Nét độc bản..."></textarea>
+                    <label><i class="fa fa-hourglass-half"></i> Niên đại</label>
+                    <input type="text" id="locationEra" placeholder="Niên đại kỷ nguyên...">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa fa-music"></i> Nhạc nền (BGM - Link Youtube/Audio)</label>
+                <input type="text" id="locationBGM" placeholder="https://youtube.com/watch?v=...">
             </div>
         </div>
 
