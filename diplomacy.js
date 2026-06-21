@@ -325,8 +325,18 @@ function toggleSubmenu(id) {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.toggle('hidden');
-    el.previousElementSibling?.classList.toggle('active');
+    // Toggle arrow icon nếu có
+    const parent = el.previousElementSibling;
+    if (parent) {
+        parent.classList.toggle('active');
+        const arrow = parent.querySelector('.arrow-icon');
+        if (arrow) {
+            arrow.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            arrow.style.transition = 'transform 0.3s ease';
+        }
+    }
 }
+
 
 function quickViewEntity(id) {
     if (!id) return;

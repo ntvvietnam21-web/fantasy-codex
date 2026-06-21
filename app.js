@@ -337,19 +337,27 @@ function showPage(pageId) {
     });
     page.classList.remove("hidden");
     page.style.display = "block"; 
-    setTimeout(() => {
-        page.style.transition = "opacity 0.3s ease";
-        page.style.opacity = "1";
-    }, 50);
+    page.style.opacity = "1";
+    page.style.transition = "none";
     switch (pageId) {
         case 'relationshipPage':
-            setTimeout(() => { drawNetwork(); }, 350);
+            setTimeout(() => { if(typeof drawNetwork === 'function') drawNetwork(); }, 350);
             break;
         case 'factions':
             if (typeof renderFactions === "function") renderFactions();
             break;
         case 'kingdoms':
             if (typeof renderKingdoms === "function") renderKingdoms();
+            break;
+        case 'worldLawsPage':
+            // World Laws dùng DB riêng, init khi page mở
+            if (typeof renderWorldLaws === "function") renderWorldLaws();
+            break;
+        case 'dashboardPage':
+            if (typeof renderWorldDashboard === "function") renderWorldDashboard('dashboardContent');
+            break;
+        case 'tournamentPage':
+            if (typeof renderLeaderboard === "function") renderLeaderboard();
             break;
     }
     const iframe = page.querySelector("iframe");
@@ -364,9 +372,10 @@ function showPage(pageId) {
             link.classList.add("active");
         }
     });
+    // Auto-close sidebar khi navigate trên mobile
     const sidebar = document.getElementById("sidebar");
-    if (sidebar && sidebar.classList.contains("active") && typeof toggleSidebar === "function") {
-        toggleSidebar();
+    if (sidebar && sidebar.classList.contains("open")) {
+        if (typeof toggleSidebar === "function") toggleSidebar();
     }
 }
 function openModal() {

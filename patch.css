@@ -1,0 +1,1004 @@
+/* ============================================================
+   FANTASY CODEX PRO — CSS PATCH FILE
+   Ghi đè và sửa toàn bộ xung đột CSS từ style.css gốc
+   Load CUỐI CÙNG trong <head> để có độ ưu tiên cao nhất
+   ============================================================ */
+
+/* ── 1. FIX: NAVBAR - Thống nhất về height 64px ── */
+.navbar {
+  height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 20px !important;
+  background: var(--glass) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid var(--border) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  gap: 8px !important;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ── 2. FIX: SIDEBAR - Thống nhất layout ── */
+.sidebar {
+  background: var(--glass) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-right: 1px solid var(--border) !important;
+  width: 270px !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: -270px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4) !important;
+  z-index: 1100 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.sidebar.open {
+  left: 0 !important;
+  transform: none !important;
+}
+
+/* Mobile: dùng transform thay vì left để mượt hơn */
+@media (max-width: 767px) {
+  .sidebar {
+    left: 0 !important;
+    transform: translate3d(-100%, 0, 0) !important;
+  }
+  .sidebar.open {
+    transform: translate3d(0, 0, 0) !important;
+  }
+}
+
+/* Sidebar responsive breakpoints */
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 280px !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+  .sidebar {
+    width: 240px !important;
+  }
+}
+
+/* ── 3. FIX: APP CONTAINER - Padding khi sidebar fixed ── */
+.app-container {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  position: relative;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+/* ── 4. FIX: SIDEBAR OVERLAY - Thống nhất ── */
+#sidebarOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: 1099 !important;
+  display: none !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+#sidebarOverlay.active {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* ── 5. FIX: IMAGE VIEWER MODAL - Duy nhất ── */
+#imgViewerModal {
+  display: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.92) !important;
+  z-index: 9999 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  cursor: zoom-out !important;
+}
+
+#imgViewerModal.active {
+  display: flex !important;
+}
+
+#imgViewer {
+  max-width: 92vw !important;
+  max-height: 92vh !important;
+  border-radius: 10px !important;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.7) !important;
+  object-fit: contain !important;
+  cursor: default !important;
+}
+
+/* ── 6. FIX: .winner / .loser - 1 definition duy nhất ── */
+.winner {
+  color: #4ade80 !important;
+  font-weight: bold !important;
+  background: rgba(74, 222, 128, 0.08) !important;
+  text-shadow: 0 0 6px rgba(74, 222, 128, 0.4) !important;
+}
+
+.loser {
+  color: #f87171 !important;
+  opacity: 0.8 !important;
+}
+
+/* Riêng trong bảng so sánh */
+.bang-so-sanh .winner { background: rgba(74, 222, 128, 0.08) !important; }
+.bang-so-sanh .loser  { background: rgba(248, 113, 113, 0.05) !important; }
+
+/* Trong tournament bracket */
+.bracket-fighter.winner {
+  background: rgba(212, 175, 55, 0.12) !important;
+}
+.bracket-fighter.winner .bf-name {
+  color: #d4af37 !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+/* ── 7. FIX: PROFILE CONTAINER - 1 max-width duy nhất ── */
+.profile-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+}
+
+/* ── 8. FIX: .btn-back-modern - 1 definition duy nhất ── */
+.btn-back-modern {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--gold) !important;
+  color: var(--gold) !important;
+  padding: 8px 20px !important;
+  border-radius: 24px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+  font-size: 0.9rem !important;
+}
+
+.btn-back-modern:hover {
+  background: var(--gold) !important;
+  color: #000 !important;
+  transform: translateX(-4px) !important;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4) !important;
+}
+
+/* ── 9. FIX: @keyframes fadeIn - 1 definition duy nhất ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 10. FIX: animate-float - Thêm definition ── */
+.animate-float {
+  animation: floatBadge 3.5s ease-in-out infinite !important;
+}
+
+@keyframes floatBadge {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ── 11. FIX: ICON BTN - Thống nhất ── */
+.icon-btn {
+  width: 38px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-main) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.icon-btn i {
+  font-size: 1rem !important;
+  opacity: 0.85 !important;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--gold) !important;
+  transform: translateY(-1px) !important;
+}
+
+.icon-btn:active {
+  transform: scale(0.94) !important;
+}
+
+.menu-btn {
+  width: 38px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--primary) !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  font-size: 1.1rem !important;
+  flex-shrink: 0 !important;
+}
+
+.menu-btn:hover {
+  background: var(--primary) !important;
+  color: white !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.5) !important;
+}
+
+/* ── 12. FIX: PAGE SECTION - worldLawsPage dùng đúng class .page ── */
+/* worldLawsPage đã được đổi sang class="page hidden" trong HTML */
+/* Đảm bảo page-content không bị dùng ngoài ý muốn */
+.page-content {
+  /* Giữ nguyên để không break nếu có nơi nào khác dùng */
+}
+
+/* ── 13. FIX: WORLDLAWS SECTION khi visible ── */
+#worldLawsPage {
+  padding: 20px;
+  min-height: calc(100vh - 64px);
+}
+
+/* ── 14. FIX: MOBILE RESPONSIVE - Content area ── */
+@media (max-width: 767px) {
+  .navbar {
+    padding: 0 12px !important;
+  }
+
+  .logo span {
+    font-size: 15px;
+  }
+
+  /* Đảm bảo content không bị ẩn sau sidebar */
+  .content {
+    padding-bottom: 20px;
+  }
+
+  /* Modal full-width trên mobile */
+  .modal-content {
+    width: 95% !important;
+    max-height: 95vh !important;
+    border-radius: 16px !important;
+  }
+
+  /* Advanced modal responsive */
+  .advanced-modal {
+    width: 97% !important;
+    max-width: none !important;
+  }
+
+  .modal-body-wrapper {
+    flex-direction: column !important;
+  }
+
+  .modal-nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* Filter toolbar responsive */
+  .filter-toolbar {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .filter-group {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Page header responsive */
+  .page-header-v2 {
+    padding: 12px !important;
+  }
+
+  .header-main {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* Profile container responsive */
+  .profile-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Kingdom hero responsive */
+  .kingdom-hero-v2 {
+    height: auto !important;
+    min-height: 200px !important;
+    padding: 60px 20px 80px !important;
+    border-radius: 0 0 24px 24px !important;
+  }
+
+  .kingdom-logo-frame {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .hero-text-group h2 {
+    font-size: 1.8rem !important;
+  }
+
+  /* Glass card responsive */
+  .glass-card {
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Info grid */
+  .info-grid-v3 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 15px !important;
+  }
+
+  /* Compare select */
+  .compare-select {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Tournament */
+  .tournament-bracket {
+    gap: 20px !important;
+    padding: 10px !important;
+  }
+
+  .bracket-round {
+    min-width: 130px !important;
+  }
+}
+
+/* Tablet responsive */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .navbar {
+    padding: 0 16px !important;
+  }
+
+  .glass-card {
+    padding: 22px !important;
+  }
+
+  .info-grid-v3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── 15. FIX: MODAL ADVANCED - Responsive ── */
+.advanced-modal {
+  max-width: 800px !important;
+  width: 92% !important;
+  max-height: 92vh !important;
+}
+
+.modal-body-wrapper {
+  display: flex !important;
+  gap: 0 !important;
+  height: calc(92vh - 130px) !important;
+  overflow: hidden !important;
+}
+
+.modal-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 130px !important;
+  border-right: 1px solid var(--border) !important;
+  padding: 10px 8px !important;
+  gap: 4px !important;
+  overflow-y: auto !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-nav .nav-item {
+  padding: 8px 12px !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  color: var(--text-dim) !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 36px !important;
+}
+
+.modal-nav .nav-item:hover,
+.modal-nav .nav-item.active {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: var(--primary) !important;
+  transform: none !important;
+  border-left: none !important;
+}
+
+.modal-form {
+  flex: 1 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.scroll-container {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 20px !important;
+  scroll-behavior: smooth !important;
+}
+
+/* ── 16. FIX: SECTION-WRAPPER scroll anchor ── */
+.section-wrapper {
+  scroll-margin-top: 20px !important;
+}
+
+/* ── 17. FIX: SIDEBAR MENU scroll ── */
+.sidebar-menu {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 15px 12px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(99, 102, 241, 0.4) transparent !important;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3) !important;
+  border-radius: 10px !important;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--primary) !important;
+}
+
+/* ── 18. FIX: SUBMENU CONTAINER ── */
+.submenu-container {
+  padding-left: 15px !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  overflow: hidden !important;
+  max-height: 0 !important;
+  transition: max-height 0.3s ease !important;
+}
+
+.submenu-container:not(.hidden) {
+  max-height: 600px !important;
+}
+
+.submenu-container .nav-item {
+  padding: 8px 10px !important;
+  font-size: 0.9rem !important;
+  margin-bottom: 2px !important;
+}
+
+/* ── 19. FIX: PAGE IFRAME HEIGHT ── */
+.page iframe {
+  width: 100% !important;
+  height: calc(100vh - 64px) !important;
+  border: none !important;
+  display: block !important;
+  background: var(--bg-main) !important;
+}
+
+/* ── 20. FIX: NETWORK CONTAINER ── */
+.network-container {
+  width: 100% !important;
+  height: calc(100vh - 200px) !important;
+  min-height: 400px !important;
+  border-radius: 16px !important;
+  background: radial-gradient(circle at center, #0d1526 0%, #020617 100%) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ── 21. FIX: RELATION NETWORK ── */
+#relationNetwork {
+  height: 75vh !important;
+  min-height: 400px !important;
+  background: #0f172a !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* ── 22. FIX: BATTLE & TIMELINE IFRAME ── */
+#battle iframe,
+#timeline iframe,
+#mapPage iframe {
+  height: calc(100vh - 64px) !important;
+}
+
+/* ── 23. FIX: SECTION padding chuẩn ── */
+.page > *:not(iframe):not(.hero) {
+  padding: 20px;
+}
+
+/* Không padding với hero section */
+#home > .hero {
+  padding: 80px 20px 40px;
+}
+
+/* ── 24. FIX: BUTTON STYLES - Nhất quán ── */
+.btn-primary {
+  background: var(--primary) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+}
+
+.btn-secondary {
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-secondary:hover {
+  opacity: 0.9 !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-danger:hover {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+.btn-info {
+  background: rgba(6, 182, 212, 0.15) !important;
+  color: #06b6d4 !important;
+  border: 1px solid rgba(6, 182, 212, 0.4) !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-info:hover {
+  background: #06b6d4 !important;
+  color: white !important;
+}
+
+/* ── 25. FIX: PAGE HEADER chung ── */
+.page-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.page-header h2 {
+  margin: 0 !important;
+  font-family: 'Cinzel', serif !important;
+  font-size: 1.6rem !important;
+  color: var(--gold) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* ── 26. FIX: COMPARE PAGE ── */
+.compare-select {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  flex-wrap: wrap !important;
+  padding: 20px !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border) !important;
+  margin-bottom: 20px !important;
+}
+
+.compare-select select {
+  flex: 1 !important;
+  min-width: 200px !important;
+  padding: 12px !important;
+  background: #1e293b !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  color: var(--text-main) !important;
+  font-size: 0.95rem !important;
+}
+
+.vs {
+  font-family: 'Cinzel', serif !important;
+  font-size: 1.5rem !important;
+  font-weight: 900 !important;
+  color: var(--gold) !important;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.4) !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── 27. FIX: CHAR CARD RESPONSIVE ── */
+/* Trên màn hình nhỏ hơn 480px: 3 cột */
+@media (max-width: 480px) {
+  #characterList {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+}
+
+/* ── 28. FIX: TOAST ── */
+.toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: #0f172a !important;
+  color: var(--text-main) !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--primary) !important;
+  z-index: 10000 !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+  pointer-events: none !important;
+  max-width: 90vw !important;
+  text-align: center !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  white-space: nowrap !important;
+}
+
+.toast.show {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(-4px) !important;
+}
+
+/* ── 29. FIX: FAMILY TREE PAGE ── */
+.content-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.family-tabs-container {
+  padding: 0 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.family-tabs {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  padding-bottom: 8px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--primary) transparent !important;
+}
+
+/* ── 30. FIX: HERO SECTION ── */
+.hero {
+  position: relative !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 80px 20px 60px !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 767px) {
+  .hero {
+    min-height: auto !important;
+    padding: 60px 16px 40px !important;
+  }
+
+  .hero-title {
+    font-size: clamp(1.8rem, 7vw, 3rem) !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem !important;
+  }
+
+  .search-container {
+    margin-bottom: 24px !important;
+  }
+
+  .search-box {
+    flex-direction: column !important;
+  }
+
+  .hero-icons {
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .hero-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .hero-buttons button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ── 31. FIX: TABLE OVERFLOW ── */
+.bang-so-sanh {
+  width: 100% !important;
+  overflow-x: auto !important;
+  display: block !important;
+}
+
+/* Wrap table trong div responsive */
+.table-responsive {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+/* ── 32. FIX: KINGDOM PAGE V2 RESPONSIVE ── */
+.kingdom-main-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+@media (max-width: 600px) {
+  .kingdom-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .info-grid-v3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .kingdom-container-v2 {
+    padding: 0 12px 40px !important;
+  }
+}
+
+/* ── 33. FIX: MODAL FOOTER FIXED ── */
+.modal-footer-fixed {
+  padding: 14px 20px !important;
+  border-top: 1px solid var(--border) !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  background: var(--bg-secondary) !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-close-text {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+  padding: 10px 18px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+}
+
+.btn-close-text:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-main) !important;
+}
+
+.btn-save-fantasy {
+  background: linear-gradient(135deg, var(--primary), var(--accent)) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-save-fantasy:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+}
+
+/* ── 34. FIX: RELATION BADGE ── */
+.rel-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  color: var(--primary) !important;
+  padding: 4px 10px !important;
+  border-radius: 20px !important;
+  font-size: 0.82rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+}
+
+.rel-badge:hover {
+  background: rgba(99, 102, 241, 0.2) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── 35. FIX: STATS SLIDER ── */
+.stats-slider-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 20px !important;
+}
+
+.stat-control {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.stat-control label {
+  font-size: 0.85rem !important;
+  color: var(--gold) !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.stat-control input[type="range"] {
+  width: 100% !important;
+  accent-color: var(--primary) !important;
+  cursor: pointer !important;
+}
+
+/* ── 36. FIX: FORM INPUTS chung ── */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  background: var(--bg-main) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-main) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.9rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  width: 100% !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+input[type="range"] {
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* ── 37. FIX: WIDE SCREEN ── */
+@media (min-width: 1440px) {
+  .profile-container,
+  .kingdom-container-v2 {
+    max-width: 1350px !important;
+  }
+
+  .glass-card {
+    padding: 35px !important;
+  }
+}
+
+/* ── 38. FIX: PRINT STYLES ── */
+@media print {
+  .navbar, .sidebar, #sidebarOverlay, .btn-primary, .btn-secondary, .btn-danger {
+    display: none !important;
+  }
+
+  .content {
+    padding: 0 !important;
+  }
+}
+
+.page { z-index: 10 !important; position: relative !important; min-height: 100vh !important; }
+
+.hidden { display: none !important; }

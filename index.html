@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fantasy Codex Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="style.css">
@@ -12,11 +12,14 @@
 <link rel="stylesheet" href="factions.css">
 <link rel="stylesheet" href="GiaoDien.css">
 <link rel="stylesheet" href="WorldLaws.css">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+
 <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="SkillTreeVortex.css">
 <link rel="stylesheet" href="premium_fantasy.css">
+<link rel="stylesheet" href="patch.css?v=2">
+<link rel="stylesheet" href="fantasy_magic_theme.css?v=2">
+
 </head>
 <body class="dark-mode">
 <!-- NAVBAR -->
@@ -47,19 +50,7 @@
 <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div class="app-container">
 
-<div id="debugBox" style="
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
-max-height:200px;
-overflow:auto;
-background:black;
-color:lime;
-font-size:12px;
-z-index:9999;
-padding:5px;">
-</div>
+
 <!-- SIDEBAR -->
 <aside id="sidebar" class="sidebar">
   <div class="sidebar-header">
@@ -783,9 +774,6 @@ padding:5px;">
         </div>
     </div>
 </div>
-</main>
-</div>
-
 <!-- MODALS -->
 <div id="characterModal" class="modal">
     <div class="modal-content advanced-modal">
@@ -1311,7 +1299,7 @@ padding:5px;">
     <p id="formModalDesc"></p>
   </div>
 </div>
-<section id="worldLawsPage" class="page-content" style="display:none;">
+<section id="worldLawsPage" class="page hidden">
     <div class="world-laws-container">
         <h1 class="magic-title">Thư Viện Luật Thế Giới</h1>
         
@@ -1328,7 +1316,7 @@ padding:5px;">
 </section>
 <div id="lawModal" class="summoning-modal-overlay" style="display:none;">
     <div class="summoning-modal">
-        <h2 id="modalTitle" style="font-family:'Cinzel', serif; color:var(--ancient-gold);">Ghi Chép Luật Mới</h2>
+        <h2 id="lawModalTitle" style="font-family:'Cinzel', serif; color:var(--ancient-gold);">Ghi Chép Luật Mới</h2>
         <form id="lawForm" onsubmit="handleLawSubmit(event)">
             <input type="hidden" id="lawId">
             <div class="form-group">
@@ -1360,6 +1348,8 @@ padding:5px;">
         </form>
     </div>
 </div>
+</main>
+</div>
 <script src="idSystem.js"></script>
 <script src="imageDB.js"></script>
 <script src="uiManager.js"></script> 
@@ -1374,7 +1364,8 @@ padding:5px;">
 <script src="backup.js"></script>
 <script src="audio.js"></script>
 <script src="sort.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
+<script src="magic_particles.js?v=2"></script>
 <!-- Scripts mới -->
 <script src="weather.js"></script>
 <script src="tournament.js"></script>

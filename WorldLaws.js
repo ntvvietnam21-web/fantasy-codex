@@ -201,7 +201,7 @@ function openLawModal() {
     const form = document.getElementById('lawForm');
     if (form) form.reset();
     
-    document.getElementById('modalTitle').innerText = "Triệu Hồi Điều Luật";
+    document.getElementById('lawModalTitle').innerText = "Triệu Hồi Điều Luật";
     const lawCatEl = document.getElementById('lawCategory');
     if (lawCatEl) lawCatEl.value = WorldLawModule.currentTab;
     document.getElementById('lawImportant').checked = false;
@@ -216,7 +216,7 @@ async function prepareEditLaw(id) {
     
     if (law) {
         WorldLawModule.editingId = law.id; // Gán vào module
-        document.getElementById('modalTitle').innerText = "Chỉnh Sửa Bí Thuật";
+        document.getElementById('lawModalTitle').innerText = "Chỉnh Sửa Bí Thuật";
         document.getElementById('lawTitle').value = law.title;
         document.getElementById('lawCategory').value = law.category;
         document.getElementById('lawContent').value = law.content;
