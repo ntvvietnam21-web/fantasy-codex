@@ -145,7 +145,14 @@ window.saveLocation = async function() {
         climate: getVal("locationClimate"),
         mana: getVal("locationMana"),
         bgm: getVal("locationBGM"),
-        parentId: getVal("locationParentId")
+        parentId: getVal("locationParentId"),
+        status: getVal("locationStatus") || "Hòa bình",
+        population: getVal("locationPopulation"),
+        economy: getVal("locationEconomy"),
+        governance: getVal("locationGovernance"),
+        npcs: getVal("locationNPCs"),
+        quests: getVal("locationQuests"),
+        mapUrl: getVal("locationMapUrl")
     };
     if (empire) {
         window.currentOpeningEmpireId = empire;
@@ -237,11 +244,18 @@ window.showDetail = function(id) {
     setText("detailType", loc.type);
     setText("detailAddress", loc.location);
     setText("detailEra", loc.era);
+    
+    setText("detailStatus", loc.status || "Hòa bình");
+    setText("detailPopulation", loc.population);
+    setText("detailEconomy", loc.economy);
+    setText("detailGovernance", loc.governance);
 
     // 4. Cập nhật nội dung chi tiết (Markdown/Xuống dòng)
     setHTML("detailDescription", loc.description); // ID mới trong HTML div
     setHTML("detailCurses", loc.condition);
     setHTML("detailResources", loc.features);
+    setHTML("detailNPCs", loc.npcs);
+    setHTML("detailQuests", loc.quests);
 
     // Cập nhật các trường mới
     setText("detailClimate", loc.climate);
@@ -266,6 +280,16 @@ window.showDetail = function(id) {
             bgmEl.innerHTML = `<a href="${loc.bgm}" target="_blank" style="color:var(--gold); text-decoration:none;"><i class="fa-brands fa-youtube"></i> Nhấn để nghe nhạc nền khu vực này</a>`;
         } else {
             bgmEl.innerHTML = `<span style="opacity:0.5;">Không có âm thanh</span>`;
+        }
+    }
+
+    // Map URL
+    const mapContainer = document.getElementById("detailMapContainer");
+    if (mapContainer) {
+        if (loc.mapUrl && loc.mapUrl.trim() !== "") {
+            mapContainer.innerHTML = `<a href="${loc.mapUrl}" target="_blank" class="btn-map"><i class="fa fa-map"></i> Xem Bản Đồ Chi Tiết</a>`;
+        } else {
+            mapContainer.innerHTML = "";
         }
     }
 
@@ -424,6 +448,14 @@ window.openForm = function(id = null) {
             document.getElementById("locationClimate").value = loc.climate || "";
             document.getElementById("locationMana").value = loc.mana || "";
             document.getElementById("locationBGM").value = loc.bgm || "";
+            
+            document.getElementById("locationStatus").value = loc.status || "Hòa bình";
+            document.getElementById("locationPopulation").value = loc.population || "";
+            document.getElementById("locationEconomy").value = loc.economy || "";
+            document.getElementById("locationGovernance").value = loc.governance || "";
+            document.getElementById("locationNPCs").value = loc.npcs || "";
+            document.getElementById("locationQuests").value = loc.quests || "";
+            document.getElementById("locationMapUrl").value = loc.mapUrl || "";
             
             if (loc.parentId) {
                 document.getElementById("locationParentId").value = loc.parentId;

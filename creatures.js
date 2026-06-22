@@ -66,6 +66,7 @@ async function showCreatures(page = 1) {
     currentPage = page;
     const creatureList = document.getElementById("creatureList");
     const searchVal = document.getElementById("creatureSearch")?.value.toLowerCase() || "";
+    const filterRank = document.getElementById("creatureFilterRank")?.value || "";
     
     if (!creatureList) return;
     creatureList.innerHTML = `<div class="loading-spinner">Đang triệu hồi...</div>`;
@@ -89,6 +90,16 @@ async function showCreatures(page = 1) {
             (c.type && c.type.toLowerCase().includes(searchVal))
         );
     }
+    
+    if (filterRank) {
+        all = all.filter(c => c.rank === filterRank);
+    }
+
+    if (all.length === 0) {
+        creatureList.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 40px; font-style: italic;">Không tìm thấy sinh vật nào.</div>`;
+        renderPagination(0);
+        return;
+    }
 
     const totalPages = Math.ceil(all.length / perPage);
     const start = (page - 1) * perPage;
@@ -98,20 +109,22 @@ async function showCreatures(page = 1) {
 
     for (const c of items) {
         const imgUrl = await getCreatureImage(c.imgId);
+        const rankClass = c.rank ? `rank-${c.rank.toLowerCase()}` : "rank-c";
+        
         const div = document.createElement("div");
-        div.className = "creature-card glass-effect";
+        div.className = `creature-card glass-effect ${rankClass}`;
         div.innerHTML = `
-            <div onclick="openCreatureDetail('${c.id}')" style="cursor:pointer;">
-                <div class="card-img-container" style="position:relative; height:120px; overflow:hidden;">
+            <div onclick="openCreatureDetail('${c.id}')" style="cursor:pointer; display:flex; flex-direction:column; flex:1;">
+                <div class="card-img-container" style="position:relative; height:140px; overflow:hidden;">
                     <img src="${imgUrl || 'https://i.imgur.com/6X8FQyA.png'}" alt="${c.name}">
                     <div class="rank-badge">${c.rank || 'C'}</div>
                 </div>
-                <h4 class="cinzel-font" style="color:var(--gold);">${c.name}</h4>
+                <h4 class="cinzel-font">${c.name}</h4>
                 <p>${c.desc || '...'}</p>
             </div>
             <div class="card-actions">
-                <button onclick="editCreature('${c.id}')" title="Sửa" class="btn-sm"><i class="fa fa-edit"></i></button>
-                <button onclick="deleteCreature('${c.id}')" title="Xóa" class="btn-delete-card"><i class="fa fa-trash-alt"></i></button>
+                <button onclick="editCreature('${c.id}')" title="Sửa" class="btn-sm"><i class="fa fa-edit"></i> Sửa</button>
+                <button onclick="deleteCreature('${c.id}')" title="Xóa" class="btn-delete-card"><i class="fa fa-trash-alt"></i> Xóa</button>
             </div>
         `;
         creatureList.appendChild(div);
@@ -196,6 +209,7 @@ async function editCreature(id) {
     if (!c) return;
 
     editCreatureId = id;
+    resetFormTabs();
     document.getElementById("creatureModal").style.display = "flex";
     document.getElementById("creatureName").value = c.name;
     document.getElementById("creatureType").value = c.type || "";
@@ -309,11 +323,38 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("creatureSearch")?.addEventListener("input", () => {
         showCreatures(1);
     });
+    
+    document.getElementById("creatureFilterRank")?.addEventListener("change", () => {
+        showCreatures(1);
+    });
 });
+
+function switchCreatureTab(evt, tabName) {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.add('hidden'));
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.remove('hidden');
+    evt.currentTarget.classList.add('active');
+}
+
+function resetFormTabs() {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.add('hidden'));
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById('tabBasic').classList.remove('hidden');
+    if(tabBtns.length > 0) tabBtns[0].classList.add('active');
+}
 function openCreatureModal() { 
     editCreatureId = null; 
     document.getElementById("creatureForm").reset();
     document.getElementById("creaturePreview").classList.add("hidden");
+    resetFormTabs();
     document.getElementById("creatureModal").style.display = "flex"; 
 }
 function closeCreatureModal() { document.getElementById("creatureModal").style.display = "none"; }

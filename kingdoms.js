@@ -21,23 +21,30 @@ async function renderKingdoms() {
     window.kingdoms.forEach((k, i) => {
         const members = countMap[k.id] || 0;
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = "kingdom-card-v2";
         
-        // GM: Thêm onclick="openImageViewer('${k.img || ''}')" vào thẻ img
         card.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
-              <img id="kingdom-img-${k.id}" 
-                   src="https://i.imgur.com/6X8FQyA.png" 
-                   onclick="openImageViewer('${k.img || ''}')" 
-                   style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;"
-                   title="Click để phóng to">
-              <h3 onclick="openKingdomPage(${i})" style="cursor:pointer">${k.name}</h3>
+            <div class="k-card-cover" onclick="openKingdomPage(${i})">
+                <img id="kingdom-bg-${k.id}" src="https://i.imgur.com/6X8FQyA.png" class="k-bg-img" alt="cover">
+                <div class="k-cover-overlay"></div>
+                <div class="k-logo-container">
+                    <img id="kingdom-img-${k.id}" src="https://i.imgur.com/6X8FQyA.png" onclick="event.stopPropagation(); openImageViewer('${k.img || ''}')" title="Phóng to">
+                </div>
             </div>
-            <p style="font-size:13px; margin: 5px 0;">Lãnh đạo: ${k.leader || "-"}</p>
-            <p style="font-size:13px;"><b>Thành viên:</b> <span class="accent">${members}</span></p>
-            <div class="race-buttons" style="margin-top:10px;">
-              <button onclick="editKingdom(${i})">Sửa</button>
-              <button onclick="deleteKingdom(${i})" style="background:rgba(248,113,113,0.2); color:#f87171;">Xóa</button>
+            <div class="k-card-content">
+                <h3 onclick="openKingdomPage(${i})" style="cursor:pointer">${k.name}</h3>
+                <div class="k-info-grid">
+                    <div class="k-info-row">
+                        <i class="fa fa-crown k-icon"></i> <span class="k-text">${k.leader || "Chưa rõ"}</span>
+                    </div>
+                    <div class="k-info-row">
+                        <i class="fa fa-users k-icon"></i> <span class="k-text">${members} thành viên</span>
+                    </div>
+                </div>
+            </div>
+            <div class="k-card-actions">
+                <button onclick="editKingdom(${i})" class="btn-k-edit"><i class="fa fa-pen"></i></button>
+                <button onclick="deleteKingdom(${i})" class="btn-k-delete"><i class="fa fa-trash"></i></button>
             </div>`;
         fragment.appendChild(card);
     });
@@ -48,13 +55,18 @@ async function renderKingdoms() {
     for (const k of window.kingdoms) {
         if (k.img) {
             const imgEl = document.getElementById("kingdom-img-" + k.id);
-            if (imgEl) {
+            const bgEl = document.getElementById("kingdom-bg-" + k.id);
+            if (imgEl || bgEl) {
                 // Nếu là link web thì gán luôn, nếu là key thì đi lấy từ DB
                 if (k.img.startsWith("http") || k.img.startsWith("data:")) {
-                    imgEl.src = k.img;
+                    if (imgEl) imgEl.src = k.img;
+                    if (bgEl) bgEl.src = k.img;
                 } else if (typeof getImage === "function") {
                     const src = await getImage(k.img);
-                    if (src) imgEl.src = src;
+                    if (src) {
+                        if (imgEl) imgEl.src = src;
+                        if (bgEl) bgEl.src = src;
+                    }
                 }
             }
         }

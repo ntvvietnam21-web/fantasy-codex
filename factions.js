@@ -16,32 +16,46 @@ async function renderFactions() {
     list.innerHTML = "";
     const allFactions = window.factions || [];
     const allChars = window.characters || [];
-    const countEl = document.getElementById("factionCount");
-    if (countEl) countEl.innerText = allFactions.length;
+    const searchTerm = document.getElementById("factionSearchInput") ? document.getElementById("factionSearchInput").value.toLowerCase() : "";
+    const filterScale = document.getElementById("factionFilterSelect") ? document.getElementById("factionFilterSelect").value : "";
 
-    allFactions.forEach((f, i) => {
+    const filteredFactions = allFactions.filter(f => {
+        const matchSearch = f.name.toLowerCase().includes(searchTerm) || (f.leader && f.leader.toLowerCase().includes(searchTerm));
+        const matchScale = filterScale ? f.scale === filterScale : true;
+        return matchSearch && matchScale;
+    });
+
+    const countEl = document.getElementById("factionCount");
+    if (countEl) countEl.innerText = filteredFactions.length;
+
+    filteredFactions.forEach((f) => {
+        const i = allFactions.findIndex(x => x.id === f.id);
         const membersCount = allChars.filter(c => String(c.faction) === String(f.id)).length;
 
         const card = document.createElement("div");
-        card.className = "card faction-card";
+        card.className = "glass-card premium-card kingdom-card-v2";
         
-        // GM: Cấu trúc lại để phần nội dung chiếm trọn vùng click, trừ cụm nút Sửa/Xóa
+        let powerClass = "gold-breathe";
+        if (f.power >= 2000) powerClass = "magenta-breathe";
+        else if (f.power <= 500) powerClass = ""; // Normal
+        
         card.innerHTML = `
             <div class="faction-card-inner" style="cursor:pointer; display:flex; flex-direction:column; gap:10px;">
                 <div style="display:flex; align-items:center; gap:15px;">
-                    <img id="f-icon-${f.id}" src="https://i.imgur.com/6X8FQyA.png" style="width:50px; height:50px; object-fit:cover; border-radius:10px; border:1px solid var(--border);">
+                    <img id="f-icon-${f.id}" src="https://i.imgur.com/6X8FQyA.png" style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:2px solid var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.5);" class="${powerClass}">
                     <div>
-                        <h3 style="margin:0; color:var(--gold);">${f.name}</h3>
-                        <p style="margin:0; font-size:0.8rem; color:var(--text-dim);">Thủ lĩnh: ${f.leader || "Ẩn danh"}</p>
+                        <h3 class="cinzel-font-bold ${powerClass}" style="margin:0; font-size: 1.2rem;">${f.name}</h3>
+                        <p style="margin:0; font-size:0.85rem; color:var(--text-dim); margin-top:3px;"><i class="fa fa-crown"></i> ${f.leader || "Ẩn danh"}</p>
                     </div>
                 </div>
-                <div style="font-size:0.85rem;">
-                    <b>Thành viên:</b> <span class="accent">${membersCount}</span>
+                <div style="font-size:0.85rem; margin-top: 5px; display: flex; justify-content: space-between;">
+                    <span><i class="fa fa-users"></i> Thành viên: <span style="color: white; font-weight: bold;">${membersCount}</span></span>
+                    <span style="color: var(--gold);"><i class="fa fa-star"></i> ${f.power || 0}</span>
                 </div>
             </div>
-            <div class="race-buttons" style="margin-top:10px; display:flex; gap:5px;">
-                <button onclick="event.stopPropagation(); editFaction(${i})" style="flex:1;">Sửa</button>
-                <button onclick="event.stopPropagation(); deleteFaction(${i})" style="flex:1; background:rgba(248,113,113,0.1); color:#f87171;">Xóa</button>
+            <div class="race-buttons" style="margin-top:15px; display:flex; gap:8px;">
+                <button class="btn-secondary" onclick="event.stopPropagation(); editFaction(${i})" style="flex:1;"><i class="fa fa-edit"></i></button>
+                <button class="btn-secondary" onclick="event.stopPropagation(); deleteFaction(${i})" style="flex:1; border-color: rgba(248,113,113,0.5); color: #f87171;"><i class="fa fa-trash"></i></button>
             </div>
         `;
         
@@ -106,17 +120,28 @@ async function saveFaction() {
     // Đảm bảo clone sâu để tránh lỗi tham chiếu
     const structure = JSON.parse(JSON.stringify(window.currentFactionStructure || []));
 
+    const mil = parseInt(val("factionMil")) || 0;
+    const eco = parseInt(val("factionEco")) || 0;
+    const mag = parseInt(val("factionMag")) || 0;
+    const totalPower = mil + eco + mag;
+
     const obj = {
         id: factionId,
         name: name,
         leader: val("factionLeader"),
         hq: val("factionHQ"),
+        territory: val("factionTerritory"),
         founded: val("factionFounded"),
         scale: val("factionScale"),
-        power: val("factionPower"),
+        power: totalPower,
+        mil: mil,
+        eco: eco,
+        mag: mag,
+        traits: val("factionTraits"),
         goal: val("factionGoal"),
         ideology: val("factionIdeology"), 
         desc: val("factionDesc"),
+        chronicle: val("factionChronicle"),
         diplomacy: diplomacy,
         structure: structure, 
         icon: iconKey,
@@ -171,12 +196,17 @@ function editFaction(i) {
     setVal("factionName", f.name);
     setVal("factionLeader", f.leader);
     setVal("factionHQ", f.hq);
+    setVal("factionTerritory", f.territory);
     setVal("factionFounded", f.founded);
     setVal("factionScale", f.scale);
-    setVal("factionPower", f.power);
+    setVal("factionMil", f.mil);
+    setVal("factionEco", f.eco);
+    setVal("factionMag", f.mag);
+    setVal("factionTraits", f.traits);
     setVal("factionGoal", f.goal);
     setVal("factionIdeology", f.ideology);
     setVal("factionDesc", f.desc);
+    setVal("factionChronicle", f.chronicle);
 
     // GM: Nạp cấu trúc Tab & Chức vụ từ IndexedDB data vào biến tạm
     window.currentFactionStructure = f.structure ? JSON.parse(JSON.stringify(f.structure)) : [];
@@ -207,8 +237,9 @@ async function deleteFaction(index) {
 }
 function resetFactionForm() {
     const fields = [
-        "factionName", "factionLeader", "factionHQ", "factionFounded", 
-        "factionScale", "factionPower", "factionGoal", "factionIdeology", "factionDesc"
+        "factionName", "factionLeader", "factionHQ", "factionTerritory", "factionFounded", 
+        "factionScale", "factionMil", "factionEco", "factionMag", "factionTraits",
+        "factionGoal", "factionIdeology", "factionDesc", "factionChronicle"
     ];
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -262,6 +293,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("❌ GM: Lỗi trong quá trình khởi tạo Factions:", error);
     }
 });
+window.searchFactions = function() {
+    if (typeof renderFactions === "function") renderFactions();
+};
+
+window.toggleFullscreenFactionTree = function() {
+    const treeContainer = document.getElementById('factionCharacters');
+    if (!treeContainer) return;
+    
+    document.body.classList.toggle('faction-tree-fullscreen');
+    if (document.body.classList.contains('faction-tree-fullscreen')) {
+        if(typeof showToast === 'function') showToast("Đã mở toàn màn hình (Bấm lại để thoát)", "info");
+    }
+};
+
 async function openFactionPage(i) {
     let f;
     if (typeof i === 'string' && i.startsWith('f_')) {
@@ -284,14 +329,62 @@ async function openFactionPage(i) {
         if (el) el.textContent = val || "Chưa rõ";
     };
 
-    setText("factionPageName", f.name);
+    const nameEl = document.getElementById("factionPageName");
+    if (nameEl) {
+        nameEl.innerText = f.name || "-";
+        nameEl.className = "cinzel-font-bold"; // Reset
+        if (f.power >= 800) nameEl.classList.add("magenta-breathe");
+        else if (f.power > 300) nameEl.classList.add("gold-breathe");
+    }
+
     setText("factionPageLeader", f.leader);
     setText("factionPageHQ", f.hq);
+    setText("factionPageTerritory", f.territory || "Không xác định");
     setText("factionPageGoal", f.goal);
     setText("factionPageIdeology", f.ideology);
-    setText("factionPageFounded", f.founded);
     setText("factionPageDesc", f.desc);
-    setText("factionPagePower", `${f.power || 0}/1000`);
+    
+    const powerSum = (f.mil || 0) + (f.eco || 0) + (f.mag || 0);
+    setText("factionPagePower", `${powerSum}/3000`);
+
+    // Nội tại (Traits)
+    const traitsContainer = document.getElementById("factionPageTraits");
+    if (traitsContainer) {
+        traitsContainer.innerHTML = "";
+        if (f.traits) {
+            const traitsArray = f.traits.split(",").map(t => t.trim()).filter(t => t);
+            traitsArray.forEach(t => {
+                traitsContainer.innerHTML += `<span class="badge" style="background:var(--magic-purple); border:1px solid #c084fc; box-shadow:0 0 10px rgba(192,132,252,0.4);"><i class="fa fa-gem"></i> ${t}</span>`;
+            });
+        }
+    }
+
+    // Biên niên sử (Chronicle)
+    const chronicleContainer = document.getElementById("factionPageChronicle");
+    if (chronicleContainer) {
+        chronicleContainer.innerHTML = "";
+        if (f.chronicle) {
+            const lines = f.chronicle.split("\n").map(l => l.trim()).filter(l => l);
+            lines.forEach(line => {
+                let parts = line.split(":");
+                if (parts.length >= 2) {
+                    const year = parts[0].trim();
+                    const event = parts.slice(1).join(":").trim();
+                    chronicleContainer.innerHTML += `
+                        <div style="position:relative; margin-bottom:15px;">
+                            <div style="position:absolute; left:-25px; top:5px; width:10px; height:10px; background:var(--gold); border-radius:50%; box-shadow:0 0 8px var(--gold);"></div>
+                            <b style="color:var(--gold); display:block; font-family:'Cinzel', serif;">${year}</b>
+                            <span style="color:var(--text-main); font-size:0.9rem;">${event}</span>
+                        </div>
+                    `;
+                } else {
+                    chronicleContainer.innerHTML += `<div style="margin-bottom:10px; color:var(--text-main);">${line}</div>`;
+                }
+            });
+        } else {
+            chronicleContainer.innerHTML = "<p style='color:var(--text-dim);'>Chưa có ghi chép lịch sử.</p>";
+        }
+    }
 
     // Render sơ đồ chức vụ
     if (typeof renderFactionTreeDisplay === "function") {
@@ -314,32 +407,55 @@ async function openFactionPage(i) {
         scaleEl.className = "badge " + (f.scale === "Toàn lục địa" ? "danger" : "info");
     }
 
-    // Thanh sức mạnh (Animate Fill)
-    const powerFill = document.getElementById("powerFill");
-    if (powerFill) {
-        const powerVal = parseInt(f.power) || 0;
-        const percent = Math.min((powerVal / 1000) * 100, 100); 
-        setTimeout(() => { powerFill.style.width = percent + "%"; }, 100);
-    }
+    // Thanh sức mạnh (Animate Fill cho 3 thanh Triforce)
+    const updateMeter = (fillId, textId, value) => {
+        const fillEl = document.getElementById(fillId);
+        const textEl = document.getElementById(textId);
+        if (fillEl && textEl) {
+            const val = parseInt(value) || 0;
+            const percent = Math.min((val / 1000) * 100, 100);
+            textEl.innerText = `${val}/1000`;
+            setTimeout(() => { fillEl.style.width = percent + "%"; }, 100);
+        }
+    };
+    
+    updateMeter("fPageMilFill", "fPageMilText", f.mil);
+    updateMeter("fPageEcoFill", "fPageEcoText", f.eco);
+    updateMeter("fPageMagFill", "fPageMagText", f.mag);
 
     // Xử lý ảnh Banner và Icon
-    const handleImage = async (imgId, imgData) => {
-        const el = document.getElementById(imgId);
+    const handleImage = async (id, imgData, isBackground = false) => {
+        let el;
+        if (isBackground) {
+            el = document.querySelector("#factionPage .kingdom-hero-v2");
+        } else {
+            el = document.getElementById(id);
+        }
+        
         if (!el) return;
-        const placeholder = imgId.includes("Banner") ? "https://i.imgur.com/eE6C6Wv.png" : "https://i.imgur.com/6X8FQyA.png";
-        el.src = placeholder;
+        
+        if (isBackground) {
+            el.style.backgroundImage = "none";
+        } else {
+            el.src = "";
+        }
+
         if (imgData) {
             if (imgData.startsWith("http") || imgData.startsWith("data:")) {
-                el.src = imgData;
+                if (isBackground) el.style.backgroundImage = `url('${imgData}')`;
+                else el.src = imgData;
             } else if (typeof getImage === "function") {
                 const storedImg = await getImage(imgData);
-                if (storedImg) el.src = storedImg;
+                if (storedImg) {
+                    if (isBackground) el.style.backgroundImage = `url('${storedImg}')`;
+                    else el.src = storedImg;
+                }
             }
         }
     };
 
-    await handleImage("factionPageBanner", f.banner);
-    await handleImage("factionPageIcon", f.icon);
+    await handleImage(null, f.banner, true);
+    await handleImage("factionPageIcon", f.icon, false);
 }
 async function loadFactionCharacters(f) {
     let list = document.getElementById("factionCharacters");
@@ -654,41 +770,33 @@ function renderNodeRecursive(node) {
         ? node.children.map(child => renderNodeRecursive(child)).join('') 
         : "";
 
-    // Giữ nguyên cấu trúc ngang nhưng dùng các đơn vị cực nhỏ và flex-shrink
     return `
-        <div class="tree-branch" style="display: flex; flex-direction: column; align-items: center; position: relative; flex: 0 0 auto;">
-            
-            <div class="node-card-wrapper" style="padding: 0 2px; position: relative; display: flex; flex-direction: column; align-items: center;">
-                <div class="node-card ${char ? 'has-member' : 'empty-member'}" 
-                     ${clickAction}
-                     style="text-align:center; background:var(--glass); border:1px solid var(--gold); padding:4px; border-radius:4px; width:60px; cursor:${char ? 'pointer' : 'default'}; position:relative; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    
-                    <div style="font-size:0.4rem; color:var(--gold); text-transform:uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height:1;">
-                        ${node.title || "CV"}
-                    </div>
-                    
-                    <div style="width:20px; height:20px; margin: 2px auto; position:relative;">
-                        <img id="${imgElementId}" 
-                             src="${placeholder}" 
-                             ${imgKeyAttr} 
-                             class="faction-node-img"
-                             style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:0.5px solid var(--gold);">
-                    </div>
-
-                    <div style="font-weight:600; font-size:0.45rem; color:var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${char ? char.name : "..."}
-                    </div>
+        <div class="tree-branch" style="display: flex; flex-direction: column; align-items: center; position: relative; flex: 0 0 auto; margin: 10px;">
+            <div class="node-card premium-card glass-card" 
+                 ${clickAction}
+                 style="text-align:center; padding:12px; border-radius:12px; width:130px; cursor:${char ? 'pointer' : 'default'}; z-index: 2; border: 2px solid var(--gold); background: rgba(0,0,0,0.6); box-shadow: 0 0 15px rgba(212,175,55,0.3);">
+                
+                <div style="font-size:0.8rem; color:var(--gold); text-transform:uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom:8px; font-weight:bold;">
+                    ${node.title || "Chức vụ"}
+                </div>
+                
+                <div style="width:60px; height:60px; margin: 0 auto; position:relative;">
+                    <img id="${imgElementId}" 
+                         src="${placeholder}" 
+                         ${imgKeyAttr} 
+                         class="faction-node-img"
+                         style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.5);">
                 </div>
 
-                ${childrenHtml ? `<div class="line-down" style="width:1px; height:10px; background:var(--gold); opacity:0.3;"></div>` : ''}
+                <div style="font-weight:600; font-size:0.65rem; color:#fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:8px;">
+                    ${char ? char.name : "..."}
+                </div>
             </div>
 
-            ${childrenHtml ? `
-                <div class="node-children-container" style="display: flex; position: relative;">
-                    <div class="line-horizontal" style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gold); opacity: 0.2; width: calc(100% - 60px); margin: 0 auto;"></div>
-                    <div class="node-children-list" style="display: flex; gap: 4px; justify-content: center;">
-                        ${childrenHtml}
-                    </div>
+            ${node.children && node.children.length > 0 ? `
+                <div class="node-line-down" style="width: 2px; height: 20px; background: linear-gradient(180deg, var(--gold) 0%, rgba(212,175,55,0) 100%); box-shadow: 0 0 5px var(--gold);"></div>
+                <div class="node-children" style="display: flex; flex-direction: row; justify-content: center; position: relative; gap: 10px; padding-top: 10px; border-top: 2px solid var(--gold); box-shadow: 0 -2px 5px rgba(212,175,55,0.2);">
+                    ${childrenHtml}
                 </div>
             ` : ''}
         </div>

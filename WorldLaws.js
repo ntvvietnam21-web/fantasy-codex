@@ -165,7 +165,14 @@ async function renderWorldLaws() {
 
     // 4. Render danh sách điều luật
     const allLaws = await getAllLaws();
-    const filteredLaws = allLaws.filter(l => l.category === WorldLawModule.currentTab);
+    // Lọc theo Category và Sắp xếp: Important (Tối cao) lên đầu tiên, sau đó tới thời gian cập nhật
+    const filteredLaws = allLaws
+        .filter(l => l.category === WorldLawModule.currentTab)
+        .sort((a, b) => {
+            if (a.important && !b.important) return -1;
+            if (!a.important && b.important) return 1;
+            return (b.updatedAt || 0) - (a.updatedAt || 0);
+        });
     
     grid.style.opacity = "0";
     setTimeout(() => {
@@ -173,17 +180,21 @@ async function renderWorldLaws() {
             grid.innerHTML = `<p style="text-align:center; grid-column: 1/-1; opacity: 0.5; padding: 30px;">
                 Chương [${WorldLawModule.currentTab}] chưa được ghi chép điều luật nào.</p>`;
         } else {
-            grid.innerHTML = filteredLaws.map(law => `
-                <div class="law-card ${law.important ? 'important' : ''}" style="animation: summonCard 0.4s ease-out forwards">
+            grid.innerHTML = filteredLaws.map(law => {
+                const alignClass = law.alignment ? `law-align-${law.alignment}` : 'law-align-neutral';
+                const eraHtml = law.era ? `<div class="law-era-badge"><i class="fa-solid fa-hourglass-half"></i> ${law.era}</div>` : '';
+                return `
+                <div class="law-card ${law.important ? 'important' : ''} ${alignClass}" style="animation: summonCard 0.4s ease-out forwards">
                     <div class="law-actions" style="position:absolute; right:15px; top:15px; display:flex; gap:12px;">
                         <i class="fa-solid fa-pen-fancy" onclick="prepareEditLaw(${law.id})" style="color:var(--ancient-gold); cursor:pointer;"></i>
                         <i class="fa-solid fa-eraser" onclick="deleteLaw(${law.id})" style="color:#ff6b6b; cursor:pointer;"></i>
                     </div>
+                    ${eraHtml}
                     <h3>${law.title}</h3>
                     <div class="law-content-text">${law.content}</div>
                     ${law.important ? '<div class="seal">✦ ĐIỀU LUẬT TỐI CAO</div>' : ''}
                 </div>
-            `).join('');
+            `}).join('');
         }
         grid.style.opacity = "1";
     }, 150);
@@ -204,6 +215,9 @@ function openLawModal() {
     document.getElementById('lawModalTitle').innerText = "Triệu Hồi Điều Luật";
     const lawCatEl = document.getElementById('lawCategory');
     if (lawCatEl) lawCatEl.value = WorldLawModule.currentTab;
+    
+    document.getElementById('lawAlignment').value = "neutral";
+    document.getElementById('lawEra').value = "";
     document.getElementById('lawImportant').checked = false;
     document.getElementById('lawModal').style.display = 'flex';
 }
@@ -220,6 +234,8 @@ async function prepareEditLaw(id) {
         document.getElementById('lawTitle').value = law.title;
         document.getElementById('lawCategory').value = law.category;
         document.getElementById('lawContent').value = law.content;
+        document.getElementById('lawAlignment').value = law.alignment || "neutral";
+        document.getElementById('lawEra').value = law.era || "";
         document.getElementById('lawImportant').checked = law.important;
         document.getElementById('lawModal').style.display = 'flex';
     } else {
@@ -234,6 +250,8 @@ async function handleLawSubmit(event) {
             title: document.getElementById('lawTitle').value.trim(),
             category: document.getElementById('lawCategory').value, // Lấy từ select
             content: document.getElementById('lawContent').value.trim(),
+            alignment: document.getElementById('lawAlignment').value,
+            era: document.getElementById('lawEra').value.trim(),
             important: document.getElementById('lawImportant').checked,
             updatedAt: new Date().getTime()
         };
@@ -249,6 +267,41 @@ async function handleLawSubmit(event) {
         console.error("Lỗi:", error);
     }
 }
+
+WorldLawModule.searchLaws = function(text) {
+    text = text.toLowerCase().trim();
+    const cards = document.querySelectorAll('#lawsGrid .law-card');
+    cards.forEach(card => {
+        const title = card.querySelector('h3').innerText.toLowerCase();
+        const content = card.querySelector('.law-content-text').innerText.toLowerCase();
+        if (title.includes(text) || content.includes(text)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+};
+
+WorldLawModule.toggleScrollMode = function() {
+    document.body.classList.toggle('wl-scroll-mode-active');
+    
+    if (document.body.classList.contains('wl-scroll-mode-active')) {
+        if (!document.getElementById('wlExitScrollBtn')) {
+            const btn = document.createElement('button');
+            btn.id = 'wlExitScrollBtn';
+            btn.className = 'wl-exit-scroll';
+            btn.innerHTML = '<i class="fa-solid fa-book-open"></i> Gấp Cổ thư lại';
+            btn.onclick = () => WorldLawModule.toggleScrollMode();
+            document.body.appendChild(btn);
+        } else {
+            document.getElementById('wlExitScrollBtn').style.display = 'block';
+        }
+        if(typeof showToast === 'function') showToast("Đã mở Cổ thư. Chỉ đọc, không thể chỉnh sửa.", "info");
+    } else {
+        const btn = document.getElementById('wlExitScrollBtn');
+        if (btn) btn.style.display = 'none';
+    }
+};
 
 
 

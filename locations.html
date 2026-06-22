@@ -197,21 +197,37 @@
         <div class="detail-image-wrapper">
             <img id="detailImage" src="https://i.imgur.com/6X8FQyA.png" style="width:100%; height:100%; object-fit:cover;">
         </div>
+        <div style="text-align:center; margin-bottom: 20px;" id="detailMapContainer"></div>
       </div>
 
       <div class="detail-grid">
+        <div class="info-item"><b>Trạng thái:</b> <span id="detailStatus"></span></div>
         <div class="info-item"><b>Loại địa điểm:</b> <span id="detailType"></span></div>
         <div class="info-item"><b>Đế chế / Phe phái:</b> <span id="detailEmpireFaction"></span></div>
         <div class="info-item"><b>Tọa độ (X, Y):</b> <span id="detailCoordinates"></span></div>
         <div class="info-item"><b>Khí hậu:</b> <span id="detailClimate"></span></div>
         <div class="info-item"><b>Linh khí / Ma lực:</b> <span id="detailMana"></span></div>
         <div class="info-item"><b>Niên đại:</b> <span id="detailEra"></span></div>
+        <div class="info-item"><b>Dân số & Chủng tộc:</b> <span id="detailPopulation"></span></div>
+        <div class="info-item"><b>Kinh tế & Mức sống:</b> <span id="detailEconomy"></span></div>
+        <div class="info-item"><b>Luật pháp & Cai trị:</b> <span id="detailGovernance"></span></div>
       </div>
 
       <div class="detail-full-width">
         <div class="info-block">
           <h4><i class="fa fa-scroll"></i> Mô tả & Truyền thuyết</h4>
           <div id="detailDescription" class="markdown-body"></div>
+        </div>
+        
+        <div class="two-cols" style="margin-top:25px;">
+            <div class="info-block" style="flex:1;">
+              <h4><i class="fa fa-users"></i> Nhân vật / Quái vật nổi bật</h4>
+              <div id="detailNPCs" class="markdown-body" style="font-size: 0.9rem;"></div>
+            </div>
+            <div class="info-block" style="flex:1;">
+              <h4><i class="fa fa-tasks"></i> Nhiệm vụ & Tin đồn</h4>
+              <div id="detailQuests" class="markdown-body" style="font-size: 0.9rem;"></div>
+            </div>
         </div>
         
         <div class="two-cols" style="margin-top:25px;">
@@ -269,9 +285,43 @@
 
             <div class="two-cols">
                 <div class="form-group">
+                    <label><i class="fa fa-globe"></i> Trạng thái (Hiện tại)</label>
+                    <select id="locationStatus">
+                        <option value="Hòa bình">Hòa bình</option>
+                        <option value="Đang chiến tranh">Đang chiến tranh</option>
+                        <option value="Đã sụp đổ">Đã sụp đổ (Tàn tích)</option>
+                        <option value="Bị phong ấn">Bị phong ấn</option>
+                        <option value="Mới phát hiện">Mới phát hiện / Tự do</option>
+                        <option value="Đang phát triển">Đang phát triển (Xây dựng)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-link"></i> Liên kết bản đồ chi tiết</label>
+                    <input type="text" id="locationMapUrl" placeholder="Link ảnh bản đồ / URL web map...">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-users"></i> Dân số & Chủng tộc</label>
+                    <input type="text" id="locationPopulation" placeholder="VD: 50.000 (Chủ yếu Human, Elf)...">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-coins"></i> Kinh tế & Mức sống</label>
+                    <input type="text" id="locationEconomy" placeholder="VD: Phồn vinh, Nghèo đói, Hoang tàn...">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-balance-scale"></i> Luật pháp & Cai trị</label>
+                    <input type="text" id="locationGovernance" placeholder="VD: Quân chủ, Vô chính phủ...">
+                </div>
+                <div class="form-group">
                     <label><i class="fa fa-tag"></i> Loại địa điểm</label>
                     <input type="text" id="locationType" placeholder="VD: Thánh đường, Thành phố...">
                 </div>
+            </div>
                 <div class="form-group">
                     <label><i class="fa fa-skull"></i> Mức độ nguy hiểm</label>
                     <select id="locationDanger">
@@ -324,6 +374,17 @@
             <div class="form-group">
                 <label><i class="fa fa-scroll"></i> Mô tả & Truyền thuyết (Markdown)</label>
                 <textarea id="locationDescription" rows="4" placeholder="Viết nên sử thi về nơi này..."></textarea>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label><i class="fa fa-users"></i> Nhân vật / Quái vật nổi bật (Markdown)</label>
+                    <textarea id="locationNPCs" rows="3" placeholder="Các thế lực, boss hay NPC quan trọng cư ngụ tại đây..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa fa-tasks"></i> Tin đồn & Nhiệm vụ (Markdown)</label>
+                    <textarea id="locationQuests" rows="3" placeholder="Lời đồn đại rỉ tai nhau trong tửu quán, các quest hiện có..."></textarea>
+                </div>
             </div>
 
             <div class="two-cols">

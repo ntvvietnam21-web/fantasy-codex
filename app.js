@@ -30,6 +30,7 @@ window.exportCharacterToTXT = async function(charId) {
     content += `==========================================\n\n`;
 
     content += `[THÔNG TIN CƠ BẢN]\n`;
+    if (char.title) content += `- Danh hiệu: ${char.title}\n`;
     content += `- Chủng tộc: ${race}\n`;
     content += `- Đế chế/Vương quốc: ${kingdom}\n`;
     content += `- Phe phái: ${faction}\n`;
@@ -37,9 +38,14 @@ window.exportCharacterToTXT = async function(charId) {
     content += `- Giới tính: ${char.gender || "-"}\n`;
     content += `- Tuổi / Ngày sinh: ${char.age || "0"} / ${char.birth || "-"}\n`;
     content += `- Nghề nghiệp: ${char.job || "-"}\n`;
-    content += `- Trạng thái: ${char.status || "Bình thường"}\n\n`;
+    content += `- Trạng thái: ${char.status || "Bình thường"}\n`;
+    if (char.alignment) content += `- Hệ tư tưởng: ${char.alignment}\n`;
+    if (char.bounty) content += `- Mức truy nã: ${char.bounty}\n`;
+    content += `\n`;
 
     content += `[ĐẶC ĐIỂM & TỐ CHẤT]\n`;
+    if (char.bloodline) content += `- Huyết mạch: ${char.bloodline}\n`;
+    if (char.element) content += `- Nguyên tố: ${char.element}\n`;
     content += `- Ngoại hình: ${char.appearance?.replace(/<br>/g, '\n') || "Chưa rõ"}\n`;
     content += `- Tính cách: ${char.personality?.replace(/<br>/g, '\n') || "Chưa rõ"}\n`;
     if (char.stats?.hidden || char.hidden) {
@@ -102,10 +108,22 @@ window.exportCharacterToTXT = async function(charId) {
     content += `[TRANG BỊ]\n`;
     content += `- Vũ khí: ${char.weapon || "Chưa trang bị"}\n`;
     content += `- Giáp trụ: ${char.armor || "Chưa trang bị"}\n`;
-    content += `- Phụ kiện: ${char.accessory || "Chưa trang bị"}\n\n`;
+    content += `- Phụ kiện: ${char.accessory || "Chưa trang bị"}\n`;
+    if (char.pet) content += `- Linh thú: ${char.pet}\n`;
+    content += `\n`;
 
     content += `[TIỂU SỬ & THÔNG TIN THÊM]\n`;
     content += `${char.desc?.replace(/<br>/g, '\n') || "Chưa có tiểu sử."}\n\n`;
+    
+    if (char.achievements) {
+        content += `[CHIẾN TÍCH / THÀNH TỰU]\n`;
+        content += `${char.achievements?.replace(/<br>/g, '\n')}\n\n`;
+    }
+    
+    if (char.quote) {
+        content += `[CHÂM NGÔN]\n`;
+        content += `"${char.quote}"\n\n`;
+    }
 
     content += `------------------------------------------\n`;
     content += `Xuất từ: Fantasy Codex Pro - ${new Date().toLocaleString()}\n`;
@@ -550,6 +568,14 @@ async function saveCharacter() {
 
         const characterObj = {
             id, name, img,
+            title: getVal("charTitle"),
+            alignment: getVal("charAlignment"),
+            bounty: getVal("charBounty"),
+            element: getVal("charElement"),
+            pet: getVal("charPet"),
+            bloodline: getVal("charBloodline"),
+            achievements: getVal("charAchievements"),
+            quote: getVal("charQuote"),
             race: getVal("charRace"),
             kingdom: getVal("charKingdom"),
             faction: getVal("charFaction"),
@@ -630,6 +656,14 @@ async function editCharacter(id) {
 
     const fields = {
         charName: 'name', 
+        charTitle: 'title',
+        charAlignment: 'alignment',
+        charBounty: 'bounty',
+        charElement: 'element',
+        charPet: 'pet',
+        charBloodline: 'bloodline',
+        charAchievements: 'achievements',
+        charQuote: 'quote',
         charRace: 'race',
         charKingdom: 'kingdom',
         charFaction: 'faction', 
@@ -872,6 +906,7 @@ async function openProfile(id) {
                         <img src="${displayImg}" style="width:100%; display:block; cursor:pointer;" onclick="if(typeof openImageViewer === 'function') openImageViewer('${displayImg}')">
                         <div style="padding:15px; background: linear-gradient(to top, var(--bg-main), transparent);">
                             <h2 style="font-family:'Cinzel'; margin:0; color:var(--gold);">${c.name}</h2>
+                            ${c.title ? `<div style="font-size:0.85rem; color:#cbd5e1; font-style:italic; margin-bottom:5px;">"${c.title}"</div>` : ''}
                             <span style="font-size:0.8rem; background:var(--primary); padding:2px 8px; border-radius:4px;">${c.job || 'Chưa rõ'}</span>
                         </div>
                     </div>
@@ -905,11 +940,16 @@ async function openProfile(id) {
                         <div class="data-row"><span class="data-label">Đế chế</span><span class="data-value">${kname}</span></div>
                         <div class="data-row"><span class="data-label">Phe phái</span><span class="data-value" style="color:var(--accent)">${fname}</span></div>
                         <div class="data-row"><span class="data-label">Quê quán</span><span class="data-value">${lname}</span></div>
+                        ${c.alignment ? `<div class="data-row"><span class="data-label">Hệ tư tưởng</span><span class="data-value">${c.alignment}</span></div>` : ''}
+                        ${c.bounty ? `<div class="data-row"><span class="data-label">Truy nã / Hiểm hoạ</span><span class="data-value" style="color:#ef4444;">${c.bounty}</span></div>` : ''}
                     </div>
 
                     <div class="info-box">
                         <h3 class="info-title"><i class="fa-solid fa-brain"></i> Đặc điểm & Tố chất</h3>
-                        <div style="margin-bottom:12px;">
+                        ${c.bloodline ? `<div class="data-row"><span class="data-label"><i class="fa-solid fa-droplet"></i> Huyết mạch</span><span class="data-value" style="color:#f43f5e;">${c.bloodline}</span></div>` : ''}
+                        ${c.element ? `<div class="data-row"><span class="data-label"><i class="fa-solid fa-fire-flame-curved"></i> Nguyên tố</span><span class="data-value" style="color:#a855f7;">${c.element}</span></div>` : ''}
+                        
+                        <div style="margin-bottom:12px; margin-top:10px;">
                             <span class="data-label" style="font-size:0.8rem;">NGOẠI HÌNH:</span>
                             <div class="desc-area" style="margin-top:5px;">
                                 ${typeof renderMarkdown === 'function' ? renderMarkdown(c.appearance) : (c.appearance || 'Chưa có thông tin ngoại hình.').replace(/\\n/g, '<br>')}
@@ -957,6 +997,7 @@ async function openProfile(id) {
                         <div class="data-row"><span class="data-label"><i class="fa-solid fa-khanda"></i> Vũ khí</span><span class="data-value">${c.weapon || 'Chưa trang bị'}</span></div>
                         <div class="data-row"><span class="data-label"><i class="fa-solid fa-shirt"></i> Giáp trụ</span><span class="data-value">${c.armor || 'Chưa trang bị'}</span></div>
                         <div class="data-row"><span class="data-label"><i class="fa-solid fa-gem"></i> Phụ kiện</span><span class="data-value">${c.accessory || 'Chưa trang bị'}</span></div>
+                        ${c.pet ? `<div class="data-row"><span class="data-label"><i class="fa-solid fa-paw"></i> Linh thú</span><span class="data-value">${c.pet}</span></div>` : ''}
                     </div>
 
                     <div class="info-box">
@@ -974,9 +1015,17 @@ async function openProfile(id) {
 
                     <div class="info-box" style="border-left: 3px solid var(--gold);">
                         <h3 class="info-title"><i class="fa-solid fa-feather-pointed"></i> Tiểu sử & Thông tin thêm</h3>
+                        ${c.quote ? `<div style="font-style:italic; padding:10px; background:rgba(212,175,55,0.05); border-left:2px solid var(--gold); margin-bottom:15px;">"${c.quote}"</div>` : ''}
                         <div class="markdown-body desc-area">
                             ${typeof renderMarkdown === 'function' ? renderMarkdown(c.desc) : (c.desc || 'Chưa có tiểu sử.').replace(/\\n/g, '<br>')}
                         </div>
+                        ${c.achievements ? `
+                        <div style="margin-top:15px;">
+                            <span class="data-label" style="font-size:0.8rem; color:var(--gold);"><i class="fa-solid fa-medal"></i> CHIẾN TÍCH / THÀNH TỰU:</span>
+                            <div class="desc-area" style="margin-top:5px; background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2);">
+                                ${typeof renderMarkdown === 'function' ? renderMarkdown(c.achievements) : c.achievements.replace(/\\n/g, '<br>')}
+                            </div>
+                        </div>` : ''}
                     </div>
                 </div>
             </div>

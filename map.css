@@ -40,47 +40,83 @@ h1 {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    background: var(--card-bg);
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(15, 23, 42, 0.75);
     border-bottom: 1px solid var(--glass-border);
-    backdrop-filter: blur(12px);
-    overflow-x: auto; /* Cuộn ngang trên điện thoại */
+    backdrop-filter: blur(16px);
+    overflow-x: auto;
     white-space: nowrap;
-    scrollbar-width: none; /* Ẩn scrollbar Firefox */
+    scrollbar-width: none;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    z-index: 50;
 }
 .map-toolbar::-webkit-scrollbar { display: none; }
 
-.map-toolbar button, 
-.map-toolbar input[type="file"] {
-    background: rgba(30, 41, 59, 0.6);
-    color: #f8fafc;
-    border: 1px solid var(--glass-border);
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.2);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+}
+
+.map-toolbar button, .upload-btn {
+    background: rgba(255,255,255,0.05);
+    color: #e2e8f0;
+    border: 1px solid transparent;
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: 0.3s;
-    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.icon-btn, .upload-btn {
+    padding: 8px 12px !important;
 }
 
-.map-toolbar button:hover {
-    background: var(--emerald);
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+.map-toolbar select {
+    background: transparent;
+    color: white;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px;
+}
+.map-toolbar select option {
+    background: #0f172a;
+}
+
+.map-toolbar button:hover, .upload-btn:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
 }
 
 .map-toolbar button.active {
     background: var(--emerald);
-    border-color: #34d399;
-    animation: pulseBorder 1.5s infinite;
+    color: white;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
 }
 
-@keyframes pulseBorder {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
+.success-btn { background: rgba(16, 185, 129, 0.2) !important; color: #10b981 !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+.success-btn:hover { background: #10b981 !important; color: white !important; }
+
+.danger-btn { color: #f43f5e !important; }
+.danger-btn:hover { background: #f43f5e !important; color: white !important; }
 
 /* ============================================================
    MAP CORE
@@ -201,10 +237,19 @@ h1 {
 
 .map-route {
     stroke: rgba(255, 255, 255, 0.3);
-    stroke-width: 2;
+    stroke-width: 3;
     stroke-dasharray: 6;
     fill: none;
+    cursor: pointer;
+    transition: stroke-width 0.2s, stroke 0.2s, filter 0.2s;
     animation: routeFlow 20s linear infinite;
+}
+
+.map-route:hover {
+    stroke-width: 6;
+    stroke: rgba(255, 255, 255, 0.8) !important;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+    animation-duration: 5s;
 }
 
 @keyframes routeFlow {
@@ -310,23 +355,49 @@ h1 {
 
 .popup-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
 }
 
 .popup-actions button {
-    padding: 12px;
+    padding: 10px;
     border-radius: 12px;
     border: none;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
 }
 
-.popup-actions button:first-child { background: var(--emerald); color: white; }
-.popup-actions button:last-child { background: rgba(255,255,255,0.1); color: white; }
+.btn-edit { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.btn-edit:hover { background: #3b82f6; color: white; }
 
-.popup-actions button:hover { filter: brightness(1.2); }
+.btn-delete { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+.btn-delete:hover { background: #f43f5e; color: white; }
+
+.btn-close { background: rgba(255, 255, 255, 0.1); color: white; }
+.btn-close:hover { background: rgba(255, 255, 255, 0.2); }
+
+.save-edit-btn {
+    width: 100%;
+    margin-bottom: 15px;
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.save-edit-btn:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(16,185,129,0.4); }
+
+.loc-tag {
+    display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+}
 .zoom-controls {
     position: fixed;
     right: 20px;
@@ -365,8 +436,11 @@ h1 {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    pointer-events: none;
+    pointer-events: auto; /* Để có thể click vào line */
     overflow: visible;
+}
+#mapRoutes line {
+    pointer-events: stroke; /* Chỉ nhận click trên đường line */
 }
 /* map.css hoặc style trong HTML */
 .toast {

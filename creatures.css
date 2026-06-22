@@ -242,3 +242,46 @@ label {
 }
 
 .hidden { display: none !important; }
+
+/* 9. Card Ranks & Tabs System */
+.creature-card.rank-s { border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+.creature-card.rank-s::before { background: conic-gradient(transparent, rgba(255, 215, 0, 0.3), transparent 30%); }
+
+.creature-card.rank-a { border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 15px rgba(168, 85, 247, 0.1); }
+.creature-card.rank-a::before { background: conic-gradient(transparent, rgba(168, 85, 247, 0.3), transparent 30%); }
+
+.creature-card.rank-b { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); }
+.creature-card.rank-b::before { background: conic-gradient(transparent, rgba(59, 130, 246, 0.3), transparent 30%); }
+
+.creature-card.rank-c { border-color: rgba(148, 163, 184, 0.5); box-shadow: 0 0 15px rgba(148, 163, 184, 0.1); }
+.creature-card.rank-c::before { background: conic-gradient(transparent, rgba(148, 163, 184, 0.3), transparent 30%); }
+
+/* Tabs Styles */
+.form-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px;
+    overflow-x: auto;
+}
+.tab-btn {
+    background: transparent;
+    color: #94a3b8;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+    white-space: nowrap;
+}
+.tab-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+.tab-btn.active {
+    background: rgba(212,175,55,0.2);
+    color: var(--gold, #fbbf24);
+}

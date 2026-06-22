@@ -702,12 +702,45 @@
 }
 
 /* ── 27. FIX: CHAR CARD RESPONSIVE ── */
-/* Trên màn hình nhỏ hơn 480px: 3 cột */
-@media (max-width: 480px) {
+/* Trên màn hình nhỏ hơn 480px: 2 cột thay vì 3 cột để không bị chật */
+/* --- GIAO DIỆN ĐIỆN THOẠI CHO DANH SÁCH NHÂN VẬT --- */
+@media (max-width: 767px) {
   #characterList {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 6px !important;
-    padding: 8px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+    padding: 15px !important;
+  }
+  
+  /* Thu nhỏ các nút hành động trên thẻ nhân vật để không che mất ảnh */
+  .character-card-v2 .card-actions,
+  #characterList .card-actions {
+    gap: 4px !important;
+    padding: 4px !important;
+  }
+  
+  .character-card-v2 .card-actions .btn-icon,
+  #characterList .card-actions button {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.8rem !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Giảm font size của tên trên điện thoại */
+  .character-card-v2 .card-title {
+    font-size: 1.1rem !important;
+  }
+  .character-card-v2 .card-subtitle {
+    font-size: 0.85rem !important;
+  }
+
+  
+  /* Giảm kích thước text tên nhân vật cho gọn */
+  .character-card-v2 .char-name {
+    font-size: 1.1rem !important;
   }
 }
 
@@ -1002,3 +1035,111 @@ input[type="range"] {
 .page { z-index: 10 !important; position: relative !important; min-height: 100vh !important; }
 
 .hidden { display: none !important; }
+
+/* --- KINGDOM CARD V2 --- */
+.kingdom-card-v2 {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.kingdom-card-v2:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.1);
+}
+.k-card-cover {
+    height: 120px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+.k-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    transition: transform 0.5s ease, opacity 0.3s;
+}
+.kingdom-card-v2:hover .k-bg-img {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+.k-cover-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to top, rgba(15, 23, 42, 1), transparent);
+}
+.k-logo-container {
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    width: 60px; height: 60px;
+    border-radius: 12px;
+    border: 2px solid var(--gold, #d4af37);
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 2;
+}
+.k-logo-container img {
+    width: 100%; height: 100%; object-fit: cover;
+}
+.k-card-content {
+    padding: 25px 20px 15px;
+    flex: 1;
+}
+.k-card-content h3 {
+    margin: 0 0 10px 0;
+    font-family: 'Cinzel', serif;
+    color: var(--gold, #d4af37);
+    font-size: 1.2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.k-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.k-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+.k-info-row .k-icon {
+    color: var(--accent, #3b82f6);
+    width: 16px;
+    text-align: center;
+}
+.k-card-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+.k-card-actions button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 13px;
+}
+.btn-k-edit:hover { background: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+.btn-k-delete:hover { background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border-color: rgba(239, 68, 68, 0.3) !important; }
+

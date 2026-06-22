@@ -128,7 +128,7 @@ const FamilyTree = {
         }
 
         let html = '<div class="tree-wrapper" id="familyTreeWrapper"><div class="tree"><ul>';
-        html += this.buildNode(rootChar, characters);
+        html += this.buildNode(rootChar, characters, 1);
         html += '</ul></div></div>';
         
         container.innerHTML = html;
@@ -140,13 +140,43 @@ const FamilyTree = {
         // Load ảnh bất đồng bộ từ IndexedDB
         await this.loadImages();
         
+        // Cập nhật Thống kê
+        this.calculateStats(rootChar, characters);
+        
         // Update lại CSS active cho tab
         document.querySelectorAll('.family-tab').forEach(el => el.classList.remove('active'));
         const activeTab = Array.from(document.querySelectorAll('.family-tab')).find(el => el.getAttribute('onclick').includes(famId));
         if (activeTab) activeTab.classList.add('active');
+
+        // Tự động căn chỉnh kích thước (Auto-fit) sau khi DOM render
+        setTimeout(() => {
+            const treeEl = document.querySelector('#familyTreeWrapper .tree');
+            if (treeEl && container) {
+                const treeWidth = treeEl.offsetWidth;
+                const treeHeight = treeEl.offsetHeight;
+                const viewWidth = container.offsetWidth;
+                const viewHeight = container.offsetHeight;
+
+                // Tính toán tỷ lệ scale để vừa màn hình (padding 40px)
+                const scaleX = (viewWidth - 80) / treeWidth;
+                const scaleY = (viewHeight - 80) / treeHeight;
+                let finalScale = Math.min(scaleX, scaleY);
+                if (finalScale > 1) finalScale = 1; // Không phóng to nếu nhỏ hơn màn hình
+                if (finalScale < 0.3) finalScale = 0.3; // Giới hạn thu nhỏ
+
+                // Căn giữa
+                const scaledWidth = treeWidth * finalScale;
+                const scaledHeight = treeHeight * finalScale;
+                const x = (viewWidth - scaledWidth) / 2;
+                const y = (viewHeight - scaledHeight) / 2;
+
+                this.transform = { x: x, y: y, scale: finalScale };
+                this.updateTransform();
+            }
+        }, 100);
     },
 
-    buildNode(char, allChars) {
+    buildNode(char, allChars, depth = 1) {
         let nodeHtml = `<li>`;
         
         let imgSrc = char.img || 'https://i.imgur.com/6X8FQyA.png';
@@ -160,21 +190,34 @@ const FamilyTree = {
 
         // Tự động tìm Vợ/Chồng từ spouseId hoặc relations
         let spouseHtml = '';
-        let spouseChar = null;
+        let spouseChars = [];
         
         // Ưu tiên spouseId
         if (char.spouseId) {
-            spouseChar = allChars.find(c => String(c.id) === String(char.spouseId));
-        } else if (char.relations) {
-            // Hoặc tìm trong relations
-            const spouseRel = char.relations.find(r => r.type.toLowerCase().includes('vợ') || r.type.toLowerCase().includes('chồng') || r.type.toLowerCase().includes('phu nhân') || r.type.toLowerCase().includes('phu quân'));
-            if (spouseRel) {
-                spouseChar = allChars.find(c => String(c.id) === String(spouseRel.targetId));
-            }
+            let sp = allChars.find(c => String(c.id) === String(char.spouseId));
+            if (sp) spouseChars.push(sp);
+        } 
+        
+        // Tìm toàn bộ trong relations (hỗ trợ đa thê/đa phu)
+        if (char.relations) {
+            char.relations.forEach(r => {
+                const typeLow = r.type.toLowerCase();
+                if (typeLow.includes('vợ') || typeLow.includes('chồng') || typeLow.includes('phu nhân') || typeLow.includes('phu quân') || typeLow.includes('thê thiếp') || typeLow.includes('phi tần') || typeLow.includes('hoàng hậu')) {
+                    let sp = allChars.find(c => String(c.id) === String(r.targetId));
+                    if (sp && !spouseChars.find(c => String(c.id) === String(sp.id))) {
+                        spouseChars.push(sp);
+                    }
+                }
+            });
         }
 
+        let powerClass = "";
+        if (char.power >= 800 || (char.stats && char.stats.magic >= 90)) powerClass = "magenta-breathe";
+        else if (char.power >= 300 || (char.stats && char.stats.magic >= 60)) powerClass = "gold-breathe";
+
         const mainNodeUI = `
-            <div class="tree-node" onclick="if(typeof openProfile === 'function') openProfile('${char.id}')">
+            <div class="tree-node ${powerClass}" onclick="if(typeof openProfile === 'function') openProfile('${char.id}')">
+                <div class="ft-generation-label" style="position:absolute; top:-8px; left:5px; font-size:10px; background:#d4af37; color:#000; padding:2px 5px; border-radius:3px; font-weight:bold;">Đời ${depth}</div>
                 ${imgTag}
                 <div class="ft-name">${char.name}</div>
             </div>
@@ -195,20 +238,26 @@ const FamilyTree = {
             </div>
         `;
 
-        // Nếu có vợ/chồng, bọc node chính và node phụ lại
-        if (spouseChar) {
-            let spImgSrc = spouseChar.img || 'https://i.imgur.com/6X8FQyA.png';
-            let spImgTag = spImgSrc.startsWith('http') || spImgSrc.startsWith('data:') 
-                ? `<img src="${spImgSrc}" class="ft-avatar" onerror="this.src='https://i.imgur.com/6X8FQyA.png'">`
-                : `<img src="https://i.imgur.com/6X8FQyA.png" class="ft-avatar" data-img-id="${spImgSrc}">`;
+        // Nếu có vợ/chồng, bọc node chính và các node phụ lại
+        if (spouseChars.length > 0) {
+            spouseHtml = spouseChars.map(sp => {
+                let spImgSrc = sp.img || 'https://i.imgur.com/6X8FQyA.png';
+                let spImgTag = spImgSrc.startsWith('http') || spImgSrc.startsWith('data:') 
+                    ? `<img src="${spImgSrc}" class="ft-avatar" onerror="this.src='https://i.imgur.com/6X8FQyA.png'">`
+                    : `<img src="https://i.imgur.com/6X8FQyA.png" class="ft-avatar" data-img-id="${spImgSrc}">`;
 
-            spouseHtml = `
-                <div class="spouse-connector"><i class="fa-solid fa-heart"></i></div>
-                <div class="tree-node spouse" onclick="if(typeof openProfile === 'function') openProfile('${spouseChar.id}')">
-                    ${spImgTag}
-                    <div class="ft-name">${spouseChar.name}</div>
-                </div>
-            `;
+                let spPowerClass = "";
+                if (sp.power >= 800 || (sp.stats && sp.stats.magic >= 90)) spPowerClass = "magenta-breathe";
+                else if (sp.power >= 300 || (sp.stats && sp.stats.magic >= 60)) spPowerClass = "gold-breathe";
+
+                return `
+                    <div class="spouse-connector-inline"><i class="fa-solid fa-heart"></i></div>
+                    <div class="tree-node spouse ${spPowerClass}" onclick="if(typeof openProfile === 'function') openProfile('${sp.id}')">
+                        ${spImgTag}
+                        <div class="ft-name">${sp.name}</div>
+                    </div>
+                `;
+            }).join('');
             
             nodeHtml += `<div class="tree-node-wrapper spouse-wrapper">${mainNodeUI} ${spouseHtml}</div>`;
         } else {
@@ -219,11 +268,12 @@ const FamilyTree = {
         // Nếu có spouseChar, lấy luôn con của spouseChar cho chắc
         let children = allChars.filter(c => String(c.fatherId) === String(char.id) || String(c.motherId) === String(char.id));
         
-        if (spouseChar) {
-            const spouseChildren = allChars.filter(c => String(c.fatherId) === String(spouseChar.id) || String(c.motherId) === String(spouseChar.id));
-            // Gộp và loại bỏ trùng lặp
-            spouseChildren.forEach(sc => {
-                if (!children.find(c => c.id === sc.id)) children.push(sc);
+        if (spouseChars.length > 0) {
+            spouseChars.forEach(sp => {
+                const spChildren = allChars.filter(c => String(c.fatherId) === String(sp.id) || String(c.motherId) === String(sp.id));
+                spChildren.forEach(sc => {
+                    if (!children.find(c => String(c.id) === String(sc.id))) children.push(sc);
+                });
             });
         }
         
@@ -231,9 +281,11 @@ const FamilyTree = {
         children.sort((a, b) => (b.age || 0) - (a.age || 0));
 
         if (children.length > 0) {
+            // Nút collapse nếu có con cái
+            nodeHtml += `<div class="ft-collapse-btn" onclick="FamilyTree.toggleCollapse(this)"><i class="fa-solid fa-minus"></i></div>`;
             nodeHtml += `<ul>`;
             children.forEach(child => {
-                nodeHtml += this.buildNode(child, allChars);
+                nodeHtml += this.buildNode(child, allChars, depth + 1);
             });
             nodeHtml += `</ul>`;
         }
@@ -243,36 +295,130 @@ const FamilyTree = {
     },
 
     // ── CRUD ACTIONS ──
+    linkTargetId: null,
+    linkType: null, // 'child' or 'spouse'
+
     addChild(parentId) {
+        this.linkTargetId = parentId;
+        this.linkType = 'child';
+        
+        const parent = window.characters.find(c => String(c.id) === String(parentId));
+        document.getElementById('ftLinkTitle').innerText = "Thêm Con cái";
+        document.getElementById('ftLinkDesc').innerText = `Chọn nhân vật có sẵn để làm con của ${parent ? parent.name : 'nhân vật này'}.`;
+        
+        // Populate select (chỉ chọn người chưa có cha/mẹ tương ứng)
+        const select = document.getElementById('ftLinkSelect');
+        let html = '<option value="">-- Chọn Nhân vật --</option>';
+        window.characters.forEach(c => {
+            if (c.id === parentId) return; // Không chọn chính mình
+            // Tùy giới tính cha/mẹ mà kiểm tra xem đứa trẻ đã có cha/mẹ chưa
+            if (parent && parent.gender === 'Nam' && c.fatherId) return;
+            if (parent && parent.gender === 'Nữ' && c.motherId) return;
+            
+            html += `<option value="${c.id}">${c.name}</option>`;
+        });
+        select.innerHTML = html;
+        
+        document.getElementById('ftLinkCharModal').classList.add('active');
+    },
+
+    addSpouse(charId) {
+        this.linkTargetId = charId;
+        this.linkType = 'spouse';
+        
+        const char = window.characters.find(c => String(c.id) === String(charId));
+        document.getElementById('ftLinkTitle').innerText = "Thêm Vợ/Chồng";
+        document.getElementById('ftLinkDesc').innerText = `Chọn nhân vật có sẵn để kết hôn với ${char ? char.name : 'nhân vật này'}.`;
+        
+        // Populate select
+        const select = document.getElementById('ftLinkSelect');
+        let html = '<option value="">-- Chọn Nhân vật --</option>';
+        window.characters.forEach(c => {
+            if (c.id === charId) return;
+            html += `<option value="${c.id}">${c.name}</option>`;
+        });
+        select.innerHTML = html;
+        
+        document.getElementById('ftLinkCharModal').classList.add('active');
+    },
+
+    closeLinkModal() {
+        document.getElementById('ftLinkCharModal').classList.remove('active');
+        this.linkTargetId = null;
+        this.linkType = null;
+    },
+
+    createNewCharFromLink() {
+        const parentId = this.linkTargetId;
+        const type = this.linkType;
+        this.closeLinkModal();
+
         if (typeof openModal === 'function') {
             editingId = null; // Reset form
             openModal(); // Mở bảng tạo nhân vật
             
-            // Tìm giới tính (để tự điền father hay mother)
-            const char = window.characters.find(c => String(c.id) === String(parentId));
-            setTimeout(() => {
-                if (!char) return; // Guard: không tìm thấy nhân vật
-                // Tùy theo logic mà gán cha hay mẹ
-                const fatherSel = document.getElementById('charFather');
-                if (fatherSel && char.gender !== 'Nữ') {
-                    fatherSel.value = parentId;
-                } else {
+            if (type === 'child') {
+                const char = window.characters.find(c => String(c.id) === String(parentId));
+                setTimeout(() => {
+                    if (!char) return;
+                    const fatherSel = document.getElementById('charFather');
                     const motherSel = document.getElementById('charMother');
-                    if (motherSel) motherSel.value = parentId;
-                }
-                if(typeof showToast === 'function') showToast("Đã chọn sẵn cha/mẹ cho nhân vật mới!", "info");
-            }, 300);
+                    if (char.gender === 'Nam') {
+                        if (fatherSel) fatherSel.value = parentId;
+                    } else if (char.gender === 'Nữ') {
+                        if (motherSel) motherSel.value = parentId;
+                    } else {
+                        if (fatherSel) fatherSel.value = parentId;
+                    }
+                    if(typeof showToast === 'function') showToast("Đã điền sẵn cha/mẹ cho nhân vật mới!", "info");
+                }, 300);
+            } else if (type === 'spouse') {
+                setTimeout(() => {
+                    if(typeof showToast === 'function') showToast("Hãy thêm Liên kết Vợ/Chồng trong mục 'Liên kết xã hội'!", "info");
+                }, 300);
+            }
         }
     },
 
-    addSpouse(charId) {
-        if (typeof openModal === 'function') {
-            editingId = null;
-            openModal();
-            setTimeout(() => {
-                if(typeof showToast === 'function') showToast("Vui lòng thêm Liên kết Vợ/Chồng trong mục 'Liên kết xã hội' sau khi lưu nhân vật!", "warning");
-            }, 300);
+    async confirmLinkChar() {
+        const targetId = document.getElementById('ftLinkSelect').value;
+        if (!targetId) {
+            if(typeof showToast === 'function') showToast("Vui lòng chọn nhân vật!", "warning");
+            return;
         }
+
+        const parentId = this.linkTargetId;
+        const parent = window.characters.find(c => String(c.id) === String(parentId));
+        const child = window.characters.find(c => String(c.id) === String(targetId));
+
+        if (!parent || !child) return;
+
+        if (this.linkType === 'child') {
+            if (parent.gender === 'Nam') {
+                child.fatherId = parentId;
+            } else if (parent.gender === 'Nữ') {
+                child.motherId = parentId;
+            } else {
+                child.fatherId = parentId;
+            }
+            if(typeof showToast === 'function') showToast("Đã liên kết con cái thành công!", "success");
+        } 
+        else if (this.linkType === 'spouse') {
+            // Add relation to BOTH characters if possible
+            if (!parent.relations) parent.relations = [];
+            parent.relations.push({ targetId: targetId, type: "Vợ/Chồng", description: "Kết hôn" });
+            
+            if (!child.relations) child.relations = [];
+            child.relations.push({ targetId: parentId, type: "Vợ/Chồng", description: "Kết hôn" });
+
+            if(typeof showToast === 'function') showToast("Đã liên kết vợ/chồng thành công!", "success");
+        }
+
+        if(typeof dbSave === 'function') await dbSave("characters", window.characters);
+        if(typeof saveAndRefresh === 'function') await saveAndRefresh(); // Usually not defined globally, but safe
+        
+        this.closeLinkModal();
+        this.render(this.activeFamilyId);
     },
 
     async unlinkParent(charId) {
@@ -345,6 +491,63 @@ const FamilyTree = {
 
             this.updateTransform();
         }, { passive: false });
+
+        // -- Touch Events (Mobile/Tablet Pan & Zoom) --
+        let initialPinchDistance = null;
+        let initialScale = 1;
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                this.isDragging = true;
+                this.startPan.x = e.touches[0].clientX - this.transform.x;
+                this.startPan.y = e.touches[0].clientY - this.transform.y;
+            } else if (e.touches.length === 2) {
+                this.isDragging = false;
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                initialScale = this.transform.scale;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (this.isDragging && e.touches.length === 1) {
+                this.transform.x = e.touches[0].clientX - this.startPan.x;
+                this.transform.y = e.touches[0].clientY - this.startPan.y;
+                this.updateTransform();
+            } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                let newScale = initialScale * (currentDistance / initialPinchDistance);
+                newScale = Math.min(Math.max(0.3, newScale), 3);
+                
+                // Calculate center point of pinch for better zoom focus
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const rect = container.getBoundingClientRect();
+                const mouseX = centerX - rect.left;
+                const mouseY = centerY - rect.top;
+                
+                const scaleRatio = newScale / this.transform.scale;
+                this.transform.x = mouseX - (mouseX - this.transform.x) * scaleRatio;
+                this.transform.y = mouseY - (mouseY - this.transform.y) * scaleRatio;
+
+                this.transform.scale = newScale;
+                this.updateTransform();
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                initialPinchDistance = null;
+            }
+            if (e.touches.length === 0) {
+                this.isDragging = false;
+            }
+        });
     },
 
     updateTransform() {
@@ -366,6 +569,157 @@ const FamilyTree = {
                     console.warn("FamilyTree: Lỗi load ảnh", e);
                 }
             }
+        }
+    },
+
+    // ── TÍNH NĂNG MỚI ──
+    
+    searchNodes(text) {
+        text = text.toLowerCase().trim();
+        const nodes = document.querySelectorAll('#familyTreeWrapper .tree-node-wrapper');
+        if (!text) {
+            nodes.forEach(n => { n.classList.remove('ft-dimmed'); n.classList.remove('ft-highlight'); });
+            return;
+        }
+        nodes.forEach(n => {
+            const nameEl = n.querySelector('.ft-name');
+            if (nameEl && nameEl.innerText.toLowerCase().includes(text)) {
+                n.classList.remove('ft-dimmed');
+                n.classList.add('ft-highlight');
+            } else {
+                n.classList.add('ft-dimmed');
+                n.classList.remove('ft-highlight');
+            }
+        });
+    },
+
+    filterBloodline(type) {
+        if (!this.activeFamilyId) return;
+        const fam = window.families.find(f => f.id === this.activeFamilyId);
+        if (!fam) return;
+        const rootChar = window.characters.find(c => String(c.id) === String(fam.rootId));
+        if (!rootChar && type === 'sameRace') return;
+
+        const nodes = document.querySelectorAll('#familyTreeWrapper .tree-node-wrapper');
+        if (!type) {
+            nodes.forEach(n => { n.classList.remove('ft-dimmed'); n.classList.remove('ft-highlight'); });
+            return;
+        }
+
+        nodes.forEach(n => {
+            // Get character ID from onclick
+            const nodeEl = n.querySelector('.tree-node');
+            if (!nodeEl) return;
+            const match = nodeEl.getAttribute('onclick').match(/'([^']+)'/);
+            if (!match) return;
+            const charId = match[1];
+            const char = window.characters.find(c => String(c.id) === charId);
+            
+            let isMatch = false;
+            if (char) {
+                if (type === 'male' && char.gender === 'Nam') isMatch = true;
+                if (type === 'female' && char.gender === 'Nữ') isMatch = true;
+                if (type === 'sameRace' && rootChar && char.race === rootChar.race) isMatch = true;
+            }
+
+            if (isMatch) {
+                n.classList.remove('ft-dimmed');
+                n.classList.add('ft-highlight');
+            } else {
+                n.classList.add('ft-dimmed');
+                n.classList.remove('ft-highlight');
+            }
+        });
+    },
+
+    toggleFullscreen() {
+        document.body.classList.toggle('ft-fullscreen-active');
+        if (document.body.classList.contains('ft-fullscreen-active')) {
+            // Add exit button if not exists
+            if (!document.getElementById('ftExitFsBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'ftExitFsBtn';
+                btn.className = 'ft-exit-fs';
+                btn.innerHTML = '<i class="fa-solid fa-compress"></i> Thoát Toàn màn hình';
+                btn.onclick = () => this.toggleFullscreen();
+                document.body.appendChild(btn);
+            } else {
+                document.getElementById('ftExitFsBtn').style.display = 'block';
+            }
+            if(typeof showToast === 'function') showToast("Đã vào chế độ Toàn màn hình Gia phả!", "info");
+        } else {
+            const btn = document.getElementById('ftExitFsBtn');
+            if (btn) btn.style.display = 'none';
+        }
+        // Timeout to recalculate auto-fit
+        setTimeout(() => {
+            this.render(this.activeFamilyId);
+        }, 300);
+    },
+
+    calculateStats(rootChar, allChars) {
+        let totalMembers = 0;
+        let totalPower = 0;
+        let maxDepth = 1;
+
+        const traverse = (charId, currentDepth) => {
+            totalMembers++;
+            const c = allChars.find(x => String(x.id) === String(charId));
+            if (c) totalPower += Number(c.power || 0);
+            if (currentDepth > maxDepth) maxDepth = currentDepth;
+
+            // Find children
+            const children = allChars.filter(x => String(x.fatherId) === String(charId) || String(x.motherId) === String(charId));
+            
+            // Also find spouses
+            let spouses = [];
+            if (c && c.spouseId) spouses.push(c.spouseId);
+            if (c && c.relations) {
+                c.relations.forEach(r => {
+                    const typeLow = r.type.toLowerCase();
+                    if (typeLow.includes('vợ') || typeLow.includes('chồng') || typeLow.includes('phu nhân') || typeLow.includes('phu quân') || typeLow.includes('thê thiếp') || typeLow.includes('phi tần') || typeLow.includes('hoàng hậu')) {
+                        if (!spouses.includes(r.targetId)) spouses.push(r.targetId);
+                    }
+                });
+            }
+
+            // Include spouses in total members but don't traverse from them to avoid infinite loops, just sum their power
+            spouses.forEach(spId => {
+                const sp = allChars.find(x => String(x.id) === String(spId));
+                if (sp) {
+                    totalMembers++;
+                    totalPower += Number(sp.power || 0);
+                    // Find children of spouse not already in children array
+                    const spChildren = allChars.filter(x => String(x.fatherId) === String(spId) || String(x.motherId) === String(spId));
+                    spChildren.forEach(sc => {
+                        if (!children.find(x => String(x.id) === String(sc.id))) children.push(sc);
+                    });
+                }
+            });
+
+            children.forEach(child => traverse(child.id, currentDepth + 1));
+        };
+
+        if (rootChar) traverse(rootChar.id, 1);
+
+        document.getElementById('ftStatTotal').innerText = totalMembers;
+        document.getElementById('ftStatGen').innerText = maxDepth;
+        document.getElementById('ftStatPower').innerText = totalPower.toLocaleString();
+        
+        const widget = document.getElementById('ftStatsWidget');
+        if (widget) widget.classList.remove('hidden');
+    },
+
+    toggleCollapse(btnElement) {
+        const liElement = btnElement.closest('li');
+        if (liElement) {
+            liElement.classList.toggle('ft-branch-hidden');
+            if (liElement.classList.contains('ft-branch-hidden')) {
+                btnElement.innerHTML = '<i class="fa-solid fa-plus"></i>';
+            } else {
+                btnElement.innerHTML = '<i class="fa-solid fa-minus"></i>';
+            }
+            this.updateTransform(); // Re-trigger repaint if needed
         }
     }
 };

@@ -178,3 +178,80 @@
     background: var(--ancient-gold) !important;
     color: black;
 }
+
+/* ── MÀU SẮC HỆ PHÉP (ALIGNMENT) ── */
+.law-align-neutral { border-top: 3px solid var(--ancient-gold); }
+.law-align-nature { border-top: 3px solid #10b981; background: linear-gradient(180deg, rgba(16,185,129,0.05) 0%, rgba(10,25,47,0.95) 100%); }
+.law-align-dark { border-top: 3px solid #8b5cf6; background: linear-gradient(180deg, rgba(139,92,246,0.1) 0%, rgba(10,25,47,0.95) 100%); }
+.law-align-light { border-top: 3px solid #fde047; background: linear-gradient(180deg, rgba(253,224,71,0.05) 0%, rgba(10,25,47,0.95) 100%); }
+.law-align-forbidden { border-top: 3px solid #ef4444; background: linear-gradient(180deg, rgba(239,68,68,0.1) 0%, rgba(10,25,47,0.95) 100%); box-shadow: 0 0 15px rgba(239,68,68,0.2); }
+.law-align-water { border-top: 3px solid #3b82f6; background: linear-gradient(180deg, rgba(59,130,246,0.05) 0%, rgba(10,25,47,0.95) 100%); }
+
+/* ── NHÃN KỶ NGUYÊN (ERA BADGE) ── */
+.law-era-badge {
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    background: #0f172a;
+    border: 1px solid var(--ancient-gold);
+    color: var(--ancient-gold);
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    z-index: 2;
+}
+
+/* ── LUẬT TỐI CAO (IMPORTANT OVERRIDE) ── */
+.law-card.important {
+    border: 1px solid var(--ancient-gold) !important;
+    box-shadow: 0 0 20px rgba(212,175,55,0.2) !important;
+}
+
+/* ── CHẾ ĐỘ ĐỌC CỔ THƯ (SCROLL MODE) ── */
+body.wl-scroll-mode-active .navbar,
+body.wl-scroll-mode-active .sidebar,
+body.wl-scroll-mode-active .wl-header-actions,
+body.wl-scroll-mode-active #lawTabs,
+body.wl-scroll-mode-active .btn-summon,
+body.wl-scroll-mode-active .law-actions {
+    display: none !important;
+}
+body.wl-scroll-mode-active .main-content,
+body.wl-scroll-mode-active .content {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: url('https://i.imgur.com/3Q95bHn.jpg') center/cover no-repeat !important; /* Parchment texture */
+    background-attachment: fixed !important;
+}
+body.wl-scroll-mode-active #worldLawsPage {
+    background: rgba(0, 0, 0, 0.4) !important; /* Make text readable over parchment */
+}
+body.wl-scroll-mode-active .law-card {
+    background: rgba(20, 15, 5, 0.8) !important;
+    border-color: #8b5a2b !important; /* Dark brown */
+    color: #e5d3b3 !important;
+}
+body.wl-scroll-mode-active .law-card h3 {
+    color: #ffd700 !important;
+}
+body.wl-scroll-mode-active .law-content-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+.wl-exit-scroll {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 2000;
+    padding: 12px 20px;
+    background: rgba(139, 90, 43, 0.9);
+    color: white;
+    border: 1px solid #ffd700;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.wl-exit-scroll:hover { background: #ffd700; color: black; }

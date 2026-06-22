@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="familyTree.css">
+<link rel="stylesheet" href="familyTree.css?v=2">
 <link rel="stylesheet" href="factions.css">
 <link rel="stylesheet" href="GiaoDien.css">
 <link rel="stylesheet" href="WorldLaws.css">
@@ -17,7 +17,7 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="SkillTreeVortex.css">
 <link rel="stylesheet" href="premium_fantasy.css">
-<link rel="stylesheet" href="patch.css?v=2">
+<link rel="stylesheet" href="patch.css?v=3">
 <link rel="stylesheet" href="fantasy_magic_theme.css?v=2">
 
 </head>
@@ -35,6 +35,9 @@
   </div>
   
   <div class="nav-right">
+    <button class="icon-btn" onclick="toggleMagicBackground()" title="Bật/Tắt hiệu ứng nền">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </button>
     <button class="icon-btn" onclick="AudioManager.toggleBackground()">
       <i class="fa-solid fa-music"></i>
     </button>
@@ -399,84 +402,130 @@
 
 <!-- FACTIONS PAGE -->
 <section id="factions" class="page hidden">
-  <div class="page-header">
+  <div class="page-header" style="flex-wrap: wrap; gap: 15px;">
     <h2>Danh sách phe phái <span id="factionCount">0</span></h2>
-    <button class="btn-add" onclick="openFactionModal()">+ Thêm phe phái</button>
+    <div style="display: flex; gap: 10px; flex: 1; min-width: 250px; justify-content: flex-end;">
+      <div class="search-box" style="margin: 0;">
+        <i class="fa fa-search"></i>
+        <input type="text" id="factionSearchInput" placeholder="Tìm kiếm thế lực..." onkeyup="if(typeof searchFactions === 'function') searchFactions()">
+      </div>
+      <select id="factionFilterSelect" style="padding: 8px 15px; border-radius: 8px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--gold);" onchange="if(typeof searchFactions === 'function') searchFactions()">
+        <option value="">Tất cả quy mô</option>
+        <option value="Toàn lục địa">Toàn lục địa</option>
+        <option value="Đế chế / Vương quốc">Đế chế / Vương quốc</option>
+        <option value="Tông môn / Giáo phái">Tông môn / Giáo phái</option>
+        <option value="Băng đảng / Gia tộc nhỏ">Băng đảng / Gia tộc nhỏ</option>
+        <option value="Tổ chức ẩn">Tổ chức ẩn</option>
+      </select>
+      <button class="btn-add" onclick="openFactionModal()">+ Thêm phe phái</button>
+    </div>
   </div>
   <div id="factionList" class="grid-container"></div>
 </section>
 <section id="factionPage" class="page hidden">
-  <div class="page-header" style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
-    <button class="btn-sm" onclick="showPage('factions')" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: var(--gold); cursor: pointer; padding: 8px 15px; border-radius: 6px;">
-        <i class="fa fa-arrow-left"></i> Quay lại
+  <div class="kingdom-hero-v2">
+    <div class="hero-bg-overlay"></div>
+    <button class="btn-back-circle-v2" onclick="showPage('factions')" title="Quay lại">
+      <i class="fa fa-chevron-left"></i>
     </button>
-    <h2 id="factionPageName" class="cinzel-font" style="margin: 0; font-size: 2rem;">Tên phe phái</h2>
+    
+    <div class="hero-content">
+      <div class="kingdom-logo-frame">
+        <img id="factionPageIcon" src="" alt="Icon">
+      </div>
+      <div class="hero-text-group">
+        <h2 id="factionPageName" class="cinzel-font-bold">Tên phe phái</h2>
+        <div class="hero-badges" style="flex-wrap: wrap;">
+          <span><i class="fa fa-crown"></i> <span id="factionPageLeader"></span></span>
+          <span class="badge-divider"></span>
+          <span><i class="fa fa-map-marker-alt"></i> <span id="factionPageHQ"></span></span>
+          <span class="badge-divider"></span>
+          <span style="color:var(--gold)"><i class="fa fa-globe"></i> Lãnh thổ: <span id="factionPageTerritory" style="color:white">-</span></span>
+        </div>
+        <div id="factionPageTraits" style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+            <!-- Render badges here -->
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="profile-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
-    
-    <aside class="profile-sidebar">
-      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; position: sticky; top: 20px;">
-        <div style="position: relative; margin-bottom: 60px;">
-            <img id="factionPageBanner" src="https://i.imgur.com/eE6C6Wv.png" style="width:100%; height:120px; object-fit:cover; border-radius:8px; border: 1px solid var(--border);">
-            <img id="factionPageIcon" src="https://i.imgur.com/6X8FQyA.png" style="width: 80px; height: 80px; border-radius: 12px; border: 3px solid var(--bg-main); position: absolute; bottom: -40px; left: 20px; object-fit: cover; background: var(--bg-main);">
-        </div>
-
-        <div class="item" style="margin-bottom: 12px;">
-          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Thủ lĩnh</div>
-          <b id="factionPageLeader" style="font-size: 1.1rem; color: var(--text-main);">-</b>
-        </div>
+  <div class="kingdom-container-v2">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+      <div class="glass-card stat-detail-card" style="grid-column: span 12;">
+        <h3><i class="fa fa-chart-pie"></i> Tổng Lực Chiến: <span id="factionPagePower" style="color:var(--gold)">0/3000</span></h3>
         
-        <div class="item" style="margin-bottom: 12px;">
-          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Trụ sở chính</div>
-          <b id="factionPageHQ" style="color: var(--text-dim);">-</b>
-        </div>
-
-        <div class="item" style="margin-bottom: 12px;">
-          <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Sức mạnh thế lực</div>
-          <div class="power-meter" style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin: 5px 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-            <div id="powerFill" class="power-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width 1s ease;"></div>
-          </div>
-          <span id="factionPagePower" style="font-size: 0.8rem; color: var(--text-dim);">0/1000</span>
-        </div>
-
-        <div class="item" style="margin-bottom: 12px;">
-            <div class="label" style="font-size: 0.75rem; color: var(--gold); text-transform: uppercase;">Quan hệ ngoại giao</div>
-            <div id="factionPageRelations" class="tag-container" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+        <div class="triforce-stats" style="display:flex; flex-direction:column; gap:12px; margin-top:15px;">
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
+                    <span style="color:#ef4444;"><i class="fa-solid fa-swords"></i> Quân sự</span>
+                    <span id="fPageMilText">0/1000</span>
                 </div>
+                <div class="power-meter" style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(239,68,68,0.2);">
+                    <div id="fPageMilFill" style="width: 0%; height: 100%; background: #ef4444; transition: width 1s ease; box-shadow: 0 0 10px #ef4444;"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
+                    <span style="color:#eab308;"><i class="fa-solid fa-coins"></i> Kinh tế</span>
+                    <span id="fPageEcoText">0/1000</span>
+                </div>
+                <div class="power-meter" style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(234,179,8,0.2);">
+                    <div id="fPageEcoFill" style="width: 0%; height: 100%; background: #eab308; transition: width 1s ease; box-shadow: 0 0 10px #eab308;"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
+                    <span style="color:#8b5cf6;"><i class="fa-solid fa-hat-wizard"></i> Ma thuật</span>
+                    <span id="fPageMagText">0/1000</span>
+                </div>
+                <div class="power-meter" style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(139,92,246,0.2);">
+                    <div id="fPageMagFill" style="width: 0%; height: 100%; background: #8b5cf6; transition: width 1s ease; box-shadow: 0 0 10px #8b5cf6;"></div>
+                </div>
+            </div>
         </div>
       </div>
-    </aside>
 
-    <div class="profile-main" style="display: flex; flex-direction: column; gap: 20px;">
-      
-      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 12px;">
-        <div class="title" style="color: var(--gold); font-family: 'Cinzel'; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <i class="fa fa-book"></i> Biên Niên Sử & Tư Tưởng
+      <div class="glass-card stat-detail-card" style="grid-column: span 12; margin-top: 20px;">
+        <h3><i class="fa fa-scroll"></i> Mục tiêu & Tư tưởng</h3>
+        <div style="margin-bottom: 10px;">
+          <small style="color: var(--gold); display: block;">Mục tiêu tối thượng:</small>
+          <span id="factionPageGoal" style="font-style: italic; color: white;">-</span>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
-                <small style="color: var(--gold); display: block;">Mục tiêu tối thượng</small>
-                <span id="factionPageGoal" style="font-style: italic;">-</span>
-            </div>
-            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
-                <small style="color: var(--gold); display: block;">Hệ tư tưởng</small>
-                <span id="factionPageIdeology">-</span>
-            </div>
+        <div>
+          <small style="color: var(--gold); display: block;">Hệ tư tưởng:</small>
+          <span id="factionPageIdeology" style="color: white;">-</span>
         </div>
-        <p id="factionPageDesc" style="line-height:1.7; color:var(--text-main); white-space: pre-wrap;"></p>
       </div>
 
-      <div class="info-card" style="background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 12px;">
-        <div class="title" style="color: var(--gold); font-family: 'Cinzel'; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <i class="fa fa-sitemap"></i> Sơ đồ tổ chức & Thành viên
-        </div>
+      <div class="glass-card stat-detail-card" style="grid-column: span 12; margin-top: 20px;">
+        <h3><i class="fa fa-handshake"></i> Quan hệ ngoại giao</h3>
+        <div id="factionPageRelations" class="relation-tags-container-v2"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+      <div class="glass-card desc-card">
+        <h3>Biên niên sử</h3>
+        <div id="factionPageDesc" class="content-text-v2" style="margin-bottom: 15px;"></div>
         
-        <div id="factionCharacters" class="structure-display-area">
-           <p style="color: var(--text-dim); text-align: center; padding: 20px;">Đang nạp dữ liệu cấu trúc...</p>
+        <div id="factionPageChronicle" class="faction-chronicle-timeline" style="margin-top:20px; position:relative; padding-left:20px; border-left:2px solid var(--gold);">
+            <!-- Render timeline here -->
         </div>
       </div>
-
+      
+      <div class="glass-card" style="margin-top: 20px; padding: 25px;">
+        <h3 style="color: var(--gold); margin-bottom: 20px; font-family: 'Cinzel', serif; display: flex; justify-content: space-between; align-items: center;">
+          <span><i class="fa fa-sitemap"></i> Sơ đồ tổ chức</span>
+          <button class="btn-secondary" onclick="if(typeof toggleFullscreenFactionTree === 'function') toggleFullscreenFactionTree()" title="Phóng to toàn màn hình" style="padding: 5px 10px; font-size:0.8rem; border-radius: 6px;">
+            <i class="fa fa-expand"></i> Phóng to
+          </button>
+        </h3>
+        <div id="factionCharacters" class="structure-display-area" style="min-height: 200px;">
+          <p style="color: var(--text-dim); text-align: center; padding: 20px;">Đang nạp dữ liệu cấu trúc...</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -726,7 +775,20 @@
 <section id="familyTreePage" class="page hidden">
     <div class="content-header">
         <h2><i class="fa-solid fa-sitemap highlight-gold"></i> Huyết Thống Hoàng Gia</h2>
-        <div class="header-actions">
+        <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="search-box" style="margin-bottom: 0;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="ftSearchInput" placeholder="Tìm kiếm nhân vật..." onkeyup="FamilyTree.searchNodes(this.value)">
+            </div>
+            <select id="ftBloodlineFilter" onchange="FamilyTree.filterBloodline(this.value)" class="form-control" style="width: auto;">
+                <option value="">Tất cả Huyết thống</option>
+                <option value="male">Dòng dõi Nam (Nội)</option>
+                <option value="female">Dòng dõi Nữ (Ngoại)</option>
+                <option value="sameRace">Cùng Chủng tộc Thủy tổ</option>
+            </select>
+            <button class="btn-secondary" onclick="FamilyTree.toggleFullscreen()" title="Toàn màn hình (Immersive Mode)">
+                <i class="fa-solid fa-expand"></i>
+            </button>
             <button class="btn-primary" onclick="FamilyTree.showAddFamilyModal()">
                 <i class="fa-solid fa-plus"></i> Tạo Gia Phả
             </button>
@@ -741,6 +803,14 @@
     </div>
 
     <div id="familyTreeContainer" class="family-tree-container">
+        <!-- Bảng Thống kê Gia tộc (Stats Widget) -->
+        <div id="ftStatsWidget" class="ft-stats-widget hidden">
+            <h4><i class="fa-solid fa-crown highlight-gold"></i> Thống kê Gia tộc</h4>
+            <div class="stat-item"><span>Tổng thành viên:</span> <b id="ftStatTotal">0</b></div>
+            <div class="stat-item"><span>Số Thế hệ (Đời):</span> <b id="ftStatGen">0</b></div>
+            <div class="stat-item"><span>Tổng Sức mạnh:</span> <b id="ftStatPower" class="highlight-gold">0</b></div>
+        </div>
+
         <!-- Cây gia phả sẽ được vẽ bằng JS vào đây -->
         <div class="empty-state">
             <i class="fa-solid fa-seedling"></i>
@@ -771,6 +841,38 @@
         <div class="modal-footer">
             <button class="btn-secondary" onclick="FamilyTree.closeFamilyModal()">Hủy</button>
             <button class="btn-primary" onclick="FamilyTree.saveFamily()">Lưu Gia Tộc</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Liên kết nhân vật có sẵn vào Gia phả -->
+<div id="ftLinkCharModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 id="ftLinkTitle">Thêm vào Gia phả</h3>
+            <span class="close" onclick="FamilyTree.closeLinkModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="ftLinkDesc" style="margin-bottom: 15px; color: #cbd5e1; font-size: 0.95rem;">Chọn nhân vật có sẵn trong hệ thống để liên kết.</p>
+            
+            <div class="form-group">
+                <label>Nhân vật có sẵn</label>
+                <select id="ftLinkSelect" class="form-control">
+                    <!-- Danh sách nhân vật -->
+                </select>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span style="color: #64748b; font-size: 0.85rem;">--- HOẶC ---</span>
+            </div>
+            
+            <button class="btn-secondary" style="width: 100%; justify-content: center;" onclick="FamilyTree.createNewCharFromLink()">
+                <i class="fa-solid fa-user-plus"></i> Tạo Nhân vật Mới
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="FamilyTree.closeLinkModal()">Hủy</button>
+            <button class="btn-primary" onclick="FamilyTree.confirmLinkChar()">Liên kết</button>
         </div>
     </div>
 </div>
@@ -813,6 +915,10 @@
                                 <div class="form-group">
                                     <label>Tên nhân vật <span class="required">*</span></label>
                                     <input type="text" id="charName" required placeholder="VD: Arthur Pendragon">
+                                </div>
+                                <div class="form-group">
+                                    <label>Danh hiệu / Ngoại hiệu</label>
+                                    <input type="text" id="charTitle" placeholder="VD: Hắc Kiếm Sĩ, Đứa Trẻ Lời Nguyền...">
                                 </div>
                                 <div class="grid-2">
                                     <div class="form-group">
@@ -875,6 +981,20 @@
                                 <label>Cấp độ đe dọa (PL)</label>
                                 <input type="number" id="charPL" class="pl-input" placeholder="9999">
                             </div>
+                            <div class="form-group">
+                                <label>Hệ tư tưởng (Alignment)</label>
+                                <select id="charAlignment">
+                                    <option value="">Không rõ</option>
+                                    <option>Chính phái (Good)</option>
+                                    <option>Tà phái (Evil)</option>
+                                    <option>Trung lập (Neutral)</option>
+                                    <option>Hỗn mang (Chaotic)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mức truy nã / Độ nguy hiểm</label>
+                                <input type="text" id="charBounty" placeholder="VD: 50,000 Vàng, Cấp S...">
+                            </div>
                         </div>
                     </section>
 
@@ -905,8 +1025,16 @@
                                 <input type="text" id="equipArmor">
                             </div>
                             <div class="form-group">
-                                <label><i class="fa fa-ring"></i> Linh vật</label>
+                                <label><i class="fa fa-ring"></i> Phụ kiện</label>
                                 <input type="text" id="equipAccessory">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-fire-flame-curved"></i> Nguyên tố / Ma pháp</label>
+                                <input type="text" id="charElement" placeholder="VD: Hỏa, Lôi, Không gian...">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-dragon"></i> Linh thú / Thú cưỡi</label>
+                                <input type="text" id="charPet" placeholder="VD: Rồng lửng, Sói tuyết...">
                             </div>
                         </div>
                     </section>
@@ -926,6 +1054,10 @@
                                 <select id="charMother" class="select-fantasy">
                                     <option value="">Không rõ / Ẩn danh</option>
                                 </select>
+                            </div>
+                            <div class="form-group full" style="grid-column: 1 / -1; margin-top: 10px;">
+                                <label><i class="fa-solid fa-droplet"></i> Huyết mạch / Thể chất đặc thù</label>
+                                <input type="text" id="charBloodline" placeholder="VD: Tiên thiên đạo thể, Huyết mạch Long tộc...">
                             </div>
                         </div>
 
@@ -960,6 +1092,14 @@
                         <div class="form-group full" style="margin-top: 15px;">
                             <label>Biên niên sử (Tiểu sử chính)</label>
                             <textarea id="charDesc" rows="6" placeholder="Viết về cuộc đời nhân vật..."></textarea>
+                        </div>
+                        <div class="form-group full" style="margin-top: 15px;">
+                            <label>Chiến tích / Thành tựu</label>
+                            <textarea id="charAchievements" rows="3" class="auto-expand" placeholder="Các thành tựu lớn nhất trong đời..."></textarea>
+                        </div>
+                        <div class="form-group full" style="margin-top: 15px;">
+                            <label>Châm ngôn / Câu nói nổi tiếng</label>
+                            <input type="text" id="charQuote" placeholder='VD: "Kẻ mạnh mới có quyền quyết định công lý!"'>
                         </div>
                     </section>
 
@@ -997,10 +1137,21 @@
                             <label><i class="fa-solid fa-calendar-day"></i> Ngày thành lập</label>
                             <input type="date" id="factionFounded">
                         </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-bolt"></i> Sức mạnh (0-1000)</label>
-                            <input type="number" id="factionPower" placeholder="100">
                         </div>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <label><i class="fa-solid fa-chart-pie"></i> Lực Chiến (0-1000 mỗi loại)</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="number" id="factionMil" placeholder="Quân sự" style="flex:1;">
+                            <input type="number" id="factionEco" placeholder="Kinh tế" style="flex:1;">
+                            <input type="number" id="factionMag" placeholder="Ma thuật" style="flex:1;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label><i class="fa-solid fa-medal"></i> Nội tại (Cách nhau bằng dấu phẩy)</label>
+                        <input type="text" id="factionTraits" placeholder="VD: Thủy chiến, Giàu có">
                     </div>
                 </div>
 
@@ -1008,6 +1159,10 @@
                     <div class="form-group">
                         <label><i class="fa-solid fa-location-dot"></i> Trụ sở chính</label>
                         <input type="text" id="factionHQ" placeholder="VD: Đảo Thiên Đường">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-globe"></i> Lãnh thổ kiểm soát</label>
+                        <input type="text" id="factionTerritory" placeholder="VD: Phương Bắc">
                     </div>
                     <div class="form-group">
                         <label><i class="fa-solid fa-expand"></i> Quy mô</label>
@@ -1041,7 +1196,10 @@
                     <input type="text" id="factionGoal" placeholder="Mục tiêu tối thượng..." style="flex: 1;">
                     <input type="text" id="factionIdeology" placeholder="Tư tưởng chủ đạo..." style="flex: 1;">
                 </div>
-                <textarea id="factionDesc" rows="3" placeholder="Lịch sử hình thành và mô tả chi tiết..."></textarea>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                    <textarea id="factionDesc" rows="4" placeholder="Mô tả chi tiết về văn hóa, xã hội..."></textarea>
+                    <textarea id="factionChronicle" rows="4" placeholder="Biên niên sử (VD: Năm 100: Thành lập | Năm 200: Chiến tranh...)"></textarea>
+                </div>
             </div>
 
             <div class="structure-section" style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px dashed var(--gold);">
@@ -1301,8 +1459,18 @@
 </div>
 <section id="worldLawsPage" class="page hidden">
     <div class="world-laws-container">
-        <h1 class="magic-title">Thư Viện Luật Thế Giới</h1>
-        
+        <div class="wl-header-actions" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
+            <h1 class="magic-title" style="margin:0;">Thư Viện Luật Thế Giới</h1>
+            <div style="display:flex; gap:10px;">
+                <div class="search-box" style="margin:0;">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="lawSearchInput" placeholder="Dò tìm pháp tắc..." onkeyup="WorldLawModule.searchLaws(this.value)">
+                </div>
+                <button class="btn-secondary" onclick="WorldLawModule.toggleScrollMode()" title="Chế độ Cổ thư" style="border-radius: 8px;">
+                    <i class="fa-solid fa-scroll"></i>
+                </button>
+            </div>
+        </div>
         <div id="lawTabs" class="law-tabs-container">
             </div>
 
@@ -1332,6 +1500,23 @@
                 <input type="text" id="lawTitle" placeholder="Tiêu đề điều luật..." required
                     style="width:100%; padding:10px; background:transparent; border:none; border-bottom:1px solid var(--ancient-gold); color:white;">
             </div>
+            <div class="form-group" style="margin-top:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div>
+                    <label>Hệ Pháp Tắc (Màu sắc)</label>
+                    <select id="lawAlignment" style="width:100%; padding:8px; background:#0a192f; color:white; border:1px solid var(--ancient-gold);">
+                        <option value="neutral">Trung lập (Trắng/Vàng)</option>
+                        <option value="nature">Tự nhiên (Xanh lá)</option>
+                        <option value="dark">Hắc Ám (Tím/Đen)</option>
+                        <option value="light">Ánh Sáng (Vàng rực)</option>
+                        <option value="forbidden">Cấm Thuật (Đỏ máu)</option>
+                        <option value="water">Thủy/Băng (Xanh lam)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Kỷ nguyên ban hành</label>
+                    <input type="text" id="lawEra" placeholder="VD: Năm 4022..." style="width:100%; padding:8px; background:#0a192f; color:white; border:1px solid var(--ancient-gold);">
+                </div>
+            </div>
             <div class="form-group" style="margin-top:15px;">
                 <textarea id="lawContent" placeholder="Nội dung huyền bí..." rows="4" required
                     style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #333; color:white;"></textarea>
@@ -1351,12 +1536,26 @@
 </main>
 </div>
 <script src="idSystem.js"></script>
+<script>
+  function toggleMagicBackground() {
+    const canvas = document.getElementById("magicParticlesCanvas");
+    if (canvas) {
+      if (canvas.style.display === "none") {
+        canvas.style.display = "block";
+        if(typeof showToast === 'function') showToast("Đã BẬT hiệu ứng bụi ma thuật!");
+      } else {
+        canvas.style.display = "none";
+        if(typeof showToast === 'function') showToast("Đã TẮT hiệu ứng nền!");
+      }
+    }
+  }
+</script>
 <script src="imageDB.js"></script>
 <script src="uiManager.js"></script> 
 <script src="effects.js"></script>
 <script src="diplomacy.js"></script>
 <script src="kingdoms.js"></script>
-<script src="factions.js"></script>
+<script src="factions.js?v=2"></script>
 
 <script src="codexSearch.js"></script>
 <script src="infiniteScroll.js"></script>
@@ -1371,7 +1570,7 @@
 <script src="tournament.js"></script>
 <script src="features.js"></script>
 <script src="SkillTreeVortex.js"></script>
-<script src="familyTree.js"></script>
+<script src="familyTree.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 

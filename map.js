@@ -208,6 +208,7 @@ function renderMap() {
 
 function renderRoutes(svgLayer) {
     if (!currentMap.routes) return;
+    svgLayer.innerHTML = "";
     currentMap.routes.forEach(route => {
         const start = currentMap.locations.find(l => l.id === route.startId);
         const end = currentMap.locations.find(l => l.id === route.endId);
@@ -218,8 +219,17 @@ function renderRoutes(svgLayer) {
             line.setAttribute("x2", `${end.x}%`);
             line.setAttribute("y2", `${end.y}%`);
             line.setAttribute("stroke", getDynamicColor(start.type));
-            line.setAttribute("stroke-width", "2");
-            line.setAttribute("stroke-dasharray", "4,4");
+            line.setAttribute("class", "map-route");
+            
+            line.onclick = async (e) => {
+                e.stopPropagation();
+                if (confirm("Xóa đoạn đường nối này?")) {
+                    currentMap.routes = currentMap.routes.filter(r => r.id !== route.id);
+                    await syncDB();
+                    renderRoutes(svgLayer);
+                }
+            };
+            
             svgLayer.appendChild(line);
         }
     });
@@ -348,7 +358,12 @@ document.addEventListener("mousemove", (e) => {
         let y = ((e.clientY - rect.top) / rect.height) * 100;
         selectedMarker.data.x = Math.max(0, Math.min(100, x));
         selectedMarker.data.y = Math.max(0, Math.min(100, y));
-        renderMap();
+        
+        // Optimize: Only update inline styles and redraw routes, don't recreate all DOM nodes
+        selectedMarker.el.style.left = selectedMarker.data.x + "%";
+        selectedMarker.el.style.top = selectedMarker.data.y + "%";
+        const svgLayer = document.getElementById("mapRoutes");
+        if (svgLayer) renderRoutes(svgLayer);
     } else if (isDraggingMap) {
         originX += e.clientX - dragStartX;
         originY += e.clientY - dragStartY;
@@ -429,8 +444,54 @@ function openPopup(loc) {
 
 function closePopup() { 
     currentLocation = null;
-    document.getElementById("mapPopup").classList.add("hidden"); 
+    document.getElementById("mapPopup").classList.add("hidden");
+    
+    // Reset Edit Mode if it was open
+    document.getElementById("popupViewMode").classList.remove("hidden");
+    document.getElementById("popupEditMode").classList.add("hidden");
+    document.getElementById("btnToggleEdit").innerHTML = '<i class="fa-solid fa-pen"></i>';
+    
     renderMap();
+}
+
+function toggleEditLocation() {
+    const viewMode = document.getElementById("popupViewMode");
+    const editMode = document.getElementById("popupEditMode");
+    const btn = document.getElementById("btnToggleEdit");
+    
+    if (editMode.classList.contains("hidden")) {
+        // Chuyển sang Edit Mode
+        viewMode.classList.add("hidden");
+        editMode.classList.remove("hidden");
+        btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+        
+        document.getElementById("editLocName").value = currentLocation.name;
+        document.getElementById("editLocType").value = currentLocation.type || "";
+        document.getElementById("editLocDesc").value = currentLocation.desc || "";
+    } else {
+        // Hủy Edit Mode
+        viewMode.classList.remove("hidden");
+        editMode.classList.add("hidden");
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+    }
+}
+
+async function saveEditLocation() {
+    if (!currentLocation) return;
+    const newName = document.getElementById("editLocName").value.trim();
+    if (!newName) {
+        if(typeof showToast === "function") showToast("Tên địa điểm không được để trống!", "warning");
+        return;
+    }
+    
+    currentLocation.name = newName;
+    currentLocation.type = document.getElementById("editLocType").value.trim() || "Địa điểm";
+    currentLocation.desc = document.getElementById("editLocDesc").value.trim();
+    
+    await syncDB();
+    toggleEditLocation();
+    openPopup(currentLocation); // Nạp lại dữ liệu mới vào view mode
+    if(typeof showToast === "function") showToast("Đã cập nhật địa điểm!", "success");
 }
 
 function getDynamicColor(str) {

@@ -35,10 +35,19 @@
     </header>
 
     <div class="toolbar" style="display: flex; gap: 15px; margin-bottom: 30px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <div class="search-box" style="flex: 1; min-width: 300px; position: relative;">
-            <i class="fa fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
-            <input type="text" id="creatureSearch" placeholder="Tìm kiếm tên hoặc chủng loại..." 
-                   style="width: 100%; padding: 12px 12px 12px 45px; background: var(--glass); border: 1px solid var(--border); border-radius: 30px; color: #white;">
+        <div class="search-filter-group" style="display:flex; flex:1; min-width:300px; gap:10px;">
+            <div class="search-box" style="flex: 1; position: relative;">
+                <i class="fa fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
+                <input type="text" id="creatureSearch" placeholder="Tìm kiếm tên..." 
+                       style="width: 100%; padding: 12px 12px 12px 45px; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; color: white;">
+            </div>
+            <select id="creatureFilterRank" style="background:var(--glass); border:1px solid var(--border); border-radius:12px; color:white; padding:0 15px; outline:none; max-width:130px;">
+                <option value="">Tất cả</option>
+                <option value="S">Rank S</option>
+                <option value="A">Rank A</option>
+                <option value="B">Rank B</option>
+                <option value="C">Rank C</option>
+            </select>
         </div>
         <button class="btn-back-modern" onclick="openCreatureModal()" style="background: var(--gold); color: #000;">
             <i class="fa fa-plus"></i> Thêm Sinh Vật
@@ -57,98 +66,111 @@
             <h3 class="cinzel-font"><i class="fa-solid fa-scroll"></i> Hồ sơ Sinh vật</h3>
             <span class="close" onclick="closeCreatureModal()">&times;</span>
         </div>
+        
+        <div class="form-tabs">
+            <button type="button" class="tab-btn active" onclick="switchCreatureTab(event, 'tabBasic')">Cơ bản</button>
+            <button type="button" class="tab-btn" onclick="switchCreatureTab(event, 'tabTraits')">Đặc tính</button>
+            <button type="button" class="tab-btn" onclick="switchCreatureTab(event, 'tabStats')">Chỉ số</button>
+        </div>
+
         <form id="creatureForm" onsubmit="event.preventDefault(); saveCreature();">
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group" style="grid-column: span 2;">
-                    <label>Tên sinh vật <span style="color:red">*</span></label>
-                    <input type="text" id="creatureName" required placeholder="Ví dụ: Rồng Lửa Thượng Cổ">
-                </div>
-                <div class="form-group">
-                    <label>Phân loại</label>
-                    <input type="text" id="creatureType" placeholder="Ví dụ: Thần thú, Quỷ...">
-                </div>
-                <div class="form-group">
-                    <label>Độ nguy hiểm (Rank)</label>
-                    <select id="creatureRank">
-                        <option value="S">Rank S</option>
-                        <option value="A">Rank A</option>
-                        <option value="B">Rank B</option>
-                        <option value="C">Rank C</option>
-                    </select>
-                </div>
-            </div>
             
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Hình ảnh</label>
-                <div class="upload-zone" onclick="document.getElementById('creatureImg').click()" 
-                     style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 12px; cursor: pointer;">
-                    <i class="fa fa-cloud-upload" style="font-size: 2rem; color: var(--gold);"></i>
-                    <p>Nhấn để tải ảnh hoặc kéo thả</p>
-                    <input type="file" id="creatureImg" accept="image/*" hidden onchange="previewCreatureImage(event)">
+            <!-- TAB 1: CƠ BẢN -->
+            <div id="tabBasic" class="tab-content">
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Tên sinh vật <span style="color:red">*</span></label>
+                        <input type="text" id="creatureName" required placeholder="Ví dụ: Rồng Lửa Thượng Cổ">
+                    </div>
+                    <div class="form-group">
+                        <label>Phân loại</label>
+                        <input type="text" id="creatureType" placeholder="Ví dụ: Thần thú, Quỷ...">
+                    </div>
+                    <div class="form-group">
+                        <label>Độ nguy hiểm (Rank)</label>
+                        <select id="creatureRank">
+                            <option value="S">Rank S</option>
+                            <option value="A">Rank A</option>
+                            <option value="B">Rank B</option>
+                            <option value="C">Rank C</option>
+                        </select>
+                    </div>
                 </div>
-                <img id="creaturePreview" class="hidden" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; border: 1px solid var(--gold);">
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Hình ảnh</label>
+                    <div class="upload-zone" onclick="document.getElementById('creatureImg').click()" 
+                         style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <i class="fa fa-cloud-upload" style="font-size: 2rem; color: var(--gold);"></i>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Nhấn để tải ảnh</p>
+                        <input type="file" id="creatureImg" accept="image/*" hidden onchange="previewCreatureImage(event)">
+                    </div>
+                    <img id="creaturePreview" class="hidden" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; border: 1px solid var(--gold);">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Mô tả đặc điểm</label>
+                    <textarea id="creatureDesc" rows="3" placeholder="Viết về tập tính, kỹ năng..."></textarea>
+                </div>
             </div>
 
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Mô tả đặc điểm</label>
-                <textarea id="creatureDesc" rows="4" placeholder="Viết về tập tính, kỹ năng..."></textarea>
-            </div>
-
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+            <!-- TAB 2: ĐẶC TÍNH -->
+            <div id="tabTraits" class="tab-content hidden">
                 <div class="form-group">
                     <label>Vùng sinh sống</label>
                     <input type="text" id="creatureHabitat" placeholder="Vực thẳm, Rừng sương mù...">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 15px;">
                     <label>Nhược điểm</label>
                     <input type="text" id="creatureWeakness" placeholder="Sợ lửa, Mắt trái...">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 15px;">
                     <label>Vật phẩm rơi (Drops)</label>
                     <input type="text" id="creatureDrops" placeholder="Vảy rồng, Nanh quỷ...">
                 </div>
+
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2);">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><i class="fa-solid fa-fire"></i> Kỹ năng Độc Tôn</label>
+                        <input type="text" id="creatureSkill" placeholder="VD: Hơi Thở Rồng Lửa...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-horse-head"></i> Thuần hóa</label>
+                        <select id="creatureTameable">
+                            <option value="false">Không thể</option>
+                            <option value="true">Có thể</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-dna"></i> Dạng Tiến Hóa</label>
+                        <select id="creatureEvolution">
+                            <option value="">-- Không có --</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            <!-- HỆ THỐNG MỚI -->
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2);">
-                <div class="form-group" style="grid-column: span 2;">
-                    <label><i class="fa-solid fa-fire"></i> Kỹ năng Độc Tôn</label>
-                    <input type="text" id="creatureSkill" placeholder="VD: Hơi Thở Rồng Lửa, Lời Nguyền Hóa Đá...">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-horse-head"></i> Khả năng Thuần hóa</label>
-                    <select id="creatureTameable">
-                        <option value="false">Không thể (Wild)</option>
-                        <option value="true">Có thể (Tameable)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-dna"></i> Dạng Tiến Hóa Kế Tiếp</label>
-                    <select id="creatureEvolution">
-                        <option value="">-- Không có --</option>
-                        <!-- Options sẽ được load từ DB -->
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,0,0,0.2);">
-                <label style="color: #ef4444; margin-bottom: 10px; display: block;"><i class="fa-solid fa-chart-simple"></i> Chỉ Số Chiến Đấu (Stats)</label>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <div>
-                        <label style="font-size: 0.75rem; color:#f87171;">HP (Máu)</label>
-                        <input type="number" id="statHP" value="100" min="1" style="border-color:#f87171;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color:#fb923c;">ATK (Tấn công)</label>
-                        <input type="number" id="statATK" value="50" min="1" style="border-color:#fb923c;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color:#60a5fa;">DEF (Phòng thủ)</label>
-                        <input type="number" id="statDEF" value="50" min="1" style="border-color:#60a5fa;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color:#34d399;">SPD (Tốc độ)</label>
-                        <input type="number" id="statSPD" value="50" min="1" style="border-color:#34d399;">
+            <!-- TAB 3: CHỈ SỐ -->
+            <div id="tabStats" class="tab-content hidden">
+                <div class="form-group" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,0,0,0.2);">
+                    <label style="color: #ef4444; margin-bottom: 10px; display: block;"><i class="fa-solid fa-chart-simple"></i> Chỉ Số Chiến Đấu</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div>
+                            <label style="font-size: 0.75rem; color:#f87171;">HP (Máu) max 500</label>
+                            <input type="number" id="statHP" value="100" min="1" max="500" style="border-color:#f87171;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color:#fb923c;">ATK (Công) max 300</label>
+                            <input type="number" id="statATK" value="50" min="1" max="300" style="border-color:#fb923c;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color:#60a5fa;">DEF (Thủ) max 300</label>
+                            <input type="number" id="statDEF" value="50" min="1" max="300" style="border-color:#60a5fa;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color:#34d399;">SPD (Tốc độ) max 300</label>
+                            <input type="number" id="statSPD" value="50" min="1" max="300" style="border-color:#34d399;">
+                        </div>
                     </div>
                 </div>
             </div>
